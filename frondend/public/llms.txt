@@ -1,0 +1,13 @@
+## Pages
+- [- AI Itinerary Creator](/itinerarydetail): No description available
+- [- Orbito](/attractiondetail): No description available
+- [- Orbito](/resourcedetail): No description available
+- [- Shared Itinerary](/shareableitinerary): No description available
+- [Login or Sign Up - Orbito](/auth): No description available
+- [My Account - Orbito](/myaccount): Manage your profile, trips, and favorites
+- [My Itineraries - AI Itinerary Creator](/myitineraries): View and manage all your saved travel itineraries in one place.
+- [My Profile - Orbito](/profile): Manage your profile and travel preferences.
+- [Plan Your  Trip - Orbito](/plantour): No description available
+- [Popular Attractions - Orbito](/attractions): No description available
+- [Pricing Plans - Orbito](/pricing): Choose the perfect plan for your travel needs, from free basic access to unlimited premium features.
+- [Travel Resources - Orbito](/resources): Expert guides and tips for your next adventure.
