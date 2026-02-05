@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
-
 import { supabase } from '@/lib/customSupabaseClient';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -7,12 +6,12 @@ const AuthContext = createContext(undefined);
 
 export const AuthProvider = ({ children }) => {
   const { toast } = useToast();
- 
+  
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
- 
+  
   const handleSession = useCallback(async (session) => {
     setSession(session);
     setUser(session?.user ?? null);
@@ -24,7 +23,7 @@ export const AuthProvider = ({ children }) => {
           .select('*')
           .eq('id', session.user.id)
           .single();
- 
+  
         if (!error) {
           setProfile(data);
         } else {
@@ -38,7 +37,7 @@ export const AuthProvider = ({ children }) => {
     } else {
       setProfile(null);
     }
- 
+  
     setLoading(false);
   }, []);
 
@@ -59,33 +58,23 @@ export const AuthProvider = ({ children }) => {
     return () => subscription.unsubscribe();
   }, [handleSession]);
 
+  // ✅ FIXED SIGNUP FUNCTION (Removed manual profile creation)
   const signUp = useCallback(async (email, password, options) => {
+    // We pass the full_name inside options.data so the DB trigger can grab it
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options,
-    });
- 
-    if (!error && data?.user) {
-      try {
-        const { error: profileError } = await supabase.from('profiles').upsert(
-          {
-            id: data.user.id,
-            email,
-            name: options?.data?.full_name ?? null,
-            role: 'customer',
-          },
-          { onConflict: 'id' }
-        );
- 
-        if (profileError) {
-          console.error('Error creating profile on signup:', profileError);
+      options: {
+        data: {
+          full_name: options?.data?.full_name, // Pass name to Supabase Auth
+          ...options?.data // Pass any other metadata
         }
-      } catch (err) {
-        console.error('Unexpected error creating profile on signup:', err);
       }
-    }
- 
+    });
+  
+    // ❌ DELETED: The manual 'supabase.from('profiles').upsert(...)' block.
+    // The database trigger now handles this automatically!
+  
     if (error) {
       toast({
         variant: "destructive",
@@ -93,7 +82,7 @@ export const AuthProvider = ({ children }) => {
         description: error.message || "Something went wrong",
       });
     }
- 
+  
     return { error };
   }, [toast]);
 
