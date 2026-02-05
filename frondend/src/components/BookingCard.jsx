@@ -17,8 +17,9 @@
 
 import { useState } from 'react';
 
-// Replace with your actual backend URL
-const API_URL = "http://localhost:5000/api/octo/bookings";
+// Use environment variable for production, fallback to localhost for development
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = `${API_BASE_URL}/octo/bookings`;
 
 export default function BookingCard({ productId, availabilityId, price }) {
   const [loading, setLoading] = useState(false);
