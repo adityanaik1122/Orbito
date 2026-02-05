@@ -1,9 +1,12 @@
 const express = require('express');
-const { generateItinerary, saveItineraryHandler } = require('../controllers/itineraryController');
+const { generateItinerary, saveItineraryHandler, getUserItinerariesHandler } = require('../controllers/itineraryController');
+const { requireAuth } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-router.post('/generate-itinerary', generateItinerary);
-router.post('/save-itinerary', saveItineraryHandler);
+// Protected routes - require authentication
+router.post('/generate-itinerary', requireAuth, generateItinerary);
+router.post('/save-itinerary', requireAuth, saveItineraryHandler);
+router.get('/itineraries', requireAuth, getUserItinerariesHandler);
 
 module.exports = router;

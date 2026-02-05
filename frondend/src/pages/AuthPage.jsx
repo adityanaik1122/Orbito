@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet';
 import { Button } from '@/components/ui/button';
@@ -13,8 +13,12 @@ import { supabase } from '@/lib/customSupabaseClient';
 
 const AuthPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { signIn, signUp } = useAuth();
+  
+  // Get the intended destination from location state, or default to my-account
+  const from = location.state?.from?.pathname || '/my-account';
   
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -38,7 +42,7 @@ const AuthPage = () => {
       if (error) throw error;
 
       // Determine role and redirect accordingly
-      let target = '/my-account';
+      let target = from;
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {

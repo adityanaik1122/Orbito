@@ -1,0 +1,12 @@
+{
+  "buildCommand": "cd frondend && npm install && npm run build",
+  "outputDirectory": "frondend/dist",
+  "installCommand": "cd frondend && npm install",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ]
+}

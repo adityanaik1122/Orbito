@@ -1,15 +1,38 @@
 // src/services/api.js
+import { supabase } from '@/lib/customSupabaseClient';
+
 const API_BASE_URL = 'http://localhost:5000/api';
+
+/**
+ * Helper to get the current auth token
+ */
+async function getAuthToken() {
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.access_token || null;
+}
+
+/**
+ * Helper to create headers with auth token
+ */
+async function getAuthHeaders() {
+  const token = await getAuthToken();
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+}
 
 export const apiService = {
   // Generate AI Itinerary
   generateItinerary: async (tripData) => {
     try {
+      const headers = await getAuthHeaders();
       const response = await fetch(`${API_BASE_URL}/generate-itinerary`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           destination: tripData.destination,
           startDate: tripData.startDate,
@@ -23,6 +46,12 @@ export const apiService = {
         try {
           errorBody = await response.json();
         } catch {/* ignore JSON parse errors */}
+        
+        // Handle auth errors specifically
+        if (response.status === 401) {
+          throw new Error('Please log in to generate itineraries');
+        }
+        
         const message =
           errorBody.details ||
           errorBody.error ||
@@ -39,20 +68,19 @@ export const apiService = {
   },
 
   // Save Itinerary
-  saveItinerary: async (userId, itineraryData) => {
+  saveItinerary: async (itineraryData) => {
     try {
+      const headers = await getAuthHeaders();
       const response = await fetch(`${API_BASE_URL}/save-itinerary`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId,
-          ...itineraryData
-        }),
+        headers,
+        body: JSON.stringify(itineraryData),
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Please log in to save itineraries');
+        }
         const error = await response.json();
         throw new Error(error.error || 'Failed to save itinerary');
       }
@@ -66,11 +94,17 @@ export const apiService = {
   },
 
   // Get User's Itineraries
-  getUserItineraries: async (userId) => {
+  getUserItineraries: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/itineraries/${userId}`);
+      const headers = await getAuthHeaders();
+      const response = await fetch(`${API_BASE_URL}/itineraries`, {
+        headers,
+      });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Please log in to view itineraries');
+        }
         const error = await response.json();
         throw new Error(error.error || 'Failed to fetch itineraries');
       }

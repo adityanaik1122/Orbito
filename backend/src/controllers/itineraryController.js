@@ -1,5 +1,5 @@
 const { getGenerativeModel } = require('../config/gemini');
-const { saveItinerary } = require('../models/itineraryModel');
+const { saveItinerary, getItinerariesByUser } = require('../models/itineraryModel');
 
 async function generateItinerary(req, res) {
   try {
@@ -52,7 +52,10 @@ Return ONLY valid JSON: { "destination": "${destination}", "days": [{"dayNumber"
 
 async function saveItineraryHandler(req, res) {
   try {
-    const { userId, title, destination, startDate, endDate, days, activities } = req.body;
+    const { title, destination, startDate, endDate, days, activities } = req.body;
+    
+    // Use authenticated user ID from middleware instead of request body
+    const userId = req.user.id;
 
     const { data, error } = await saveItinerary({
       userId,
@@ -75,7 +78,25 @@ async function saveItineraryHandler(req, res) {
   }
 }
 
+async function getUserItinerariesHandler(req, res) {
+  try {
+    const userId = req.user.id;
+
+    const { data, error } = await getItinerariesByUser(userId);
+
+    if (error) {
+      throw error;
+    }
+
+    res.json({ success: true, itineraries: data });
+  } catch (error) {
+    console.error('Error in getUserItinerariesHandler:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
 module.exports = {
   generateItinerary,
   saveItineraryHandler,
+  getUserItinerariesHandler,
 };

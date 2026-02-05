@@ -23,6 +23,21 @@ async function saveItinerary({ userId, title, destination, startDate, endDate, d
   return { data, error };
 }
 
+async function getItinerariesByUser(userId) {
+  if (!supabase) {
+    throw new Error('Supabase is not initialized. Check SUPABASE_URL and SUPABASE_ANON_KEY.');
+  }
+
+  const { data, error } = await supabase
+    .from('itineraries')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  return { data, error };
+}
+
 module.exports = {
   saveItinerary,
+  getItinerariesByUser,
 };

@@ -18,6 +18,7 @@ import ResourceDetailPage from '@/pages/ResourceDetailPage';
 import OperatorDashboardPage from '@/pages/OperatorDashboardPage';
 import AdminDashboardPage from '@/pages/AdminDashboardPage';
 import RequireRole from '@/components/RequireRole';
+import RequireAuth from '@/components/RequireAuth';
 import { AuthProvider } from '@/contexts/SupabaseAuthContext';
 
 function App() {
@@ -29,9 +30,21 @@ function App() {
           <Route path="/" element={<Layout><HomePage /></Layout>} />
           <Route path="/login" element={<AuthPage />} />
           
-          <Route path="/plan" element={<Layout><PlanTourPage /></Layout>} />
-          <Route path="/my-account" element={<Layout><MyAccountPage /></Layout>} />
-          <Route path="/itinerary/:id" element={<Layout><ItineraryDetailPage /></Layout>} />
+          <Route path="/plan" element={
+            <RequireAuth>
+              <Layout><PlanTourPage /></Layout>
+            </RequireAuth>
+          } />
+          <Route path="/my-account" element={
+            <RequireAuth>
+              <Layout><MyAccountPage /></Layout>
+            </RequireAuth>
+          } />
+          <Route path="/itinerary/:id" element={
+            <RequireAuth>
+              <Layout><ItineraryDetailPage /></Layout>
+            </RequireAuth>
+          } />
           <Route path="/itinerary/share/:shareId" element={<ShareableItineraryPage />} />
           
           <Route path="/destinations" element={<Layout><DestinationsPage /></Layout>} />
