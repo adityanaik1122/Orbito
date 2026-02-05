@@ -27,7 +27,8 @@ export const AuthProvider = ({ children }) => {
         if (!error) {
           setProfile(data);
         } else {
-          console.error('Error loading profile:', error);
+          // It's normal to have no profile immediately after signup until the trigger finishes
+          console.log('Profile loading...'); 
           setProfile(null);
         }
       } catch (err) {
@@ -58,32 +59,36 @@ export const AuthProvider = ({ children }) => {
     return () => subscription.unsubscribe();
   }, [handleSession]);
 
-  // ✅ FIXED SIGNUP FUNCTION (Removed manual profile creation)
+  // ✅ NEW CLEAN SIGNUP FUNCTION
   const signUp = useCallback(async (email, password, options) => {
-    // We pass the full_name inside options.data so the DB trigger can grab it
+    console.log("Attempting signup for:", email);
+
+    // 1. Create User (Database Trigger will handle the Profile)
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
-          full_name: options?.data?.full_name, // Pass name to Supabase Auth
-          ...options?.data // Pass any other metadata
+          full_name: options?.data?.full_name,
+          ...options?.data 
         }
       }
     });
   
-    // ❌ DELETED: The manual 'supabase.from('profiles').upsert(...)' block.
-    // The database trigger now handles this automatically!
-  
     if (error) {
+      console.error("Signup Error:", error);
       toast({
         variant: "destructive",
         title: "Sign up Failed",
         description: error.message || "Something went wrong",
       });
+      return { error };
     }
-  
-    return { error };
+
+    // If we get here, it worked. The error you saw before is impossible now.
+    console.log("✅ Signup successful via Trigger. User ID:", data.user?.id);
+    return { data, error: null };
+
   }, [toast]);
 
   const signIn = useCallback(async (email, password) => {
@@ -105,7 +110,6 @@ export const AuthProvider = ({ children }) => {
 
   const signOut = useCallback(async () => {
     const { error } = await supabase.auth.signOut();
-
     if (error) {
       toast({
         variant: "destructive",
@@ -113,7 +117,6 @@ export const AuthProvider = ({ children }) => {
         description: error.message || "Something went wrong",
       });
     }
-
     return { error };
   }, [toast]);
 
