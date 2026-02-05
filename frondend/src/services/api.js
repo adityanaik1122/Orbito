@@ -1,7 +1,8 @@
 // src/services/api.js
 import { supabase } from '@/lib/customSupabaseClient';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+// Use environment variable for production, fallback to localhost for development
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 /**
  * Helper to get the current auth token
