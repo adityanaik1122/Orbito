@@ -57,7 +57,7 @@ const MyAccountPage = () => {
 
         if (profileData) {
             setProfile({
-                name: profileData.full_name || '',
+                name: profileData.name || '',
                 email: profileData.email || user.email,
                 location: profileData.location || '',
                 joinDate: profileData.join_date || new Date().toISOString()
@@ -119,7 +119,7 @@ const MyAccountPage = () => {
             .from('profiles')
             .upsert({
                 id: user.id,
-                full_name: profile.name,
+                name: profile.name,
                 email: profile.email,
                 location: profile.location,
                 updated_at: new Date().toISOString()
