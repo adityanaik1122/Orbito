@@ -117,7 +117,7 @@ const AttractionDetailPage = () => {
                                     </div>
                                     <div>
                                         <span className="block font-bold text-gray-900 text-sm mb-0.5">Address</span>
-                                        <span className="text-sm text-gray-600 leading-snug block">{attraction.details.address}</span>
+                                        <span className="text-sm text-gray-600 leading-snug block">{attraction.address || `${attraction.location}`}</span>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3 text-gray-700">
@@ -126,20 +126,31 @@ const AttractionDetailPage = () => {
                                     </div>
                                     <div>
                                         <span className="block font-bold text-gray-900 text-sm mb-0.5">Opening Hours</span>
-                                        <span className="text-sm text-gray-600">{attraction.details.hours}</span>
+                                        <span className="text-sm text-gray-600">{attraction.openingHours || 'Contact for hours'}</span>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3 text-gray-700">
                                     <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center shrink-0">
-                                        <Globe className="w-5 h-5 text-gray-500" />
+                                        <Clock className="w-5 h-5 text-gray-500" />
                                     </div>
                                     <div>
-                                        <span className="block font-bold text-gray-900 text-sm mb-0.5">Website</span>
-                                        <a href={attraction.details.website} target="_blank" rel="noopener noreferrer" className="text-sm text-[#0B3D91] font-medium hover:text-[#092C6B] hover:underline flex items-center gap-1">
-                                            Visit Official Site <ExternalLink className="w-3 h-3" />
-                                        </a>
+                                        <span className="block font-bold text-gray-900 text-sm mb-0.5">Estimated Time</span>
+                                        <span className="text-sm text-gray-600">{attraction.estTime || '1-2 hours'}</span>
                                     </div>
                                 </div>
+                                {attraction.website && (
+                                    <div className="flex items-center gap-3 text-gray-700">
+                                        <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center shrink-0">
+                                            <Globe className="w-5 h-5 text-gray-500" />
+                                        </div>
+                                        <div>
+                                            <span className="block font-bold text-gray-900 text-sm mb-0.5">Website</span>
+                                            <a href={attraction.website} target="_blank" rel="noopener noreferrer" className="text-sm text-[#0B3D91] font-medium hover:text-[#092C6B] hover:underline flex items-center gap-1">
+                                                Visit Official Site <ExternalLink className="w-3 h-3" />
+                                            </a>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                             
                             <div className="space-y-3 pt-4 border-t border-gray-100">

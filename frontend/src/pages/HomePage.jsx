@@ -27,16 +27,16 @@ const HomePage = ({ isLoggedIn }) => {
   ];
 
   const topAttractions = [
-    { title: 'Eiffel Tower, Paris', reviews: '8520', rating: 4.9, price: '€26', image: 'https://images.unsplash.com/photo-1511739001486-6bfe10ce7859?q=80&w=1000&auto=format&fit=crop', tags: ['Landmark', 'Views'] },
+    { title: 'Eiffel Tower, Paris', reviews: '8520', rating: 4.9, price: '€26', image: 'https://images.unsplash.com/photo-1543349689-9a4d426bee8e?q=80&w=1000&auto=format&fit=crop', tags: ['Landmark', 'Views'] },
     { title: 'Colosseum, Rome', reviews: '6240', rating: 4.8, price: '€18', image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=1000&auto=format&fit=crop', tags: ['History', 'Ancient'] },
-    { title: 'Sagrada Familia, Barcelona', reviews: '5090', rating: 4.9, price: '€26', image: 'https://images.unsplash.com/photo-1583422409516-2895a77efded?q=80&w=1000&auto=format&fit=crop', tags: ['Architecture', 'Religious'] },
+    { title: 'Sagrada Familia, Barcelona', reviews: '5090', rating: 4.9, price: '€26', image: 'https://images.unsplash.com/photo-1583779457711-3fd09c653ece?q=80&w=1000&auto=format&fit=crop', tags: ['Architecture', 'Religious'] },
     { title: 'Big Ben, London', reviews: '4520', rating: 4.7, price: 'Free', image: 'https://images.unsplash.com/photo-1529655683826-aba9b3e77383?q=80&w=1000&auto=format&fit=crop', tags: ['Landmark', 'History'] },
   ];
 
   const featuredItineraries = [
-      { id: 1, title: "Romantic Paris Getaway", duration: '4 Days', rating: 4.9, reviews: 534, price: 'Free', image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=1000&auto=format&fit=crop', tags: ['Romance', 'Culture'] },
-      { id: 2, title: 'Ancient Rome Explorer', duration: '3 Days', rating: 4.8, reviews: 412, price: 'Free', image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=1000&auto=format&fit=crop', tags: ['History', 'Ancient'] },
-      { id: 3, title: 'Tokyo Adventure', duration: '5 Days', rating: 4.9, reviews: 389, price: 'Free', image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1000&auto=format&fit=crop', tags: ['Culture', 'Food'] },
+      { id: 1, title: "Romantic Paris Getaway", duration: '4 Days', rating: 4.9, reviews: 534, price: 'Free', image: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?q=80&w=1000&auto=format&fit=crop', tags: ['Romance', 'Culture'], location: 'Paris' },
+      { id: 2, title: 'Ancient Rome Explorer', duration: '3 Days', rating: 4.8, reviews: 412, price: 'Free', image: 'https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?q=80&w=1000&auto=format&fit=crop', tags: ['History', 'Ancient'], location: 'Rome' },
+      { id: 3, title: 'Tokyo Adventure', duration: '5 Days', rating: 4.9, reviews: 389, price: 'Free', image: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=1000&auto=format&fit=crop', tags: ['Culture', 'Food'], location: 'Tokyo' },
   ];
 
   return (
