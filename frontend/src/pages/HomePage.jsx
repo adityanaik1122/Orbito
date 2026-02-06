@@ -52,8 +52,8 @@ const HomePage = ({ isLoggedIn }) => {
         <section className="relative h-[600px] flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0 z-0">
              <img 
-                src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?q=80&w=2000&auto=format&fit=crop" 
-                alt="Travel Adventure" 
+                src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2000&auto=format&fit=crop" 
+                alt="Beautiful Mountain Landscape"
                 className="w-full h-full object-cover"
              />
              <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-black/70"></div>

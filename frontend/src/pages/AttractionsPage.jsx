@@ -9,16 +9,41 @@ import { cn } from '@/lib/utils';
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 const cityImages = {
+    // Europe
     'London': 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?q=80&w=1000&auto=format&fit=crop',
     'Paris': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=1000&auto=format&fit=crop',
-    'Amsterdam': 'https://images.unsplash.com/photo-1534351590666-13e3e96b5017?q=80&w=1000&auto=format&fit=crop',
-    'New York': 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?q=80&w=1000&auto=format&fit=crop',
-    'Tokyo': 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1000&auto=format&fit=crop',
-    'Dubai': 'https://images.unsplash.com/photo-1512453979798-5ea936a79483?q=80&w=1000&auto=format&fit=crop',
-    'Rome': 'https://images.unsplash.com/photo-1531572753322-ad063cecc140?q=80&w=1000&auto=format&fit=crop',
+    'Rome': 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=1000&auto=format&fit=crop',
     'Barcelona': 'https://images.unsplash.com/photo-1583422409516-2895a77efded?q=80&w=1000&auto=format&fit=crop',
+    'Amsterdam': 'https://images.unsplash.com/photo-1534351590666-13e3e96b5017?q=80&w=1000&auto=format&fit=crop',
     'Prague': 'https://images.unsplash.com/photo-1519677100203-a0e668c92439?q=80&w=1000&auto=format&fit=crop',
-    'Edinburgh': 'https://images.unsplash.com/photo-1506377295352-e3154d43ea9e?q=80&w=1000&auto=format&fit=crop',
+    'Lisbon': 'https://images.unsplash.com/photo-1585208798174-6cedd86e019a?q=80&w=1000&auto=format&fit=crop',
+    'Athens': 'https://images.unsplash.com/photo-1555993539-1732b0258235?q=80&w=1000&auto=format&fit=crop',
+    // Americas
+    'New York': 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?q=80&w=1000&auto=format&fit=crop',
+    'Los Angeles': 'https://images.unsplash.com/photo-1534190760961-74e8c1c5c3da?q=80&w=1000&auto=format&fit=crop',
+    'Rio de Janeiro': 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?q=80&w=1000&auto=format&fit=crop',
+    'Mexico City': 'https://images.unsplash.com/photo-1585464231875-d9ef1f5ad396?q=80&w=1000&auto=format&fit=crop',
+    // Asia
+    'Tokyo': 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1000&auto=format&fit=crop',
+    'Singapore': 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?q=80&w=1000&auto=format&fit=crop',
+    'Bangkok': 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?q=80&w=1000&auto=format&fit=crop',
+    'Bali': 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1000&auto=format&fit=crop',
+    'Seoul': 'https://images.unsplash.com/photo-1534274988757-a28bf1a57c17?q=80&w=1000&auto=format&fit=crop',
+    // India
+    'Rishikesh': 'https://images.unsplash.com/photo-1592385432464-5e3d91040a90?q=80&w=1000&auto=format&fit=crop',
+    'Kerala': 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?q=80&w=1000&auto=format&fit=crop',
+    'Ladakh': 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?q=80&w=1000&auto=format&fit=crop',
+    'Meghalaya': 'https://images.unsplash.com/photo-1625058502211-f1d92e5565a4?q=80&w=1000&auto=format&fit=crop',
+    'Manali': 'https://images.unsplash.com/photo-1626621331169-5f34be280ed9?q=80&w=1000&auto=format&fit=crop',
+    'Varanasi': 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?q=80&w=1000&auto=format&fit=crop',
+    'Jaipur': 'https://images.unsplash.com/photo-1477587458883-47145ed94245?q=80&w=1000&auto=format&fit=crop',
+    'Goa': 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?q=80&w=1000&auto=format&fit=crop',
+    // Middle East & Africa
+    'Dubai': 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=1000&auto=format&fit=crop',
+    'Istanbul': 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?q=80&w=1000&auto=format&fit=crop',
+    'Cape Town': 'https://images.unsplash.com/photo-1580060839134-75a5edca2e99?q=80&w=1000&auto=format&fit=crop',
+    // Oceania
+    'Sydney': 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?q=80&w=1000&auto=format&fit=crop',
 };
 
 const AttractionsPage = () => {

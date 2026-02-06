@@ -636,19 +636,15 @@ const PlanTourPage = () => {
                         <div className="grid sm:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label>Destination City</Label>
-                                <Select 
-                                    value={tripDetails.destination} 
-                                    onValueChange={(val) => setTripDetails({...tripDetails, destination: val})}
-                                >
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select city" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {availableCities.map(city => (
-                                            <SelectItem key={city} value={city}>{city}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                <div className="relative">
+                                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                    <Input 
+                                        value={tripDetails.destination} 
+                                        onChange={(e) => setTripDetails({...tripDetails, destination: e.target.value})}
+                                        placeholder="Enter any city (e.g., Rishikesh, Ladakh, Tokyo...)"
+                                        className="pl-10"
+                                    />
+                                </div>
                             </div>
                             <div className="space-y-2">
                                 <Label>Trip Title</Label>
