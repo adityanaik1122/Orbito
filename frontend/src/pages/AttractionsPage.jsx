@@ -141,7 +141,15 @@ const AttractionsPage = () => {
                                 className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group"
                             >
                                 <div className="relative h-48 bg-gray-200 overflow-hidden">
-                                    <img src={attraction.image} alt={attraction.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                    <img 
+                                        src={attraction.image} 
+                                        alt={attraction.title} 
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                                        loading="lazy"
+                                        decoding="async"
+                                        referrerPolicy="no-referrer"
+                                        onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=1200&auto=format&fit=crop"; }}
+                                    />
                                     <button className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-sm hover:bg-gray-50">
                                         <Heart className="w-4 h-4 text-gray-400 hover:text-red-500" />
                                     </button>

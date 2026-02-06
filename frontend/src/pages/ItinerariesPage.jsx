@@ -109,7 +109,11 @@ const ItinerariesPage = () => {
                                     <img 
                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                                         alt={itinerary.title} 
-                                        src={itinerary.image} 
+                                        src={itinerary.image}
+                                        loading="lazy"
+                                        decoding="async"
+                                        referrerPolicy="no-referrer"
+                                        onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?q=80&w=1200&auto=format&fit=crop"; }}
                                     />
                                     <button className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md text-gray-400 hover:text-[#0B3D91] transition-colors">
                                         <Heart className="w-4 h-4" />

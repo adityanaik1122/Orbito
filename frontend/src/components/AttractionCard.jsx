@@ -36,7 +36,11 @@ const AttractionCard = ({ attraction, index = 0 }) => {
         <img 
           className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110" 
           alt={attraction.title} 
-          src={attraction.image || "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=1000&auto=format&fit=crop"} 
+          src={attraction.image || "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=1000&auto=format&fit=crop"}
+          loading="lazy"
+          decoding="async"
+          referrerPolicy="no-referrer"
+          onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=1000&auto=format&fit=crop"; }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60"></div>
         
