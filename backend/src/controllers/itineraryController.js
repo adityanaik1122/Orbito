@@ -11,9 +11,16 @@ async function generateItinerary(req, res) {
     const daysCount =
       Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)) + 1;
 
-    const prompt = `Create a ${daysCount}-day itinerary for ${destination}.
+    const prompt = `Create a ${daysCount}-day itinerary for ${destination} starting from ${startDate}.
 Preferences: ${preferences || 'none'}.
-Return ONLY valid JSON: { "destination": "${destination}", "days": [{"dayNumber": 1, "date": "YYYY-MM-DD", "items": [{"name": "Activity", "type": "attraction", "location": "Address", "time": "09:00", "estTime": "2h", "cost": "Free", "notes": "tip"}]}] }`;
+
+IMPORTANT RULES FOR COSTS:
+- Use realistic local prices in GBP (£) for UK, EUR (€) for Europe, USD ($) for US, etc.
+- Most attractions cost £0-50, restaurants £10-40 per person, transport £2-20
+- Use "Free" for free attractions like parks, museums with free entry, walking tours
+- Never generate costs above £200 for a single activity unless it's something exceptional
+
+Return ONLY valid JSON: { "destination": "${destination}", "days": [{"dayNumber": 1, "date": "YYYY-MM-DD", "items": [{"name": "Activity", "type": "attraction", "location": "Address", "time": "09:00", "estTime": "2h", "cost": "£25", "notes": "tip"}]}] }`;
 
     const modelNames = ['gemini-2.5-flash', 'gemini-2.5-pro'];
     let responseText;

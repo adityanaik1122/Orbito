@@ -27,16 +27,16 @@ const HomePage = ({ isLoggedIn }) => {
   ];
 
   const topAttractions = [
-    { title: 'Big Ben & Palace of Westminster', reviews: '4520', rating: 4.9, price: 'Free', image: 'https://images.unsplash.com/photo-1549488352-1575a6aa0b1c?q=80&w=1000&auto=format&fit=crop', tags: ['Landmark', 'History'] },
-    { title: 'Tower of London', reviews: '3240', rating: 4.7, price: '£33.60', image: 'https://images.unsplash.com/photo-1532203521082-25a27f28154c?q=80&w=1000&auto=format&fit=crop', tags: ['History', 'Royal'] },
-    { title: 'Westminster Abbey', reviews: '1090', rating: 4.8, price: '£27.00', image: 'https://images.unsplash.com/photo-1578323851363-55e64193a76c?q=80&w=1000&auto=format&fit=crop', tags: ['Historic', 'Religious'] },
-    { title: 'The London Eye', reviews: '5100', rating: 4.6, price: '£30.50', image: 'https://images.unsplash.com/photo-1500380804539-4e1e8c1e7118?q=80&w=1000&auto=format&fit=crop', tags: ['Views', 'Landmark'] },
+    { title: 'Eiffel Tower, Paris', reviews: '8520', rating: 4.9, price: '€26', image: 'https://images.unsplash.com/photo-1511739001486-6bfe10ce7859?q=80&w=1000&auto=format&fit=crop', tags: ['Landmark', 'Views'] },
+    { title: 'Colosseum, Rome', reviews: '6240', rating: 4.8, price: '€18', image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=1000&auto=format&fit=crop', tags: ['History', 'Ancient'] },
+    { title: 'Sagrada Familia, Barcelona', reviews: '5090', rating: 4.9, price: '€26', image: 'https://images.unsplash.com/photo-1583422409516-2895a77efded?q=80&w=1000&auto=format&fit=crop', tags: ['Architecture', 'Religious'] },
+    { title: 'Big Ben, London', reviews: '4520', rating: 4.7, price: 'Free', image: 'https://images.unsplash.com/photo-1529655683826-aba9b3e77383?q=80&w=1000&auto=format&fit=crop', tags: ['Landmark', 'History'] },
   ];
 
   const featuredItineraries = [
-      { id: 1, title: "Royal London & Palaces", duration: '3 Days', rating: 4.8, reviews: 234, price: 'Free', image: 'https://images.unsplash.com/photo-1552458470-d7a072a1620c?q=80&w=1000&auto=format&fit=crop', tags: ['History', 'Royal'] },
-      { id: 2, title: 'Harry Potter Film Locations', duration: '2 Days', rating: 4.9, reviews: 412, price: 'Free', image: 'https://images.unsplash.com/photo-1595867874140-588837637581?q=80&w=1000&auto=format&fit=crop', tags: ['Movies', 'Magic'] },
-      { id: 3, title: 'Historic Greenwich & Maritime', duration: '1 Day', rating: 4.7, reviews: 189, price: 'Free', image: 'https://images.unsplash.com/photo-1561457636-4c705888a501?q=80&w=1000&auto=format&fit=crop', tags: ['History', 'Maritime'] },
+      { id: 1, title: "Romantic Paris Getaway", duration: '4 Days', rating: 4.9, reviews: 534, price: 'Free', image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=1000&auto=format&fit=crop', tags: ['Romance', 'Culture'] },
+      { id: 2, title: 'Ancient Rome Explorer', duration: '3 Days', rating: 4.8, reviews: 412, price: 'Free', image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=1000&auto=format&fit=crop', tags: ['History', 'Ancient'] },
+      { id: 3, title: 'Tokyo Adventure', duration: '5 Days', rating: 4.9, reviews: 389, price: 'Free', image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1000&auto=format&fit=crop', tags: ['Culture', 'Food'] },
   ];
 
   return (
@@ -52,8 +52,8 @@ const HomePage = ({ isLoggedIn }) => {
         <section className="relative h-[600px] flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0 z-0">
              <img 
-                src="https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?q=80&w=2000&auto=format&fit=crop" 
-                alt="London Skyline" 
+                src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?q=80&w=2000&auto=format&fit=crop" 
+                alt="Travel Adventure" 
                 className="w-full h-full object-cover"
              />
              <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-black/70"></div>
@@ -67,10 +67,10 @@ const HomePage = ({ isLoggedIn }) => {
               className="max-w-4xl mx-auto"
             >
               <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight tracking-tight">
-                Your London adventure <br/> awaits
+                Your next adventure <br/> awaits
               </h1>
               <p className="text-xl text-gray-200 mb-10 max-w-2xl mx-auto font-medium leading-relaxed">
-                Discover iconic landmarks and hidden gems in the UK capital with personalized itineraries.
+                Discover iconic landmarks and hidden gems worldwide with AI-powered personalized itineraries.
               </p>
               
               <form onSubmit={handleSearch} className="max-w-2xl mx-auto relative flex items-center">
@@ -78,7 +78,7 @@ const HomePage = ({ isLoggedIn }) => {
                     <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 text-[#0B3D91] w-5 h-5 z-10" />
                     <input 
                         type="text" 
-                        placeholder="Where in London?" 
+                        placeholder="Where do you want to go?"
                         className="w-full h-16 pl-14 pr-36 rounded-full text-lg border-none shadow-2xl focus:ring-2 focus:ring-[#0B3D91] outline-none text-gray-800 placeholder:text-gray-400 bg-white"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -146,8 +146,8 @@ const HomePage = ({ isLoggedIn }) => {
             <div className="container mx-auto px-4 lg:px-8">
                 <div className="flex justify-between items-end mb-10">
                     <div>
-                        <h2 className="text-[#0B3D91] font-bold text-3xl mb-2">Top London attractions</h2>
-                        <p className="text-gray-500 text-lg">Must-visit landmarks in the capital</p>
+                        <h2 className="text-[#0B3D91] font-bold text-3xl mb-2">Top attractions</h2>
+                        <p className="text-gray-500 text-lg">Must-visit landmarks around the world</p>
                     </div>
                     <Link to="/attractions" className="text-[#0B3D91] font-bold hover:underline flex items-center gap-1">
                         See More <ArrowRight className="w-4 h-4" />
@@ -197,7 +197,7 @@ const HomePage = ({ isLoggedIn }) => {
              <div className="container mx-auto px-4 lg:px-8">
                  <div className="flex justify-between items-end mb-10">
                     <div>
-                        <h2 className="text-[#0B3D91] font-bold text-3xl mb-2">Featured London Itineraries</h2>
+                        <h2 className="text-[#0B3D91] font-bold text-3xl mb-2">Featured Itineraries</h2>
                         <p className="text-gray-500 text-lg">Handpicked trips created by our community</p>
                     </div>
                     <Link to="/itineraries" className="text-[#0B3D91] font-bold hover:underline flex items-center gap-1">
