@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
+import { useSearchParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -10,10 +11,13 @@ import { useToast } from '@/components/ui/use-toast';
 
 const ToursPage = () => {
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+  const urlDestination = searchParams.get('destination');
+  
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
-    destination: '',
+    destination: urlDestination || '',
     country: '',
     category: '',
     minPrice: '',
@@ -258,8 +262,15 @@ const ToursPage = () => {
             </div>
           ) : (
             <>
-              <div className="mb-4 text-gray-600">
-                Found <span className="font-semibold">{tours.length}</span> tours
+              <div className="mb-4 flex items-center gap-3">
+                <span className="text-gray-600">
+                  Found <span className="font-semibold">{tours.length}</span> tours
+                </span>
+                {filters.destination && (
+                  <span className="bg-primary text-white px-3 py-1 rounded-full text-sm font-medium">
+                    📍 {filters.destination}
+                  </span>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

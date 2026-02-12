@@ -120,7 +120,7 @@ const HomePage = ({ isLoggedIn }) => {
                             whileInView={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.1 }}
                             className="group cursor-pointer"
-                            onClick={() => navigate('/plan', { state: { destination: dest.name } })}
+                            onClick={() => navigate(`/tours?destination=${dest.name}`)}
                         >
                             <div className="relative h-64 rounded-2xl overflow-hidden mb-4 shadow-md group-hover:shadow-xl transition-all">
                                 <img 
