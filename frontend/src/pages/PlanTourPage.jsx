@@ -279,25 +279,26 @@ const PlanTourPage = () => {
         const allActivities = itinerary.flatMap(day => day.items);
         
         const tripData = {
-          user_id: user.id,
           title: tripDetails.title,
           destination: tripDetails.destination,
-          start_date: format(new Date(tripDetails.startDate), 'yyyy-MM-dd'),
-          end_date: format(new Date(tripDetails.endDate), 'yyyy-MM-dd'),
+          startDate: format(new Date(tripDetails.startDate), 'yyyy-MM-dd'),
+          endDate: format(new Date(tripDetails.endDate), 'yyyy-MM-dd'),
           days: itinerary,
           activities: allActivities
         };
 
-        const { error } = await supabase
-            .from('itineraries')
-            .insert([tripData]);
+        console.log('Attempting to save itinerary:', tripData);
 
-        if (error) throw error;
+        const response = await apiService.saveItinerary(tripData);
 
-        toast({
-          title: "Plan Saved! 🎉",
-          description: "Your trip has been saved to your profile.",
-        });
+        console.log('Save response:', response);
+
+        if (response.success) {
+          toast({
+            title: "Plan Saved! 🎉",
+            description: "Your trip has been saved to your profile.",
+          });
+        }
 
     } catch (error) {
         console.error('Error saving trip:', error);

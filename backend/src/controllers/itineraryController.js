@@ -64,6 +64,9 @@ async function saveItineraryHandler(req, res) {
     // Use authenticated user ID from middleware instead of request body
     const userId = req.user.id;
 
+    console.log('Saving itinerary for user:', userId);
+    console.log('Received data:', { title, destination, startDate, endDate, daysCount: days?.length });
+
     const { data, error } = await saveItinerary({
       userId,
       title,
@@ -75,9 +78,11 @@ async function saveItineraryHandler(req, res) {
     });
 
     if (error) {
+      console.error('Database save error:', error);
       throw error;
     }
 
+    console.log('Itinerary saved successfully:', data);
     res.json({ success: true, itinerary: data[0] });
   } catch (error) {
     console.error('Error in saveItineraryHandler:', error);

@@ -15,6 +15,9 @@ import AttractionsPage from '@/pages/AttractionsPage';
 import AttractionDetailPage from '@/pages/AttractionDetailPage';
 import ResourcesPage from '@/pages/ResourcesPage';
 import ResourceDetailPage from '@/pages/ResourceDetailPage';
+import ToursPage from '@/pages/ToursPage';
+import TourDetailPage from '@/pages/TourDetailPage';
+import BookingsPage from '@/pages/BookingsPage';
 import OperatorDashboardPage from '@/pages/OperatorDashboardPage';
 import AdminDashboardPage from '@/pages/AdminDashboardPage';
 import RequireRole from '@/components/RequireRole';
@@ -30,11 +33,7 @@ function App() {
           <Route path="/" element={<Layout><HomePage /></Layout>} />
           <Route path="/login" element={<AuthPage />} />
           
-          <Route path="/plan" element={
-            <RequireAuth>
-              <Layout><PlanTourPage /></Layout>
-            </RequireAuth>
-          } />
+          <Route path="/plan" element={<Layout><PlanTourPage /></Layout>} />
           <Route path="/my-account" element={
             <RequireAuth>
               <Layout><MyAccountPage /></Layout>
@@ -51,6 +50,14 @@ function App() {
           <Route path="/itineraries" element={<Layout><ItinerariesPage /></Layout>} />
           <Route path="/attractions" element={<Layout><AttractionsPage /></Layout>} />
           <Route path="/attractions/:id" element={<Layout><AttractionDetailPage /></Layout>} />
+          
+          <Route path="/tours" element={<Layout><ToursPage /></Layout>} />
+          <Route path="/tours/:slug" element={<Layout><TourDetailPage /></Layout>} />
+          <Route path="/bookings" element={
+            <RequireAuth>
+              <Layout><BookingsPage /></Layout>
+            </RequireAuth>
+          } />
           
           <Route path="/resources" element={<Layout><ResourcesPage /></Layout>} />
           <Route path="/resources/:id" element={<Layout><ResourceDetailPage /></Layout>} />

@@ -128,5 +128,133 @@ export const apiService = {
       console.error('Health check failed:', error);
       return { status: 'error' };
     }
+  },
+
+  // Tours
+  getTours: async (filters = {}) => {
+    try {
+      const params = new URLSearchParams();
+      Object.keys(filters).forEach(key => {
+        if (filters[key]) params.append(key, filters[key]);
+      });
+      
+      const response = await fetch(`${API_BASE_URL}/tours?${params}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch tours');
+      }
+      
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('API Error:', error);
+      throw error;
+    }
+  },
+
+  getTourDetail: async (slug) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/tours/${slug}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch tour details');
+      }
+      
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('API Error:', error);
+      throw error;
+    }
+  },
+
+  // Tour Bookings
+  createTourBooking: async (bookingData) => {
+    try {
+      const headers = await getAuthHeaders();
+      const response = await fetch(`${API_BASE_URL}/bookings`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(bookingData)
+      });
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Please log in to create bookings');
+        }
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create booking');
+      }
+      
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('API Error:', error);
+      throw error;
+    }
+  },
+
+  getUserBookings: async () => {
+    try {
+      const headers = await getAuthHeaders();
+      const response = await fetch(`${API_BASE_URL}/bookings`, {
+        headers
+      });
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Please log in to view bookings');
+        }
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to fetch bookings');
+      }
+      
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('API Error:', error);
+      throw error;
+    }
+  },
+
+  getBookingDetail: async (bookingId) => {
+    try {
+      const headers = await getAuthHeaders();
+      const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}`, {
+        headers
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch booking details');
+      }
+      
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('API Error:', error);
+      throw error;
+    }
+  },
+
+  cancelBooking: async (bookingId, reason) => {
+    try {
+      const headers = await getAuthHeaders();
+      const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}/cancel`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ cancellationReason: reason })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to cancel booking');
+      }
+      
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('API Error:', error);
+      throw error;
+    }
   }
 };
