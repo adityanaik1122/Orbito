@@ -18,17 +18,22 @@ async function getTours(req, res) {
     };
 
     // Try to get from database first
-    const { data, error } = await getToursFromDB(filters);
+    let data, error;
+    try {
+      const result = await getToursFromDB(filters);
+      data = result.data;
+      error = result.error;
+    } catch (dbError) {
+      // Database not set up yet, use mock data
+      console.log('Database not available, using mock data:', dbError.message);
+      error = dbError;
+    }
 
-    // If database is empty, fall back to Premium Tours API/mock data
-    if (!error && (!data || data.length === 0)) {
+    // If database has error or is empty, fall back to Premium Tours API/mock data
+    if (error || !data || data.length === 0) {
       console.log('No tours in database, fetching from Premium Tours service...');
       const apiTours = await PremiumToursService.getTours(filters);
       return res.json({ success: true, tours: apiTours });
-    }
-
-    if (error) {
-      throw error;
     }
 
     res.json({ success: true, tours: data });
@@ -46,7 +51,15 @@ async function getTourDetail(req, res) {
     const { identifier } = req.params;
 
     // Try database first
-    let { data, error } = await getTourByIdFromDB(identifier);
+    let data, error;
+    try {
+      const result = await getTourByIdFromDB(identifier);
+      data = result.data;
+      error = result.error;
+    } catch (dbError) {
+      console.log('Database not available, using mock data');
+      error = dbError;
+    }
 
     // If not in database, try Premium Tours service
     if (error || !data) {
