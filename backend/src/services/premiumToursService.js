@@ -198,6 +198,146 @@ const MOCK_TOURS = [
     rating: 4.6,
     review_count: 3421,
     featured: false
+  },
+  // Real Premium Tours from their website
+  {
+    external_id: 'PT-006',
+    title: 'Windsor, Stonehenge, Lacock, Bath & 14th Century Pub Lunch',
+    slug: 'windsor-stonehenge-bath-pub-lunch',
+    description: 'Experience the best of England in one day! Visit Windsor Castle, the mysterious Stonehenge, the charming village of Lacock, and the beautiful city of Bath. Includes a traditional pub lunch in a 14th-century establishment.',
+    highlights: [
+      'Visit Windsor Castle',
+      'See the ancient Stonehenge monument',
+      'Explore Lacock village',
+      'Full afternoon in Bath',
+      'Lunch in a 14th Century Pub included'
+    ],
+    destination: 'London',
+    city: 'London',
+    country: 'United Kingdom',
+    meeting_point: 'Premium Tours Office, London Victoria',
+    duration: 'Full day',
+    duration_hours: 11,
+    category: 'Cultural',
+    subcategory: 'Day Trips',
+    price_adult: 95.00,
+    price_child: 85.00,
+    currency: 'GBP',
+    price_includes: ['Entry to Windsor Castle', 'Entry to Stonehenge', 'Pub lunch', 'Professional guide', 'Luxury coach'],
+    price_excludes: ['Gratuities', 'Hotel pickup'],
+    main_image: 'https://images.unsplash.com/photo-1599833975787-5d9f111d0e7a?w=800',
+    is_available: true,
+    available_days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+    start_times: ['08:00'],
+    instant_confirmation: true,
+    cancellation_policy: 'Free cancellation up to 24 hours before',
+    rating: 4.9,
+    review_count: 8234,
+    featured: true
+  },
+  {
+    external_id: 'PT-007',
+    title: 'Stonehenge and Full Afternoon in Bath',
+    slug: 'stonehenge-bath-afternoon',
+    description: 'Discover two of England\'s most iconic destinations in one day. Marvel at the mysterious Stonehenge stone circle, then spend a relaxing afternoon exploring the beautiful city of Bath with its Roman Baths and Georgian architecture.',
+    highlights: [
+      'Entry to Stonehenge',
+      'Entry to Roman Baths',
+      'Walking tour of Bath',
+      'Free time to explore',
+      'Professional guide'
+    ],
+    destination: 'Bath',
+    city: 'Bath',
+    country: 'United Kingdom',
+    meeting_point: 'Premium Tours Office, London Victoria',
+    duration: '10 hours',
+    duration_hours: 10,
+    category: 'Cultural',
+    subcategory: 'Historical Sites',
+    price_adult: 85.00,
+    price_child: 75.00,
+    currency: 'GBP',
+    price_includes: ['Entry to Stonehenge', 'Entry to Roman Baths', 'Walking tour', 'Luxury coach'],
+    price_excludes: ['Lunch', 'Hotel pickup', 'Gratuities'],
+    main_image: 'https://images.unsplash.com/photo-1580837119756-563d608dd119?w=800',
+    is_available: true,
+    available_days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+    start_times: ['08:30'],
+    instant_confirmation: true,
+    cancellation_policy: 'Free cancellation up to 24 hours before',
+    rating: 4.8,
+    review_count: 5621,
+    featured: true
+  },
+  {
+    external_id: 'PT-008',
+    title: 'Luxury Escorted Paris Day Trip with Lunch on the Eiffel Tower',
+    slug: 'paris-day-trip-eiffel-lunch',
+    description: 'Experience the magic of Paris in just one day! Travel in luxury from London to Paris, enjoy a 3-course lunch on the Eiffel Tower, cruise on the River Seine, and take a panoramic sightseeing tour of the city\'s most famous landmarks.',
+    highlights: [
+      '3-course lunch on the Eiffel Tower',
+      'Cruise on the River Seine',
+      'Panoramic sightseeing tour of Paris',
+      'Luxury coach with WiFi',
+      'Professional guide'
+    ],
+    destination: 'Paris',
+    city: 'Paris',
+    country: 'France',
+    meeting_point: 'Premium Tours Office, London Victoria',
+    duration: 'Full day',
+    duration_hours: 14,
+    category: 'Sightseeing',
+    subcategory: 'Day Trips',
+    price_adult: 375.00,
+    price_child: 365.00,
+    currency: 'GBP',
+    price_includes: ['Return luxury coach', '3-course Eiffel Tower lunch', 'Seine River cruise', 'City tour', 'Professional guide'],
+    price_excludes: ['Hotel pickup', 'Additional meals', 'Gratuities'],
+    main_image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800',
+    is_available: true,
+    available_days: ['Monday', 'Wednesday', 'Friday', 'Saturday'],
+    start_times: ['06:00'],
+    instant_confirmation: true,
+    cancellation_policy: 'Free cancellation up to 48 hours before',
+    rating: 4.9,
+    review_count: 12891,
+    featured: true
+  },
+  {
+    external_id: 'PT-009',
+    title: 'Westminster Abbey Tour with Live Guide & Refreshments',
+    slug: 'westminster-abbey-priority-tour',
+    description: 'Priority access to Westminster Abbey with a professional live guide. Explore this iconic church where monarchs have been crowned for centuries. Includes refreshments in the historic 14th-century Cellarium.',
+    highlights: [
+      'Priority access - skip the queues',
+      'Live professional guide',
+      'Maximum 20 passengers per tour',
+      'Refreshments in 14th-century Cellarium',
+      'Small group experience'
+    ],
+    destination: 'London',
+    city: 'London',
+    country: 'United Kingdom',
+    meeting_point: 'Westminster Abbey, London SW1P 3PA',
+    duration: '2 hours',
+    duration_hours: 2,
+    category: 'Cultural',
+    subcategory: 'Religious Sites',
+    price_adult: 42.00,
+    currency: 'GBP',
+    price_includes: ['Priority entry', 'Live guide', 'Refreshments in Cellarium', 'Small group (max 20)'],
+    price_excludes: ['Hotel pickup', 'Gratuities'],
+    main_image: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800',
+    is_available: true,
+    available_days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+    start_times: ['09:30', '14:00'],
+    instant_confirmation: true,
+    cancellation_policy: 'Free cancellation up to 24 hours before',
+    rating: 4.9,
+    review_count: 2156,
+    featured: false
   }
 ];
 
@@ -219,6 +359,12 @@ class PremiumToursService {
     if (filters.destination) {
       tours = tours.filter(t => 
         t.destination.toLowerCase().includes(filters.destination.toLowerCase())
+      );
+    }
+
+    if (filters.country) {
+      tours = tours.filter(t => 
+        t.country && t.country.toLowerCase().includes(filters.country.toLowerCase())
       );
     }
 

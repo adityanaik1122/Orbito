@@ -18,6 +18,10 @@ async function getTours(filters = {}) {
     query = query.ilike('destination', `%${filters.destination}%`);
   }
 
+  if (filters.country) {
+    query = query.ilike('country', `%${filters.country}%`);
+  }
+
   if (filters.category) {
     query = query.eq('category', filters.category);
   }

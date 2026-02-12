@@ -14,12 +14,14 @@ const ToursPage = () => {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     destination: '',
+    country: '',
     category: '',
     minPrice: '',
     maxPrice: '',
     sortBy: 'rating'
   });
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState('all');
 
   const categories = [
     'All',
@@ -30,6 +32,17 @@ const ToursPage = () => {
     'Dining',
     'Adventure',
     'Historical Sites'
+  ];
+
+  const popularCountries = [
+    { name: 'All', code: 'all', flag: '🌍' },
+    { name: 'United Kingdom', code: 'GB', flag: '🇬🇧', cities: ['London', 'Edinburgh', 'Manchester'] },
+    { name: 'France', code: 'FR', flag: '🇫🇷', cities: ['Paris', 'Nice', 'Lyon'] },
+    { name: 'Italy', code: 'IT', flag: '🇮🇹', cities: ['Rome', 'Venice', 'Florence'] },
+    { name: 'Spain', code: 'ES', flag: '🇪🇸', cities: ['Barcelona', 'Madrid', 'Seville'] },
+    { name: 'United States', code: 'US', flag: '🇺🇸', cities: ['New York', 'Los Angeles', 'Las Vegas'] },
+    { name: 'UAE', code: 'AE', flag: '🇦🇪', cities: ['Dubai', 'Abu Dhabi'] },
+    { name: 'Netherlands', code: 'NL', flag: '🇳🇱', cities: ['Amsterdam', 'Rotterdam'] },
   ];
 
   useEffect(() => {
@@ -69,13 +82,25 @@ const ToursPage = () => {
   const handleClearFilters = () => {
     const clearedFilters = {
       destination: '',
+      country: '',
       category: '',
       minPrice: '',
       maxPrice: '',
       sortBy: 'rating'
     };
     setFilters(clearedFilters);
+    setSelectedCountry('all');
     fetchTours(clearedFilters);
+  };
+
+  const handleCountrySelect = (countryCode) => {
+    setSelectedCountry(countryCode);
+    const newFilters = {
+      ...filters,
+      country: countryCode === 'all' ? '' : countryCode
+    };
+    setFilters(newFilters);
+    fetchTours(newFilters);
   };
 
   return (
@@ -115,11 +140,33 @@ const ToursPage = () => {
                 Search
               </Button>
             </div>
+        </div>
+      </div>
+
+      {/* Country Navigation */}
+      <div className="bg-white border-b sticky top-0 z-10 shadow-sm">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center gap-2 overflow-x-auto py-4 scrollbar-hide">
+            {popularCountries.map((country) => (
+              <button
+                key={country.code}
+                onClick={() => handleCountrySelect(country.code)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-all ${
+                  selectedCountry === country.code
+                    ? 'bg-primary text-white shadow-md'
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                }`}
+              >
+                <span className="text-xl">{country.flag}</span>
+                <span className="font-medium">{country.name}</span>
+              </button>
+            ))}
           </div>
         </div>
+      </div>
 
-        {/* Content */}
-        <div className="container mx-auto px-4 py-8">
+      {/* Content */}
+      <div className="container mx-auto px-4 py-8">
           {/* Filters Bar */}
           <div className="bg-white rounded-lg shadow p-4 mb-6">
             <div className="flex items-center justify-between mb-4">
