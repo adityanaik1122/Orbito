@@ -25,20 +25,20 @@ const Footer = () => {
           <div>
             <h3 className="font-bold text-gray-900 mb-6">Company</h3>
             <ul className="space-y-4">
-              <li><Link to="#" className="text-gray-500 hover:text-[#0B3D91]">About Us</Link></li>
-              <li><Link to="#" className="text-gray-500 hover:text-[#0B3D91]">Careers</Link></li>
-              <li><Link to="#" className="text-gray-500 hover:text-[#0B3D91]">Blog</Link></li>
-              <li><Link to="#" className="text-gray-500 hover:text-[#0B3D91]">Press</Link></li>
+              <li><Link to="/about" className="text-gray-500 hover:text-[#0B3D91]">About Us</Link></li>
+              <li><Link to="/careers" className="text-gray-500 hover:text-[#0B3D91]">Careers</Link></li>
+              <li><Link to="/blog" className="text-gray-500 hover:text-[#0B3D91]">Blog</Link></li>
+              <li><Link to="/press" className="text-gray-500 hover:text-[#0B3D91]">Press</Link></li>
             </ul>
           </div>
 
           <div>
             <h3 className="font-bold text-gray-900 mb-6">Support</h3>
             <ul className="space-y-4">
-              <li><Link to="#" className="text-gray-500 hover:text-[#0B3D91]">Help Center</Link></li>
-              <li><Link to="#" className="text-gray-500 hover:text-[#0B3D91]">Contact Us</Link></li>
-              <li><Link to="#" className="text-gray-500 hover:text-[#0B3D91]">Privacy Policy</Link></li>
-              <li><Link to="#" className="text-gray-500 hover:text-[#0B3D91]">Terms of Service</Link></li>
+              <li><Link to="/help" className="text-gray-500 hover:text-[#0B3D91]">Help Center</Link></li>
+              <li><Link to="/contact" className="text-gray-500 hover:text-[#0B3D91]">Contact Us</Link></li>
+              <li><Link to="/privacy" className="text-gray-500 hover:text-[#0B3D91]">Privacy Policy</Link></li>
+              <li><Link to="/terms" className="text-gray-500 hover:text-[#0B3D91]">Terms of Service</Link></li>
             </ul>
           </div>
 

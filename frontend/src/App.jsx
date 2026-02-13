@@ -20,6 +20,14 @@ import TourDetailPage from '@/pages/TourDetailPage';
 import BookingsPage from '@/pages/BookingsPage';
 import OperatorDashboardPage from '@/pages/OperatorDashboardPage';
 import AdminDashboardPage from '@/pages/AdminDashboardPage';
+import AboutUsPage from '@/pages/AboutUsPage';
+import CareersPage from '@/pages/CareersPage';
+import BlogPage from '@/pages/BlogPage';
+import PressPage from '@/pages/PressPage';
+import HelpCenterPage from '@/pages/HelpCenterPage';
+import ContactUsPage from '@/pages/ContactUsPage';
+import PrivacyPolicyPage from '@/pages/PrivacyPolicyPage';
+import TermsOfServicePage from '@/pages/TermsOfServicePage';
 import RequireRole from '@/components/RequireRole';
 import RequireAuth from '@/components/RequireAuth';
 import { AuthProvider } from '@/contexts/SupabaseAuthContext';
@@ -61,6 +69,18 @@ function App() {
           
           <Route path="/resources" element={<Layout><ResourcesPage /></Layout>} />
           <Route path="/resources/:id" element={<Layout><ResourceDetailPage /></Layout>} />
+
+          {/* Company pages */}
+          <Route path="/about" element={<Layout><AboutUsPage /></Layout>} />
+          <Route path="/careers" element={<Layout><CareersPage /></Layout>} />
+          <Route path="/blog" element={<Layout><BlogPage /></Layout>} />
+          <Route path="/press" element={<Layout><PressPage /></Layout>} />
+
+          {/* Support pages */}
+          <Route path="/help" element={<Layout><HelpCenterPage /></Layout>} />
+          <Route path="/contact" element={<Layout><ContactUsPage /></Layout>} />
+          <Route path="/privacy" element={<Layout><PrivacyPolicyPage /></Layout>} />
+          <Route path="/terms" element={<Layout><TermsOfServicePage /></Layout>} />
 
           {/* Operator & Admin dashboards */}
           <Route
