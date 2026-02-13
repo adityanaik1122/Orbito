@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Menu, X, User, Loader2 } from 'lucide-react';
+import { Menu, X, User, Loader2, Sparkles } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 
@@ -22,11 +22,11 @@ const Navigation = () => {
   };
 
   const navItems = [
-    { name: 'Plan a Trip', path: '/plan' },
-    { name: 'Destinations', path: '/destinations' },
+    { name: 'Tours', path: '/tours' },
     { name: 'Itineraries', path: '/itineraries' },
-    { name: 'Attractions', path: '/attractions' },
-    { name: 'Resources', path: '/resources' },
+    { name: 'Why AI', path: '/why-ai', highlight: true },
+    { name: 'About', path: '/about' },
+    { name: 'Contact', path: '/contact' },
   ];
 
   return (
@@ -38,15 +38,18 @@ const Navigation = () => {
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden lg:flex items-center gap-8">
+        <div className="hidden lg:flex items-center gap-6">
           {navItems.map((item) => (
             <Link
               key={item.name}
               to={item.path}
-              className={`text-[15px] font-medium transition-colors hover:text-[#0B3D91] ${
-                location.pathname === item.path ? 'text-[#0B3D91]' : 'text-gray-600'
+              className={`text-[14px] font-medium transition-colors hover:text-[#0B3D91] flex items-center gap-1.5 ${
+                item.highlight 
+                  ? 'text-[#0B3D91] bg-[#0B3D91]/5 px-3 py-1.5 rounded-full' 
+                  : location.pathname === item.path ? 'text-[#0B3D91]' : 'text-gray-600'
               }`}
             >
+              {item.highlight && <Sparkles className="w-3.5 h-3.5" />}
               {item.name}
             </Link>
           ))}

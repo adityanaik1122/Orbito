@@ -27,6 +27,7 @@ import HelpCenterPage from '@/pages/HelpCenterPage';
 import ContactUsPage from '@/pages/ContactUsPage';
 import PrivacyPolicyPage from '@/pages/PrivacyPolicyPage';
 import TermsOfServicePage from '@/pages/TermsOfServicePage';
+import WhyAIPage from '@/pages/WhyAIPage';
 import RequireRole from '@/components/RequireRole';
 import RequireAuth from '@/components/RequireAuth';
 import { AuthProvider } from '@/contexts/SupabaseAuthContext';
@@ -73,6 +74,7 @@ function App() {
           <Route path="/about" element={<Layout><AboutUsPage /></Layout>} />
           <Route path="/careers" element={<Layout><CareersPage /></Layout>} />
           <Route path="/blog" element={<Layout><BlogPage /></Layout>} />
+          <Route path="/why-ai" element={<Layout><WhyAIPage /></Layout>} />
 
           {/* Support pages */}
           <Route path="/help" element={<Layout><HelpCenterPage /></Layout>} />

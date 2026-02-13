@@ -3,112 +3,398 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet';
 import { Button } from '@/components/ui/button';
-import { Search, MapPin, ArrowRight, TrendingUp, Star, Calendar, Heart } from 'lucide-react';
-// Removed duplicate import for Footer. It is already included in Layout.
+import { 
+  Sparkles, MapPin, ArrowRight, TrendingUp, Star, Calendar, Heart, 
+  Users, Clock, Shield, ChevronRight, CheckCircle2, CreditCard,
+  Zap, Globe, MessageSquare, Play, BadgeCheck, Lock, Award
+} from 'lucide-react';
 
 const HomePage = ({ isLoggedIn }) => {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [naturalQuery, setNaturalQuery] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
 
-  const handleSearch = (e) => {
+  // Natural language examples for placeholder rotation
+  const placeholderExamples = [
+    "Plan a romantic week in Paris with wine tastings...",
+    "Family trip to Tokyo, kid-friendly activities...",
+    "Adventure trip to Bali, budget £2000...",
+    "Weekend city break in Barcelona, foodie focus...",
+    "Solo backpacking through Italy, 2 weeks..."
+  ];
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setPlaceholderIndex((i) => (i + 1) % placeholderExamples.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleAISubmit = (e) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate('/plan', { state: { destination: searchQuery } });
+    if (naturalQuery.trim()) {
+      navigate('/plan', { state: { naturalLanguageQuery: naturalQuery } });
     }
   };
 
-  const trendingDestinations = [
-    { name: 'London', country: 'United Kingdom', trips: '5,341', image: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?q=80&w=1000&auto=format&fit=crop' },
-    { name: 'Edinburgh', country: 'Scotland', trips: '2,127', image: 'https://images.unsplash.com/photo-1535448033526-c0e85c9e6968?q=80&w=1000&auto=format&fit=crop' },
-    { name: 'Paris', country: 'France', trips: '3,127', image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=1000&auto=format&fit=crop' },
-    { name: 'Rome', country: 'Italy', trips: '1,892', image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=1000&auto=format&fit=crop' },
-    { name: 'Barcelona', country: 'Spain', trips: '1,654', image: 'https://images.unsplash.com/photo-1583422409516-2895a77efded?q=80&w=1000&auto=format&fit=crop' },
-    { name: 'Amsterdam', country: 'Netherlands', trips: '1,423', image: 'https://images.unsplash.com/photo-1534351590666-13e3e96b5017?q=80&w=1000&auto=format&fit=crop' },
+  // Bookable tours with real pricing
+  const bookableTours = [
+    { 
+      id: 'PT-001', 
+      title: 'London Eye Fast Track + Thames Cruise', 
+      location: 'London, UK',
+      price: 52, 
+      rating: 4.9, 
+      reviews: 12543, 
+      image: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?q=80&w=600',
+      badge: 'Best Seller',
+      instantConfirmation: true
+    },
+    { 
+      id: 'PT-004', 
+      title: 'Harry Potter Studio Tour with Transport', 
+      location: 'London, UK',
+      price: 95, 
+      rating: 4.9, 
+      reviews: 24567, 
+      image: 'https://images.unsplash.com/photo-1551269901-5c5e14c25df7?q=80&w=600',
+      badge: 'Top Rated',
+      instantConfirmation: true
+    },
+    { 
+      id: 'PT-008', 
+      title: 'Paris Day Trip with Eiffel Tower Lunch', 
+      location: 'Paris, France',
+      price: 375, 
+      rating: 4.9, 
+      reviews: 12891, 
+      image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=600',
+      badge: 'Premium',
+      instantConfirmation: true
+    },
+    { 
+      id: 'PT-006', 
+      title: 'Stonehenge, Bath & Cotswolds Day Trip', 
+      location: 'Wiltshire, UK',
+      price: 95, 
+      rating: 4.9, 
+      reviews: 8234, 
+      image: 'https://images.unsplash.com/photo-1599833975787-5d9f111d0e7a?q=80&w=600',
+      badge: 'Includes Lunch',
+      instantConfirmation: true
+    },
   ];
 
-  const topAttractions = [
-    { title: 'Eiffel Tower, Paris', reviews: '8520', rating: 4.9, price: '€26', image: 'https://images.unsplash.com/photo-1543349689-9a4d426bee8e?q=80&w=1000&auto=format&fit=crop', tags: ['Landmark', 'Views'] },
-    { title: 'Colosseum, Rome', reviews: '6240', rating: 4.8, price: '€18', image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=1000&auto=format&fit=crop', tags: ['History', 'Ancient'] },
-    { title: 'Sagrada Familia, Barcelona', reviews: '5090', rating: 4.9, price: '€26', image: 'https://images.unsplash.com/photo-1583779457711-3fd09c653ece?q=80&w=1000&auto=format&fit=crop', tags: ['Architecture', 'Religious'] },
-    { title: 'Big Ben, London', reviews: '4520', rating: 4.7, price: 'Free', image: 'https://images.unsplash.com/photo-1529655683826-aba9b3e77383?q=80&w=1000&auto=format&fit=crop', tags: ['Landmark', 'History'] },
+  // Social proof stats
+  const stats = [
+    { value: '50,000+', label: 'Trips Planned' },
+    { value: '£2.5M+', label: 'Tours Booked' },
+    { value: '4.9/5', label: 'Average Rating' },
+    { value: '500+', label: 'Destinations' },
   ];
 
-  const featuredItineraries = [
-      { id: 1, title: "Romantic Paris Getaway", duration: '4 Days', rating: 4.9, reviews: 534, price: 'Free', image: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?q=80&w=1000&auto=format&fit=crop', tags: ['Romance', 'Culture'], location: 'Paris' },
-      { id: 2, title: 'Ancient Rome Explorer', duration: '3 Days', rating: 4.8, reviews: 412, price: 'Free', image: 'https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?q=80&w=1000&auto=format&fit=crop', tags: ['History', 'Ancient'], location: 'Rome' },
-      { id: 3, title: 'Tokyo Adventure', duration: '5 Days', rating: 4.9, reviews: 389, price: 'Free', image: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=1000&auto=format&fit=crop', tags: ['Culture', 'Food'], location: 'Tokyo' },
+  // How it works steps
+  const steps = [
+    { icon: MessageSquare, title: 'Tell Us Your Dream', description: 'Describe your ideal trip in plain English' },
+    { icon: Sparkles, title: 'AI Creates Your Plan', description: 'Get a personalized itinerary in seconds' },
+    { icon: CreditCard, title: 'Book & Save', description: 'Book verified tours with instant confirmation' },
+  ];
+
+  // Trust badges
+  const trustBadges = [
+    { icon: Lock, text: 'Secure Payments', color: 'text-green-600' },
+    { icon: BadgeCheck, text: 'Verified Operators', color: 'text-blue-600' },
+    { icon: Shield, text: 'Best Price Guarantee', color: 'text-[#0B3D91]' },
+    { icon: Award, text: 'Award Winning', color: 'text-yellow-600' },
   ];
 
   return (
     <>
       <Helmet>
-        <title>Orbito | Your Next Adventure Awaits</title>
-        <meta name="description" content="Discover iconic landmarks and hidden gems with personalized itineraries." />
+        <title>Orbito | AI Travel Planner - Plan Your Trip in Seconds</title>
+        <meta name="description" content="Plan your perfect trip in seconds with AI. Get personalized itineraries, book verified tours instantly, and save up to 20% on experiences. Trusted by 50,000+ travelers." />
+        <meta name="keywords" content="AI travel planner, trip planner, travel itinerary, book tours, travel planning app" />
+        <link rel="canonical" href="https://orbitotrip.com" />
+        
+        {/* Open Graph */}
+        <meta property="og:title" content="Orbito | AI Travel Planner - Plan Your Trip in Seconds" />
+        <meta property="og:description" content="Tell our AI where you want to go and get a personalized itinerary instantly. Book verified tours with best price guarantee." />
+        <meta property="og:type" content="website" />
+        
+        {/* Schema.org structured data */}
+        <script type="application/ld+json">{`
+          {
+            "@context": "https://schema.org",
+            "@type": "WebApplication",
+            "name": "Orbito",
+            "description": "AI-powered travel planning platform",
+            "applicationCategory": "TravelApplication",
+            "operatingSystem": "Web",
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": "4.9",
+              "ratingCount": "2400"
+            }
+          }
+        `}</script>
       </Helmet>
 
       <div className="bg-white min-h-screen flex flex-col">
         
-        {/* Hero Section */}
-        <section className="relative h-[600px] flex items-center justify-center overflow-hidden">
+        {/* HERO: Conversion-Focused with Natural Language Input */}
+        <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0 z-0">
-             <img 
-                src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2000&auto=format&fit=crop" 
-                alt="Beautiful Mountain Landscape"
-                className="w-full h-full object-cover"
-             />
-             <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-black/70"></div>
+            <img 
+              src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2000&auto=format&fit=crop" 
+              alt="Travel destination"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80"></div>
           </div>
 
-          <div className="relative z-10 container mx-auto px-4 text-center">
+          <div className="relative z-10 container mx-auto px-4 text-center py-12">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
               className="max-w-4xl mx-auto"
             >
-              <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight tracking-tight">
-                Your next adventure <br/> awaits
+              {/* Urgency/Value Badge */}
+              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 backdrop-blur-sm border border-yellow-500/30 px-4 py-2 rounded-full mb-6">
+                <Zap className="w-4 h-4 text-yellow-400" />
+                <span className="text-white text-sm font-medium">Save up to 20% on tours when you book through AI planning</span>
+              </div>
+
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+                Just Tell Us What You Want.
+                <br />
+                <span className="bg-gradient-to-r from-[#60A5FA] to-[#34D399] bg-clip-text text-transparent">
+                  AI Does the Rest.
+                </span>
               </h1>
-              <p className="text-xl text-gray-200 mb-10 max-w-2xl mx-auto font-medium leading-relaxed">
-                Discover iconic landmarks and hidden gems worldwide with AI-powered personalized itineraries.
-              </p>
               
-              <form onSubmit={handleSearch} className="max-w-2xl mx-auto relative flex items-center">
-                <div className="relative w-full group">
-                    <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 text-[#0B3D91] w-5 h-5 z-10" />
-                    <input 
-                        type="text" 
-                        placeholder="Where do you want to go?"
-                        className="w-full h-16 pl-14 pr-36 rounded-full text-lg border-none shadow-2xl focus:ring-2 focus:ring-[#0B3D91] outline-none text-gray-800 placeholder:text-gray-400 bg-white"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+              <p className="text-lg md:text-xl text-gray-200 mb-8 max-w-2xl mx-auto">
+                Describe your dream trip in plain English. Our AI creates a personalized itinerary 
+                with bookable tours, real prices, and instant confirmation.
+              </p>
+
+              {/* Natural Language AI Input */}
+              <form onSubmit={handleAISubmit} className="max-w-3xl mx-auto mb-8">
+                <div className="bg-white rounded-2xl shadow-2xl p-3">
+                  <div className="relative">
+                    <Sparkles className="absolute left-4 top-4 text-[#0B3D91] w-5 h-5" />
+                    <textarea
+                      placeholder={placeholderExamples[placeholderIndex]}
+                      className="w-full h-24 md:h-20 pl-12 pr-4 pt-3 rounded-xl text-base md:text-lg border-0 focus:ring-0 outline-none text-gray-800 placeholder:text-gray-400 resize-none"
+                      value={naturalQuery}
+                      onChange={(e) => setNaturalQuery(e.target.value)}
+                      onFocus={() => setIsTyping(true)}
+                      onBlur={() => setIsTyping(false)}
                     />
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mt-2 pt-3 border-t border-gray-100">
+                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                      <span className="flex items-center gap-1">
+                        <CheckCircle2 className="w-4 h-4 text-green-500" />
+                        Free to plan
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Zap className="w-4 h-4 text-yellow-500" />
+                        Instant results
+                      </span>
+                    </div>
                     <Button 
-                        type="submit" 
-                        className="absolute right-2 top-2 bottom-2 bg-[#0B3D91] hover:bg-[#092C6B] text-white rounded-full px-8 text-base font-bold h-auto shadow-lg transition-all hover:scale-105"
+                      type="submit" 
+                      className="h-12 bg-gradient-to-r from-[#0B3D91] to-[#1E5BA8] hover:from-[#092C6B] hover:to-[#0B3D91] text-white rounded-xl px-8 text-base font-bold shadow-lg transition-all hover:scale-[1.02]"
                     >
-                        <Search className="w-4 h-4 mr-2" />
-                        Search
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Create My Itinerary
                     </Button>
+                  </div>
                 </div>
               </form>
+
+              {/* Trust Bar */}
+              <div className="flex flex-wrap justify-center items-center gap-6 md:gap-10">
+                <div className="flex items-center gap-2">
+                  <div className="flex -space-x-2">
+                    {['photo-1494790108377-be9c29b29330', 'photo-1507003211169-0a1dd7228f2d', 'photo-1472099645785-5658abf4ff4e', 'photo-1438761681033-6461ffad8d80'].map((id, i) => (
+                      <img key={i} src={`https://images.unsplash.com/${id}?w=32&h=32&fit=crop&crop=face`} className="w-8 h-8 rounded-full border-2 border-white" alt="" />
+                    ))}
+                  </div>
+                  <span className="text-white text-sm"><strong>50,000+</strong> trips planned</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />)}
+                  <span className="text-white text-sm ml-1"><strong>4.9/5</strong> (2,400+ reviews)</span>
+                </div>
+                <div className="hidden md:flex items-center gap-2 text-white">
+                  <Shield className="w-5 h-5 text-green-400" />
+                  <span className="text-sm">Verified Operators</span>
+                </div>
+              </div>
             </motion.div>
+          </div>
+
+          {/* Scroll indicator */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+            <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center pt-2">
+              <div className="w-1 h-2 bg-white/70 rounded-full"></div>
+            </div>
           </div>
         </section>
 
-        {/* Trending Destinations */}
-        <section className="py-20 bg-white">
+        {/* SOCIAL PROOF STATS BAR */}
+        <section className="py-8 bg-gray-50 border-y border-gray-100">
+          <div className="container mx-auto px-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {stats.map((stat, i) => (
+                <div key={i} className="text-center">
+                  <div className="text-2xl md:text-3xl font-bold text-[#0B3D91]">{stat.value}</div>
+                  <div className="text-sm text-gray-600">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* BOOKABLE TOURS - Clear Monetization */}
+        <section className="py-16 bg-white">
+          <div className="container mx-auto px-4 lg:px-8">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
+                <BadgeCheck className="w-4 h-4" />
+                Verified Tour Operators
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                Book Tours Directly — Best Price Guaranteed
+              </h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Skip the middleman. Book verified experiences with instant confirmation 
+                and real-time availability.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {bookableTours.map((tour, index) => (
+                <motion.div
+                  key={tour.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-xl transition-all group"
+                >
+                  <div className="relative h-48">
+                    <img src={tour.image} alt={tour.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    {tour.badge && (
+                      <span className="absolute top-3 left-3 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                        {tour.badge}
+                      </span>
+                    )}
+                    {tour.instantConfirmation && (
+                      <span className="absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
+                        <Zap className="w-3 h-3" /> Instant
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">{tour.location}</p>
+                    <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 h-12 leading-tight">{tour.title}</h3>
+                    <div className="flex items-center gap-1 text-sm mb-3">
+                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      <span className="font-bold">{tour.rating}</span>
+                      <span className="text-gray-400">({tour.reviews})</span>
+                    </div>
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                      <div>
+                        <span className="text-xs text-gray-500">From</span>
+                        <p className="text-lg font-bold text-gray-900">${tour.price}</p>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        className="bg-[#0B3D91] hover:bg-[#092C6B] text-white"
+                        onClick={() => navigate(`/tours/${tour.id}`)}
+                      >
+                        Book Now
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="text-center mt-10">
+              <Link 
+                to="/tours" 
+                className="inline-flex items-center gap-2 text-[#0B3D91] font-bold hover:underline text-lg"
+              >
+                Browse All Tours <ArrowRight className="w-5 h-5" />
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* HOW IT WORKS - Clear Process */}
+        <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                Plan Your Trip in 3 Simple Steps
+              </h2>
+              <p className="text-lg text-gray-600 max-w-xl mx-auto">
+                From idea to itinerary in under 2 minutes
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+              {steps.map((step, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.15 }}
+                  className="text-center relative"
+                >
+                  {i < steps.length - 1 && (
+                    <div className="hidden md:block absolute top-12 left-[60%] w-[80%] border-t-2 border-dashed border-gray-300" />
+                  )}
+                  <div className="w-24 h-24 bg-gradient-to-br from-[#0B3D91] to-[#1E5BA8] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg relative z-10">
+                    <step.icon className="w-10 h-10 text-white" />
+                  </div>
+                  <div className="text-sm font-bold text-[#0B3D91] mb-2">STEP {i + 1}</div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">{step.title}</h3>
+                  <p className="text-gray-600 leading-relaxed">{step.description}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* TRUST BADGES */}
+        <section className="py-12 bg-white border-y border-gray-100">
+          <div className="container mx-auto px-4">
+            <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16">
+              {trustBadges.map((badge, i) => (
+                <div key={i} className="flex items-center gap-3 text-gray-600">
+                  <badge.icon className={`w-6 h-6 ${badge.color}`} />
+                  <span className="font-medium">{badge.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Trending Destinations - Secondary */}
+        <section className="py-16 bg-gray-50">
             <div className="container mx-auto px-4 lg:px-8">
                 <div className="flex justify-between items-end mb-10">
                     <div>
-                        <div className="flex items-center gap-2 text-[#0B3D91] font-bold text-3xl mb-2">
-                            <h2>Trending destinations</h2>
-                            <TrendingUp className="w-6 h-6" />
-                        </div>
-                        <p className="text-gray-500 text-lg">Most loved cities by travelers</p>
+                        <h2 className="text-[#0B3D91] font-bold text-3xl mb-2">Trending Destinations</h2>
+                        <p className="text-gray-500 text-lg">Popular places to explore</p>
                     </div>
                     <Link to="/destinations" className="text-[#0B3D91] font-bold hover:underline flex items-center gap-1">
-                        See More <ArrowRight className="w-4 h-4" />
+                        See All <ArrowRight className="w-4 h-4" />
                     </Link>
                 </div>
 
@@ -141,142 +427,54 @@ const HomePage = ({ isLoggedIn }) => {
             </div>
         </section>
 
-        {/* Top Attractions */}
-        <section className="py-16 bg-gray-50/50">
-            <div className="container mx-auto px-4 lg:px-8">
-                <div className="flex justify-between items-end mb-10">
-                    <div>
-                        <h2 className="text-[#0B3D91] font-bold text-3xl mb-2">Top attractions</h2>
-                        <p className="text-gray-500 text-lg">Must-visit landmarks around the world</p>
-                    </div>
-                    <Link to="/attractions" className="text-[#0B3D91] font-bold hover:underline flex items-center gap-1">
-                        See More <ArrowRight className="w-4 h-4" />
-                    </Link>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {topAttractions.map((attraction, index) => (
-                        <motion.div
-                            key={index}
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                            className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-                        >
-                            <div className="relative h-48 bg-gray-200">
-                                <img src={attraction.image} alt={attraction.title} className="w-full h-full object-cover" />
-                                <button className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-sm hover:bg-gray-50">
-                                    <Heart className="w-4 h-4 text-gray-400" />
-                                </button>
-                            </div>
-                            <div className="p-5">
-                                <div className="flex gap-2 mb-3">
-                                    {attraction.tags.map(tag => (
-                                        <span key={tag} className="text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{tag}</span>
-                                    ))}
-                                </div>
-                                <h3 className="font-bold text-gray-900 mb-2 text-lg leading-tight line-clamp-2 h-12">{attraction.title}</h3>
-                                <div className="flex items-center gap-1 text-sm mb-4">
-                                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                                    <span className="font-bold">{attraction.rating}</span>
-                                    <span className="text-gray-400">({attraction.reviews} reviews)</span>
-                                </div>
-                                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                                    <span className="font-bold text-gray-900">{attraction.price}</span>
-                                    <button className="text-sm font-semibold text-[#0B3D91] hover:underline">View Details</button>
-                                </div>
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>
-            </div>
-        </section>
-
-        {/* Featured Itineraries */}
-        <section className="py-20 bg-white">
-             <div className="container mx-auto px-4 lg:px-8">
-                 <div className="flex justify-between items-end mb-10">
-                    <div>
-                        <h2 className="text-[#0B3D91] font-bold text-3xl mb-2">Featured Itineraries</h2>
-                        <p className="text-gray-500 text-lg">Handpicked trips created by our community</p>
-                    </div>
-                    <Link to="/itineraries" className="text-[#0B3D91] font-bold hover:underline flex items-center gap-1">
-                        See More <ArrowRight className="w-4 h-4" />
-                    </Link>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {featuredItineraries.map((itinerary, index) => (
-                         <motion.div
-                            key={itinerary.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                            className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer group border border-gray-100"
-                        >
-                            <div className="relative aspect-[4/3] overflow-hidden bg-gray-200">
-                                <img 
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                                    alt={itinerary.title} 
-                                    src={itinerary.image} 
-                                />
-                                <button className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md text-gray-400 hover:text-[#0B3D91] transition-colors">
-                                    <Heart className="w-4 h-4" />
-                                </button>
-                            </div>
-                            <div className="p-6">
-                                <div className="flex items-center gap-2 mb-3 flex-wrap">
-                                    {itinerary.tags.map(tag => (
-                                        <span key={tag} className="px-2 py-0.5 bg-blue-50 text-[#0B3D91] text-[10px] font-bold rounded-full uppercase tracking-wide">
-                                            {tag}
-                                        </span>
-                                    ))}
-                                </div>
-                                <h3 className="text-lg font-bold text-gray-900 mb-3 group-hover:text-[#0B3D91] transition-colors">{itinerary.title}</h3>
-                                <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
-                                    <div className="flex items-center gap-1.5">
-                                        <Calendar className="w-4 h-4" />
-                                        {itinerary.duration}
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <Star className="w-4 h-4 fill-[#0B3D91] text-[#0B3D91]" />
-                                        <span className="font-semibold text-gray-900">{itinerary.rating}</span> 
-                                        <span className="text-gray-400">({itinerary.reviews})</span>
-                                    </div>
-                                </div>
-                                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                                    <span className="text-base font-bold text-gray-900">{itinerary.price}</span>
-                                    <Button size="sm" className="bg-[#0B3D91] hover:bg-[#092C6B] text-white h-9">
-                                        View Details
-                                    </Button>
-                                </div>
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>
-             </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="py-24 bg-[#0B3D91] text-white text-center">
-            <div className="container mx-auto px-4">
-                <motion.div 
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    className="max-w-3xl mx-auto"
+        {/* FINAL CTA - Strong Conversion */}
+        <section className="py-24 bg-gradient-to-br from-[#0B3D91] via-[#1E5BA8] to-[#0B3D91] text-white text-center relative overflow-hidden">
+          {/* Background decoration */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-10 left-10 w-64 h-64 bg-white rounded-full blur-3xl" />
+            <div className="absolute bottom-10 right-10 w-96 h-96 bg-white rounded-full blur-3xl" />
+          </div>
+          
+          <div className="container mx-auto px-4 relative z-10">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              className="max-w-3xl mx-auto"
+            >
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full mb-6">
+                <Sparkles className="w-4 h-4 text-yellow-400" />
+                <span className="text-sm font-medium">No credit card required</span>
+              </div>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6">
+                Ready to Plan Your Dream Trip?
+              </h2>
+              <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto">
+                Join 50,000+ travelers who've discovered smarter travel planning. 
+                Create your AI-powered itinerary in seconds — completely free.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button 
+                  onClick={() => navigate('/plan')}
+                  className="bg-white text-[#0B3D91] hover:bg-gray-100 font-bold px-10 py-6 text-lg rounded-full shadow-lg transition-transform hover:scale-105"
                 >
-                    <h2 className="text-4xl md:text-5xl font-bold mb-6">Ready to start planning?</h2>
-                    <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto">
-                        Create your perfect itinerary in minutes with our smart AI-powered suggestions.
-                    </p>
-                    <Button 
-                        onClick={() => navigate('/plan')}
-                        className="bg-white text-[#0B3D91] hover:bg-gray-100 font-bold px-8 py-6 text-lg rounded-full shadow-lg transition-transform hover:scale-105"
-                    >
-                        Start Planning Now
-                    </Button>
-                </motion.div>
-            </div>
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  Start Planning for Free
+                </Button>
+                <Button 
+                  onClick={() => navigate('/tours')}
+                  variant="outline"
+                  className="border-2 border-white text-white hover:bg-white/10 font-bold px-10 py-6 text-lg rounded-full"
+                >
+                  Browse Tours
+                </Button>
+              </div>
+              <p className="text-blue-200 text-sm mt-6 flex items-center justify-center gap-4">
+                <span className="flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> Free forever</span>
+                <span className="flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> No signup needed</span>
+                <span className="flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> Instant results</span>
+              </p>
+            </motion.div>
+          </div>
         </section>
 
         {/* Removed duplicate Footer from here. It is handled by the Layout component. */}

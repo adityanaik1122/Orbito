@@ -1,6 +1,47 @@
 const { getGenerativeModel } = require('../config/gemini');
 const { saveItinerary, getItinerariesByUser } = require('../models/itineraryModel');
+const AITourMatchingService = require('../services/aiTourMatchingService');
 
+/**
+ * Generate itinerary with real bookable tours
+ * This enhanced version fetches real tours and matches them to AI suggestions
+ */
+async function generateItineraryWithTours(req, res) {
+  try {
+    const { destination, startDate, endDate, preferences, budget } = req.body;
+    
+    if (!destination || !startDate || !endDate) {
+      return res.status(400).json({ error: 'Missing required fields: destination, startDate, endDate' });
+    }
+
+    console.log(`🚀 Generating itinerary with tours for ${destination}`);
+    
+    const itinerary = await AITourMatchingService.generateItineraryWithTours({
+      destination,
+      startDate,
+      endDate,
+      preferences,
+      budget
+    });
+
+    res.json({ 
+      success: true, 
+      itinerary,
+      meta: {
+        bookableTours: itinerary.bookableTourCount || 0,
+        potentialSavings: itinerary.totalSavingsWithBooking
+      }
+    });
+  } catch (error) {
+    console.error('Error in generateItineraryWithTours:', error);
+    res.status(500).json({ error: error.message || 'Failed to generate itinerary' });
+  }
+}
+
+/**
+ * Legacy itinerary generation (without tour matching)
+ * Kept for backward compatibility
+ */
 async function generateItinerary(req, res) {
   try {
     const { destination, startDate, endDate, preferences } = req.body;
@@ -22,7 +63,7 @@ IMPORTANT RULES FOR COSTS:
 
 Return ONLY valid JSON: { "destination": "${destination}", "days": [{"dayNumber": 1, "date": "YYYY-MM-DD", "items": [{"name": "Activity", "type": "attraction", "location": "Address", "time": "09:00", "estTime": "2h", "cost": "£25", "notes": "tip"}]}] }`;
 
-    const modelNames = ['gemini-2.5-flash', 'gemini-2.5-pro'];
+    const modelNames = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
     let responseText;
     let lastError;
 
@@ -40,7 +81,6 @@ Return ONLY valid JSON: { "destination": "${destination}", "days": [{"dayNumber"
     }
 
     if (!responseText) {
-      // Surface a useful error message back to the frontend
       const message =
         (lastError && (lastError.message || lastError.toString())) ||
         'Failed to generate itinerary';
@@ -54,6 +94,29 @@ Return ONLY valid JSON: { "destination": "${destination}", "days": [{"dayNumber"
   } catch (error) {
     console.error('Error in generateItinerary:', error);
     res.status(500).json({ error: error.message || 'Failed to generate itinerary' });
+  }
+}
+
+/**
+ * Get tour suggestions for a specific activity
+ */
+async function suggestToursForActivity(req, res) {
+  try {
+    const { activity, destination } = req.body;
+    
+    if (!activity || !destination) {
+      return res.status(400).json({ error: 'Missing activity or destination' });
+    }
+
+    const suggestions = await AITourMatchingService.suggestToursForActivity(
+      activity,
+      destination
+    );
+
+    res.json({ success: true, suggestions });
+  } catch (error) {
+    console.error('Error in suggestToursForActivity:', error);
+    res.status(500).json({ error: error.message });
   }
 }
 
@@ -109,6 +172,8 @@ async function getUserItinerariesHandler(req, res) {
 
 module.exports = {
   generateItinerary,
+  generateItineraryWithTours,
+  suggestToursForActivity,
   saveItineraryHandler,
   getUserItinerariesHandler,
 };

@@ -7,8 +7,7 @@
 
 const PremiumToursService = require('./premiumToursService');
 const ViatorService = require('./viatorService');
-// Add more providers here as you integrate them
-// const GetYourGuideService = require('./getYourGuideService');
+const GetYourGuideService = require('./getYourGuideService');
 // const KlookService = require('./klookService');
 
 class TourAggregatorService {
@@ -19,7 +18,7 @@ class TourAggregatorService {
    */
   static async searchAllProviders(filters = {}) {
     const results = await Promise.allSettled([
-      // Premium Tours
+      // Premium Tours (local/partner tours)
       PremiumToursService.getTours(filters).catch(err => {
         console.error('Premium Tours error:', err);
         return [];
@@ -34,8 +33,16 @@ class TourAggregatorService {
         return [];
       }),
       
+      // GetYourGuide
+      GetYourGuideService.searchTours({
+        destination: filters.destination,
+        ...filters
+      }).catch(err => {
+        console.error('GetYourGuide error:', err);
+        return [];
+      }),
+      
       // Add more providers here
-      // GetYourGuideService.searchTours(filters),
       // KlookService.searchTours(filters),
     ]);
 
