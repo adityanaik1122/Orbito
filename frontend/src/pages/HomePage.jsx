@@ -13,6 +13,9 @@ const HomePage = ({ isLoggedIn }) => {
   const navigate = useNavigate();
   const [naturalQuery, setNaturalQuery] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [trendingDestinations, setTrendingDestinations] = useState([]);
+  const [loadingTrending, setLoadingTrending] = useState(true);
+
 
   // Natural language examples for placeholder rotation
   const placeholderExamples = [
@@ -25,11 +28,39 @@ const HomePage = ({ isLoggedIn }) => {
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
 
   React.useEffect(() => {
-    const interval = setInterval(() => {
-      setPlaceholderIndex((i) => (i + 1) % placeholderExamples.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
+  const interval = setInterval(() => {
+    setPlaceholderIndex((i) => (i + 1) % placeholderExamples.length);
+  }, 3000);
+  return () => clearInterval(interval);
+}, []);
+
+  React.useEffect(() => {
+  const mockTrending = [
+    {
+      name: "Paris",
+      country: "France",
+      image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=800",
+      trips: "12,500+"
+    },
+    {
+      name: "Bali",
+      country: "Indonesia",
+      image: "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?q=80&w=800",
+      trips: "9,800+"
+    },
+    {
+      name: "Tokyo",
+      country: "Japan",
+      image: "https://images.unsplash.com/photo-1549693578-d683be217e58?q=80&w=800",
+      trips: "11,200+"
+    }
+  ];
+
+  setTrendingDestinations(mockTrending);
+  setLoadingTrending(false);
+}, []);
+
+
 
   const handleAISubmit = (e) => {
     e.preventDefault();
@@ -399,7 +430,8 @@ const HomePage = ({ isLoggedIn }) => {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {trendingDestinations.map((dest, index) => (
+                    {!loadingTrending && trendingDestinations.length > 0 && trendingDestinations.map((dest, index) => (
+
                         <motion.div 
                             key={index}
                             initial={{ opacity: 0, y: 20 }}
@@ -424,6 +456,12 @@ const HomePage = ({ isLoggedIn }) => {
                         </motion.div>
                     ))}
                 </div>
+                {!loadingTrending && trendingDestinations.length === 0 && (
+                  <p className="text-center text-gray-500 mt-6">
+                    Trending destinations will appear here soon.
+                  </p>
+                )}
+
             </div>
         </section>
 
