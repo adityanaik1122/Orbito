@@ -1,4 +1,4 @@
-const { getGenerativeModel } = require('../config/gemini');
+const { generateContent, GROQ_MODELS } = require('../config/groq');
 
 async function suggestActivities(req, res) {
   try {
@@ -7,18 +7,17 @@ async function suggestActivities(req, res) {
     const aiInstructions = `User wants: "${userPrompt}" for a trip to ${destination}.
 Return ONLY JSON: { "suggestions": [{"dayIndex": 0, "name": "Activity", "type": "attraction", "location": "Loc", "time": "10:00", "estTime": "1h", "cost": "£0", "notes": "tip"}], "message": "Feedback" }`;
 
-    const modelNames = ['gemini-2.5-flash', 'gemini-2.5-pro'];
+    const modelNames = [GROQ_MODELS.LLAMA_70B, GROQ_MODELS.LLAMA_8B, GROQ_MODELS.MIXTRAL];
     let responseText;
 
-    for (const name of modelNames) {
+    for (const modelName of modelNames) {
       try {
-        console.log(`🤖 Suggest: Trying ${name}`);
-        const model = getGenerativeModel(name);
-        const result = await model.generateContent(aiInstructions);
-        responseText = result.response.text();
+        console.log(`🤖 Suggest: Trying ${modelName}`);
+        responseText = await generateContent(aiInstructions, modelName);
+        console.log(`✅ Successfully used ${modelName}`);
         break;
       } catch (e) {
-        console.warn(`❌ ${name} failed`, e.message);
+        console.warn(`❌ ${modelName} failed:`, e.message);
       }
     }
 

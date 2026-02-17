@@ -1,13 +1,13 @@
 /**
  * AI Tour Matching Service
  * 
- * Combines Gemini AI with real tour provider data to:
+ * Combines Groq AI with real tour provider data to:
  * 1. Generate personalized itineraries with AI
  * 2. Match AI suggestions with real bookable tours
  * 3. Enrich itineraries with booking links and real-time pricing
  */
 
-const { getGenerativeModel } = require('../config/gemini');
+const { generateContent, GROQ_MODELS } = require('../config/groq');
 const TourAggregatorService = require('./tourAggregatorService');
 
 class AITourMatchingService {
@@ -154,18 +154,17 @@ Return ONLY valid JSON in this exact format:
   "tips": ["Travel tip 1", "Travel tip 2"]
 }`;
 
-    const modelNames = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+    const modelNames = [GROQ_MODELS.LLAMA_70B, GROQ_MODELS.LLAMA_8B, GROQ_MODELS.MIXTRAL];
     let responseText;
 
-    for (const name of modelNames) {
+    for (const modelName of modelNames) {
       try {
-        console.log(`🤖 Trying ${name}...`);
-        const model = getGenerativeModel(name);
-        const result = await model.generateContent(prompt);
-        responseText = result.response.text();
+        console.log(`🤖 Trying ${modelName}...`);
+        responseText = await generateContent(prompt, modelName);
+        console.log(`✅ Successfully used ${modelName}`);
         break;
       } catch (e) {
-        console.warn(`❌ ${name} failed:`, e.message);
+        console.warn(`❌ ${modelName} failed:`, e.message);
       }
     }
 

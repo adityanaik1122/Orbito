@@ -1,4 +1,4 @@
-const { getGenerativeModel } = require('../config/gemini');
+const { generateContent, GROQ_MODELS } = require('../config/groq');
 const { saveItinerary, getItinerariesByUser } = require('../models/itineraryModel');
 const AITourMatchingService = require('../services/aiTourMatchingService');
 
@@ -61,22 +61,41 @@ IMPORTANT RULES FOR COSTS:
 - Use "Free" for free attractions like parks, museums with free entry, walking tours
 - Never generate costs above £200 for a single activity unless it's something exceptional
 
-Return ONLY valid JSON: { "destination": "${destination}", "days": [{"dayNumber": 1, "date": "YYYY-MM-DD", "items": [{"name": "Activity", "type": "attraction", "location": "Address", "time": "09:00", "estTime": "2h", "cost": "£25", "notes": "tip"}]}] }`;
+Return this JSON structure:
+{
+  "destination": "${destination}",
+  "days": [
+    {
+      "dayNumber": 1,
+      "date": "YYYY-MM-DD",
+      "items": [
+        {
+          "name": "Activity Name",
+          "type": "attraction",
+          "location": "Specific Address",
+          "time": "09:00",
+          "estTime": "2h",
+          "cost": "£25",
+          "notes": "Brief tip or description"
+        }
+      ]
+    }
+  ]
+}`;
 
-    const modelNames = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+    const modelNames = [GROQ_MODELS.LLAMA_70B, GROQ_MODELS.LLAMA_8B, GROQ_MODELS.MIXTRAL];
     let responseText;
     let lastError;
 
-    for (const name of modelNames) {
+    for (const modelName of modelNames) {
       try {
-        console.log(`🤖 Itinerary: Trying ${name}`);
-        const model = getGenerativeModel(name);
-        const result = await model.generateContent(prompt);
-        responseText = result.response.text();
+        console.log(`🤖 Itinerary: Trying ${modelName}`);
+        responseText = await generateContent(prompt, modelName);
+        console.log(`✅ Successfully used ${modelName}`);
         break;
       } catch (e) {
         lastError = e;
-        console.warn(`❌ ${name} failed`, e.message || e);
+        console.warn(`❌ ${modelName} failed:`, e.message || e);
       }
     }
 
@@ -87,8 +106,31 @@ Return ONLY valid JSON: { "destination": "${destination}", "days": [{"dayNumber"
       return res.status(500).json({ error: message });
     }
 
-    const cleaned = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
-    const itinerary = JSON.parse(cleaned);
+    // Clean the response - remove markdown, extra text, and extract JSON
+    let cleaned = responseText.trim();
+    
+    // Remove markdown code blocks
+    cleaned = cleaned.replace(/```json\s*/g, '').replace(/```\s*/g, '');
+    
+    // Try to extract JSON if there's extra text
+    const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      cleaned = jsonMatch[0];
+    }
+    
+    // Parse and validate
+    let itinerary;
+    try {
+      itinerary = JSON.parse(cleaned);
+    } catch (parseError) {
+      console.error('JSON parse error. Raw response:', responseText.substring(0, 500));
+      throw new Error('AI returned invalid JSON format');
+    }
+    
+    // Ensure destination is set correctly
+    if (!itinerary.destination || itinerary.destination === '${destination}') {
+      itinerary.destination = destination;
+    }
 
     res.json({ success: true, itinerary });
   } catch (error) {

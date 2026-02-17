@@ -155,47 +155,64 @@ const TourDetailPage = () => {
         </div>
 
         {/* Hero Image */}
-        <div className="relative h-96 overflow-hidden">
+        <div className="relative h-[500px] overflow-hidden">
           <img
-            src={tour.main_image || 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1200'}
+            src={tour.main_image || tour.image || `https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1200&q=80`}
             alt={tour.title}
             className="w-full h-full object-cover"
+            onError={(e) => {
+              // Fallback images based on city/destination
+              const city = (tour.city || tour.destination || '').toLowerCase();
+              if (city.includes('london')) {
+                e.target.src = 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1200&q=80';
+              } else if (city.includes('paris')) {
+                e.target.src = 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&q=80';
+              } else if (city.includes('rome')) {
+                e.target.src = 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=1200&q=80';
+              } else if (city.includes('dubai')) {
+                e.target.src = 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&q=80';
+              } else {
+                e.target.src = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1200&q=80';
+              }
+            }}
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
           {tour.provider && (
-            <Badge className="absolute top-4 left-4 bg-blue-500 text-white">
-              {tour.provider === 'premium-tours' ? 'Premium Tours' : tour.provider}
+            <Badge className="absolute top-6 left-6 bg-white/90 backdrop-blur-sm text-[#0B3D91] border-0 shadow-lg text-sm px-4 py-2">
+              {tour.provider === 'premium-tours' ? '⭐ Premium Tours' : tour.provider}
             </Badge>
           )}
+          {/* Tour Title Overlay */}
+          <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
+            <div className="container mx-auto">
+              <h1 className="text-4xl md:text-5xl font-bold mb-3 drop-shadow-lg">{tour.title}</h1>
+              <div className="flex flex-wrap items-center gap-4 text-white/90">
+                {tour.rating > 0 && (
+                  <div className="flex items-center gap-1 bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                    <span className="font-semibold">{tour.rating.toFixed(1)}</span>
+                    <span className="text-sm">({tour.review_count} reviews)</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                  <MapPin className="w-4 h-4" />
+                  <span className="font-medium">{tour.city || tour.destination}</span>
+                </div>
+                {tour.duration && (
+                  <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                    <Clock className="w-4 h-4" />
+                    <span className="font-medium">{tour.duration}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Title & Rating */}
-              <div>
-                <h1 className="text-3xl font-bold mb-2">{tour.title}</h1>
-                <div className="flex items-center gap-4 text-gray-600">
-                  {tour.rating > 0 && (
-                    <div className="flex items-center gap-1">
-                      <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                      <span className="font-semibold">{tour.rating.toFixed(1)}</span>
-                      <span>({tour.review_count} reviews)</span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-1">
-                    <MapPin className="w-5 h-5" />
-                    <span>{tour.city || tour.destination}</span>
-                  </div>
-                  {tour.duration && (
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-5 h-5" />
-                      <span>{tour.duration}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
               {/* Description */}
               <div className="bg-white rounded-lg shadow p-6">
                 <h2 className="text-xl font-bold mb-3">About This Tour</h2>

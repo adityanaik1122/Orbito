@@ -1,5 +1,5 @@
-import React from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import React, { useState, useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -21,41 +21,71 @@ const customIcon = new L.Icon({
   shadowSize: [41, 41]
 });
 
-const cityCoordinates = {
-  'London': [51.5074, -0.1278],
-  'Paris': [48.8566, 2.3522],
-  'Amsterdam': [52.3676, 4.9041],
-  'Dubai': [25.2048, 55.2708],
-  'Prague': [50.0755, 14.4378],
-  'Edinburgh': [55.9533, -3.1883],
-  'Barcelona': [41.3851, 2.1734],
-  'Rome': [41.9028, 12.4964],
-  'New York': [40.7128, -74.0060],
-  'Tokyo': [35.6762, 139.6503],
-  'Sydney': [-33.8688, 151.2093],
-  'Singapore': [1.3521, 103.8198],
-  'Hong Kong': [22.3193, 114.1694],
-  'Los Angeles': [34.0522, -118.2437],
-  'San Francisco': [37.7749, -122.4194],
-  'Miami': [25.7617, -80.1918],
-  'Las Vegas': [36.1699, -115.1398],
-  'Bangkok': [13.7563, 100.5018],
-  'Bali': [-8.3405, 115.0920],
-  'Maldives': [3.2028, 73.2207],
-  'Cairo': [30.0444, 31.2357],
-  'Istanbul': [41.0082, 28.9784],
-  'Vienna': [48.2082, 16.3738],
-  'Berlin': [52.5200, 13.4050],
-  'Madrid': [40.4168, -3.7038],
-  'Lisbon': [38.7223, -9.1393],
-  'Athens': [37.9838, 23.7275],
-  'Mumbai': [19.0760, 72.8777],
-  'Delhi': [28.7041, 77.1025],
-  'Goa': [15.2993, 74.1240],
+// Component to update map center when destination changes
+const MapUpdater = ({ center, zoom }) => {
+  const map = useMap();
+  
+  useEffect(() => {
+    if (center) {
+      map.setView(center, zoom);
+    }
+  }, [center, zoom, map]);
+  
+  return null;
+};
+
+// Geocoding function to get coordinates from location name via backend proxy
+const geocodeLocation = async (locationName) => {
+  try {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    const response = await fetch(
+      `${apiUrl}/geocode?location=${encodeURIComponent(locationName)}`
+    );
+    const data = await response.json();
+    
+    if (data.success && data.coordinates) {
+      return {
+        lat: data.coordinates.lat,
+        lon: data.coordinates.lon,
+        displayName: data.coordinates.displayName
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('Geocoding error:', error);
+    return null;
+  }
 };
 
 const MapView = ({ destination, activities }) => {
-  const cityCenter = cityCoordinates[destination] || [51.5074, -0.1278];
+  const [cityCenter, setCityCenter] = useState([51.5074, -0.1278]); // Default to London
+  const [isLoading, setIsLoading] = useState(false);
+  const [locationName, setLocationName] = useState('London');
+  const [zoom, setZoom] = useState(13);
+
+  // Fetch coordinates when destination changes
+  useEffect(() => {
+    const fetchCoordinates = async () => {
+      if (!destination) return;
+      
+      setIsLoading(true);
+      const result = await geocodeLocation(destination);
+      
+      if (result) {
+        setCityCenter([result.lat, result.lon]);
+        setLocationName(result.displayName);
+        setZoom(13);
+      } else {
+        console.warn(`Could not find coordinates for "${destination}". Using default location.`);
+        setCityCenter([51.5074, -0.1278]);
+        setLocationName('London (default)');
+      }
+      
+      setIsLoading(false);
+    };
+
+    fetchCoordinates();
+  }, [destination]);
 
   // Create markers from activities
   const activityMarkers = activities
@@ -75,13 +105,22 @@ const MapView = ({ destination, activities }) => {
 
   return (
     <div className="relative w-full h-full bg-gray-200 z-0">
+      {isLoading && (
+        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-[1000] flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0B3D91] mx-auto mb-2"></div>
+            <p className="text-sm text-gray-600">Loading map for {destination}...</p>
+          </div>
+        </div>
+      )}
+      
       <MapContainer 
-        key={destination}
         center={cityCenter} 
-        zoom={13} 
+        zoom={zoom} 
         scrollWheelZoom={true} 
         style={{ height: '100%', width: '100%' }}
       >
+        <MapUpdater center={cityCenter} zoom={zoom} />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | <a href="https://carto.com/">CARTO</a>'
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"

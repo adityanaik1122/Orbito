@@ -41,10 +41,10 @@ const MOCK_TOURS = [
     currency: 'GBP',
     price_includes: ['Fast-track entry', 'One rotation (30 minutes)', 'All taxes'],
     price_excludes: ['Hotel pickup/drop-off', 'Food and drinks'],
-    main_image: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800',
+    main_image: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1200&q=80',
     images: [
-      'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800',
-      'https://images.unsplash.com/photo-1526129318478-62ed807ebdf9?w=800'
+      'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1200&q=80',
+      'https://images.unsplash.com/photo-1526129318478-62ed807ebdf9?w=1200&q=80'
     ],
     is_available: true,
     available_days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
@@ -118,7 +118,10 @@ const MOCK_TOURS = [
     currency: 'GBP',
     price_includes: ['24-hour ticket', 'Three bus routes', 'Live commentary', 'Walking tours', 'River cruise'],
     price_excludes: ['Hotel pickup', 'Entrance fees to attractions'],
-    main_image: 'https://images.unsplash.com/photo-1581367590464-cfac581eb56a?w=800',
+    main_image: 'https://cdn.pixabay.com/photo/2022/02/13/16/01/bus-6982035_1280.jpg',
+    images: [
+      'https://cdn.pixabay.com/photo/2022/02/13/16/01/bus-6982035_1280.jpg'
+    ],
     is_available: true,
     available_days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
     start_times: ['09:00'],
@@ -225,7 +228,7 @@ const MOCK_TOURS = [
     currency: 'GBP',
     price_includes: ['Entry to Windsor Castle', 'Entry to Stonehenge', 'Pub lunch', 'Professional guide', 'Luxury coach'],
     price_excludes: ['Gratuities', 'Hotel pickup'],
-    main_image: 'https://images.unsplash.com/photo-1599833975787-5d9f111d0e7a?w=800',
+    main_image: 'https://images.unsplash.com/photo-1599833975787-5d9f111d0e7a?w=1200&q=80',
     is_available: true,
     available_days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
     start_times: ['08:00'],

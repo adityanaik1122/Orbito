@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
-import { ArrowLeft, Mail, Lock, User, Loader2 } from 'lucide-react';
+import { ArrowLeft, Mail, Lock, User, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { supabase } from '@/lib/customSupabaseClient';
 
@@ -21,6 +21,7 @@ const AuthPage = () => {
   const from = location.state?.from?.pathname || '/my-account';
   
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -46,18 +47,25 @@ const AuthPage = () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          const { data: profileData } = await supabase
+          // Note: profiles table may not have a 'role' column yet
+          // This is a placeholder for future role-based routing
+          // For now, all users go to the default route
+          const { data: profileData, error: profileError } = await supabase
             .from('profiles')
-            .select('role')
+            .select('*')
             .eq('id', user.id)
             .single();
 
-          const role = profileData?.role || 'customer';
-          if (role === 'operator') target = '/operator/dashboard';
-          else if (role === 'admin') target = '/admin';
+          // Only check role if the column exists and has data
+          if (!profileError && profileData?.role) {
+            const role = profileData.role;
+            if (role === 'operator') target = '/operator/dashboard';
+            else if (role === 'admin') target = '/admin';
+          }
         }
       } catch (e) {
         console.error('Error determining user role on login:', e);
+        // Continue with default redirect even if role check fails
       }
 
       toast({
@@ -173,13 +181,24 @@ const AuthPage = () => {
                       </div>
                       <Input
                         id="password"
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         required
-                        className="pl-10"
+                        className="pl-10 pr-10"
                         placeholder="••••••••"
                         value={formData.password}
                         onChange={handleInputChange}
                       />
+                      <button
+                        type="button"
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" />
+                        ) : (
+                          <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" />
+                        )}
+                      </button>
                     </div>
                   </div>
 
@@ -245,13 +264,24 @@ const AuthPage = () => {
                       </div>
                       <Input
                         id="password"
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         required
-                        className="pl-10"
+                        className="pl-10 pr-10"
                         placeholder="Create a password (min 6 chars)"
                         value={formData.password}
                         onChange={handleInputChange}
                       />
+                      <button
+                        type="button"
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" />
+                        ) : (
+                          <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" />
+                        )}
+                      </button>
                     </div>
                   </div>
 

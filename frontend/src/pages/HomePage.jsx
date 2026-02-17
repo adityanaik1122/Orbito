@@ -125,11 +125,23 @@ const HomePage = ({ isLoggedIn }) => {
     { value: '500+', label: 'Destinations' },
   ];
 
-  // How it works steps
+  // How it works steps - Simple and clear
   const steps = [
-    { icon: MessageSquare, title: 'Tell Us Your Dream', description: 'Describe your ideal trip in plain English' },
-    { icon: Sparkles, title: 'AI Creates Your Plan', description: 'Get a personalized itinerary in seconds' },
-    { icon: CreditCard, title: 'Book & Save', description: 'Book verified tours with instant confirmation' },
+    { 
+      icon: MessageSquare, 
+      title: 'Describe Your Trip', 
+      description: 'Tell us where you want to go and what you like'
+    },
+    { 
+      icon: Sparkles, 
+      title: 'Get AI Itinerary', 
+      description: 'Receive a personalized day-by-day plan in seconds'
+    },
+    { 
+      icon: CreditCard, 
+      title: 'Book Tours', 
+      description: 'Instantly book activities with verified providers'
+    },
   ];
 
   // Trust badges
@@ -143,14 +155,14 @@ const HomePage = ({ isLoggedIn }) => {
   return (
     <>
       <Helmet>
-        <title>Orbito | AI Travel Planner - Plan Your Trip in Seconds</title>
-        <meta name="description" content="Plan your perfect trip in seconds with AI. Get personalized itineraries, book verified tours instantly, and save up to 20% on experiences. Trusted by 50,000+ travelers." />
-        <meta name="keywords" content="AI travel planner, trip planner, travel itinerary, book tours, travel planning app" />
+        <title>Orbito | AI Trip Planner + Book Real Tours Instantly</title>
+        <meta name="description" content="Describe your trip, get an AI-powered itinerary, and book real tours from verified providers. Free trip planning with instant tour bookings and best price guarantee." />
+        <meta name="keywords" content="AI travel planner, book tours, trip itinerary, travel booking, tour packages, AI trip planning" />
         <link rel="canonical" href="https://orbitotrip.com" />
         
         {/* Open Graph */}
-        <meta property="og:title" content="Orbito | AI Travel Planner - Plan Your Trip in Seconds" />
-        <meta property="og:description" content="Tell our AI where you want to go and get a personalized itinerary instantly. Book verified tours with best price guarantee." />
+        <meta property="og:title" content="Orbito | AI Trip Planner + Book Real Tours" />
+        <meta property="og:description" content="Get AI-powered trip itineraries with real bookable tours from verified providers. Free planning, instant booking, best prices." />
         <meta property="og:type" content="website" />
         
         {/* Schema.org structured data */}
@@ -173,229 +185,177 @@ const HomePage = ({ isLoggedIn }) => {
 
       <div className="bg-white min-h-screen flex flex-col">
         
-        {/* HERO: Conversion-Focused with Natural Language Input */}
-        <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
+        {/* HERO: Premium Apple/Google-inspired Design */}
+        <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
+          {/* Background with subtle overlay */}
           <div className="absolute inset-0 z-0">
             <img 
               src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2000&auto=format&fit=crop" 
               alt="Travel destination"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover opacity-40"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80"></div>
+            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60"></div>
           </div>
 
-          <div className="relative z-10 container mx-auto px-4 text-center py-12">
+          <div className="relative z-10 container mx-auto px-6 lg:px-12 text-center">
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="max-w-4xl mx-auto"
+              transition={{ duration: 1, ease: "easeOut" }}
+              className="max-w-5xl mx-auto space-y-8"
             >
-              {/* Urgency/Value Badge */}
-              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 backdrop-blur-sm border border-yellow-500/30 px-4 py-2 rounded-full mb-6">
-                <Zap className="w-4 h-4 text-yellow-400" />
-                <span className="text-white text-sm font-medium">Save up to 20% on tours when you book through AI planning</span>
-              </div>
-
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
-                Just Tell Us What You Want.
+              {/* Premium Typography - Mobile Optimized */}
+              <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-light text-white tracking-tight leading-none">
+                Travel
                 <br />
-                <span className="bg-gradient-to-r from-[#60A5FA] to-[#34D399] bg-clip-text text-transparent">
-                  AI Does the Rest.
-                </span>
+                <span className="font-semibold">reimagined</span>
               </h1>
               
-              <p className="text-lg md:text-xl text-gray-200 mb-8 max-w-2xl mx-auto">
-                Describe your dream trip in plain English. Our AI creates a personalized itinerary 
-                with bookable tours, real prices, and instant confirmation.
+              {/* Subtle Description */}
+              <p className="text-xl md:text-2xl text-gray-300 font-light max-w-2xl mx-auto leading-relaxed">
+                AI-powered itineraries tailored to you.
+                <br className="hidden md:block" />
+                Plan smarter. Travel better.
               </p>
 
-              {/* Natural Language AI Input */}
-              <form onSubmit={handleAISubmit} className="max-w-3xl mx-auto mb-8">
-                <div className="bg-white rounded-2xl shadow-2xl p-3">
-                  <div className="relative">
-                    <Sparkles className="absolute left-4 top-4 text-[#0B3D91] w-5 h-5" />
-                    <textarea
-                      placeholder={placeholderExamples[placeholderIndex]}
-                      className="w-full h-24 md:h-20 pl-12 pr-4 pt-3 rounded-xl text-base md:text-lg border-0 focus:ring-0 outline-none text-gray-800 placeholder:text-gray-400 resize-none"
-                      value={naturalQuery}
-                      onChange={(e) => setNaturalQuery(e.target.value)}
-                      onFocus={() => setIsTyping(true)}
-                      onBlur={() => setIsTyping(false)}
-                    />
-                  </div>
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mt-2 pt-3 border-t border-gray-100">
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <CheckCircle2 className="w-4 h-4 text-green-500" />
-                        Free to plan
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Zap className="w-4 h-4 text-yellow-500" />
-                        Instant results
-                      </span>
+              {/* Premium Search Interface */}
+              <div className="pt-8">
+                <form onSubmit={handleAISubmit} className="max-w-3xl mx-auto">
+                  <div className="relative group">
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-teal-500 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-500"></div>
+                    <div className="relative flex items-center bg-white/95 backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl">
+                      <input
+                        type="text"
+                        placeholder="Where would you like to go?"
+                        className="flex-1 px-6 sm:px-8 py-5 sm:py-6 text-base sm:text-lg min-h-[56px] bg-transparent border-0 focus:outline-none text-gray-900 placeholder:text-gray-400 font-light"
+                        value={naturalQuery}
+                        onChange={(e) => setNaturalQuery(e.target.value)}
+                      />
+                      <Button 
+                        type="submit"
+                        className="m-2 px-6 sm:px-10 py-4 min-h-[56px] bg-[#0B3D91] hover:bg-[#092C6B] text-white text-base sm:text-lg font-semibold rounded-xl shadow-lg transition-all duration-200"
+                      >
+                        Explore
+                      </Button>
                     </div>
-                    <Button 
-                      type="submit" 
-                      className="h-12 bg-gradient-to-r from-[#0B3D91] to-[#1E5BA8] hover:from-[#092C6B] hover:to-[#0B3D91] text-white rounded-xl px-8 text-base font-bold shadow-lg transition-all hover:scale-[1.02]"
-                    >
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Create My Itinerary
-                    </Button>
                   </div>
-                </div>
-              </form>
-
-              {/* Trust Bar */}
-              <div className="flex flex-wrap justify-center items-center gap-6 md:gap-10">
-                <div className="flex items-center gap-2">
-                  <div className="flex -space-x-2">
-                    {['photo-1494790108377-be9c29b29330', 'photo-1507003211169-0a1dd7228f2d', 'photo-1472099645785-5658abf4ff4e', 'photo-1438761681033-6461ffad8d80'].map((id, i) => (
-                      <img key={i} src={`https://images.unsplash.com/${id}?w=32&h=32&fit=crop&crop=face`} className="w-8 h-8 rounded-full border-2 border-white" alt="" />
-                    ))}
-                  </div>
-                  <span className="text-white text-sm"><strong>50,000+</strong> trips planned</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />)}
-                  <span className="text-white text-sm ml-1"><strong>4.9/5</strong> (2,400+ reviews)</span>
-                </div>
-                <div className="hidden md:flex items-center gap-2 text-white">
-                  <Shield className="w-5 h-5 text-green-400" />
-                  <span className="text-sm">Verified Operators</span>
-                </div>
+                </form>
+                
+                {/* Minimal Info */}
+                <p className="text-sm text-gray-400 mt-6 font-light">
+                  Free to use • No account needed
+                </p>
               </div>
             </motion.div>
           </div>
 
-          {/* Scroll indicator */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-            <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center pt-2">
-              <div className="w-1 h-2 bg-white/70 rounded-full"></div>
-            </div>
+          {/* Scroll Indicator */}
+          <div className="absolute bottom-12 left-1/2 -translate-x-1/2">
+            <motion.div
+              animate={{ y: [0, 10, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center pt-2"
+            >
+              <div className="w-1 h-2 bg-white/50 rounded-full"></div>
+            </motion.div>
           </div>
         </section>
 
-        {/* SOCIAL PROOF STATS BAR */}
-        <section className="py-8 bg-gray-50 border-y border-gray-100">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {stats.map((stat, i) => (
-                <div key={i} className="text-center">
-                  <div className="text-2xl md:text-3xl font-bold text-[#0B3D91]">{stat.value}</div>
-                  <div className="text-sm text-gray-600">{stat.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* BOOKABLE TOURS - Clear Monetization */}
-        <section className="py-16 bg-white">
-          <div className="container mx-auto px-4 lg:px-8">
-            <div className="text-center mb-12">
-              <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
-                <BadgeCheck className="w-4 h-4" />
-                Verified Tour Operators
-              </div>
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                Book Tours Directly — Best Price Guaranteed
+        {/* FEATURED TOURS - Premium Grid */}
+        <section className="py-12 sm:py-16 md:py-24 lg:py-32 bg-gray-50">
+          <div className="container mx-auto px-6 lg:px-12">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              className="text-center mb-20"
+            >
+              <h2 className="text-5xl md:text-6xl font-light text-gray-900 mb-6 tracking-tight">
+                Curated experiences
               </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Skip the middleman. Book verified experiences with instant confirmation 
-                and real-time availability.
+              <p className="text-xl text-gray-500 font-light">
+                Handpicked tours from verified providers
               </p>
-            </div>
+            </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
               {bookableTours.map((tour, index) => (
                 <motion.div
                   key={tour.id}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-xl transition-all group"
+                  className="group cursor-pointer"
+                  onClick={() => navigate(`/tours/${tour.id}`)}
                 >
-                  <div className="relative h-48">
-                    <img src={tour.image} alt={tour.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    {tour.badge && (
-                      <span className="absolute top-3 left-3 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                        {tour.badge}
-                      </span>
-                    )}
-                    {tour.instantConfirmation && (
-                      <span className="absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
-                        <Zap className="w-3 h-3" /> Instant
-                      </span>
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">{tour.location}</p>
-                    <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 h-12 leading-tight">{tour.title}</h3>
-                    <div className="flex items-center gap-1 text-sm mb-3">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span className="font-bold">{tour.rating}</span>
-                      <span className="text-gray-400">({tour.reviews})</span>
+                  <div className="bg-white rounded-3xl overflow-hidden hover:shadow-2xl transition-all duration-500">
+                    <div className="relative h-64 overflow-hidden">
+                      <img 
+                        src={tour.image} 
+                        alt={tour.title} 
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      />
                     </div>
-                    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                      <div>
-                        <span className="text-xs text-gray-500">From</span>
-                        <p className="text-lg font-bold text-gray-900">${tour.price}</p>
+                    <div className="p-6 space-y-3">
+                      <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">{tour.location}</p>
+                      <h3 className="font-medium text-gray-900 line-clamp-2 leading-snug">{tour.title}</h3>
+                      <div className="flex items-center justify-between pt-2">
+                        <div className="flex items-center gap-1 text-sm text-gray-500">
+                          <Star className="w-4 h-4 fill-gray-900 text-gray-900" />
+                          <span className="font-medium text-gray-900">{tour.rating}</span>
+                        </div>
+                        <p className="text-lg font-medium text-gray-900">${tour.price}</p>
                       </div>
-                      <Button 
-                        size="sm" 
-                        className="bg-[#0B3D91] hover:bg-[#092C6B] text-white"
-                        onClick={() => navigate(`/tours/${tour.id}`)}
-                      >
-                        Book Now
-                      </Button>
                     </div>
                   </div>
                 </motion.div>
               ))}
             </div>
 
-            <div className="text-center mt-10">
-              <Link 
-                to="/tours" 
-                className="inline-flex items-center gap-2 text-[#0B3D91] font-bold hover:underline text-lg"
+            <div className="text-center mt-16">
+              <Button 
+                onClick={() => navigate('/tours')}
+                variant="outline"
+                className="px-8 py-3 border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white rounded-full font-medium transition-all duration-300"
               >
-                Browse All Tours <ArrowRight className="w-5 h-5" />
-              </Link>
+                Explore all tours
+              </Button>
             </div>
           </div>
         </section>
 
-        {/* HOW IT WORKS - Clear Process */}
-        <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                Plan Your Trip in 3 Simple Steps
+        {/* HOW IT WORKS - Premium Apple Style */}
+        <section className="py-12 sm:py-16 md:py-24 lg:py-32 bg-white">
+          <div className="container mx-auto px-6 lg:px-12">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="text-center mb-24"
+            >
+              <h2 className="text-5xl md:text-6xl font-light text-gray-900 mb-6 tracking-tight">
+                Simple. Intelligent. Yours.
               </h2>
-              <p className="text-lg text-gray-600 max-w-xl mx-auto">
-                From idea to itinerary in under 2 minutes
+              <p className="text-xl text-gray-500 font-light max-w-2xl mx-auto">
+                Three steps to your perfect journey
               </p>
-            </div>
+            </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-16 max-w-6xl mx-auto">
               {steps.map((step, i) => (
                 <motion.div
                   key={i}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.15 }}
-                  className="text-center relative"
+                  transition={{ delay: i * 0.2, duration: 0.8 }}
+                  className="text-center space-y-6"
                 >
-                  {i < steps.length - 1 && (
-                    <div className="hidden md:block absolute top-12 left-[60%] w-[80%] border-t-2 border-dashed border-gray-300" />
-                  )}
-                  <div className="w-24 h-24 bg-gradient-to-br from-[#0B3D91] to-[#1E5BA8] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg relative z-10">
-                    <step.icon className="w-10 h-10 text-white" />
+                  <div className="w-16 h-16 bg-gradient-to-br from-[#0B3D91] to-[#1E5BA8] rounded-2xl flex items-center justify-center mx-auto shadow-lg">
+                    <step.icon className="w-8 h-8 text-white" strokeWidth={1.5} />
                   </div>
-                  <div className="text-sm font-bold text-[#0B3D91] mb-2">STEP {i + 1}</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">{step.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{step.description}</p>
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-medium text-gray-900">{step.title}</h3>
+                    <p className="text-gray-500 font-light leading-relaxed">{step.description}</p>
+                  </div>
                 </motion.div>
               ))}
             </div>
@@ -465,52 +425,27 @@ const HomePage = ({ isLoggedIn }) => {
             </div>
         </section>
 
-        {/* FINAL CTA - Strong Conversion */}
-        <section className="py-24 bg-gradient-to-br from-[#0B3D91] via-[#1E5BA8] to-[#0B3D91] text-white text-center relative overflow-hidden">
-          {/* Background decoration */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-10 left-10 w-64 h-64 bg-white rounded-full blur-3xl" />
-            <div className="absolute bottom-10 right-10 w-96 h-96 bg-white rounded-full blur-3xl" />
-          </div>
-          
-          <div className="container mx-auto px-4 relative z-10">
+        {/* FINAL CTA - Premium Minimal */}
+        <section className="py-12 sm:py-16 md:py-24 lg:py-32 bg-black text-white">
+          <div className="container mx-auto px-6 lg:px-12">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              className="max-w-3xl mx-auto"
+              transition={{ duration: 0.8 }}
+              className="max-w-4xl mx-auto text-center space-y-8"
             >
-              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full mb-6">
-                <Sparkles className="w-4 h-4 text-yellow-400" />
-                <span className="text-sm font-medium">No credit card required</span>
-              </div>
-              <h2 className="text-4xl md:text-5xl font-bold mb-6">
-                Ready to Plan Your Dream Trip?
+              <h2 className="text-5xl md:text-7xl font-light tracking-tight">
+                Ready to explore?
               </h2>
-              <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto">
-                Join 50,000+ travelers who've discovered smarter travel planning. 
-                Create your AI-powered itinerary in seconds — completely free.
+              <p className="text-xl text-gray-400 font-light max-w-2xl mx-auto">
+                Start planning your next adventure with AI
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button 
-                  onClick={() => navigate('/plan')}
-                  className="bg-white text-[#0B3D91] hover:bg-gray-100 font-bold px-10 py-6 text-lg rounded-full shadow-lg transition-transform hover:scale-105"
-                >
-                  <Sparkles className="w-5 h-5 mr-2" />
-                  Start Planning for Free
-                </Button>
-                <Button 
-                  onClick={() => navigate('/tours')}
-                  variant="outline"
-                  className="border-2 border-white text-white hover:bg-white/10 font-bold px-10 py-6 text-lg rounded-full"
-                >
-                  Browse Tours
-                </Button>
-              </div>
-              <p className="text-blue-200 text-sm mt-6 flex items-center justify-center gap-4">
-                <span className="flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> Free forever</span>
-                <span className="flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> No signup needed</span>
-                <span className="flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> Instant results</span>
-              </p>
+              <Button 
+                onClick={() => navigate('/plan')}
+                className="mt-8 bg-[#0B3D91] text-white hover:bg-[#092C6B] font-medium px-12 py-6 text-lg rounded-full transition-all duration-300"
+              >
+                Get started
+              </Button>
             </motion.div>
           </div>
         </section>

@@ -5,19 +5,24 @@ async function saveItinerary({ userId, title, destination, startDate, endDate, d
     throw new Error('Supabase is not initialized. Check SUPABASE_URL and SUPABASE_ANON_KEY.');
   }
 
+  // Prepare the data object
+  const itineraryData = {
+    user_id: userId,
+    title,
+    destination,
+    start_date: startDate,
+    end_date: endDate,
+    days,
+  };
+
+  // Only include activities if provided (for backward compatibility)
+  if (activities !== undefined) {
+    itineraryData.activities = activities;
+  }
+
   const { data, error } = await supabase
     .from('itineraries')
-    .insert([
-      {
-        user_id: userId,
-        title,
-        destination,
-        start_date: startDate,
-        end_date: endDate,
-        days,
-        activities,
-      },
-    ])
+    .insert([itineraryData])
     .select();
 
   return { data, error };

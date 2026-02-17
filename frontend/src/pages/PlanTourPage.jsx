@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Calendar as CalendarIcon, MapPin, Plus, Sparkles, ArrowLeft, Save, Share2, Clock, DollarSign, Map as MapIcon, Filter, Trash2, GripVertical, Coffee, Loader2, Link2, Printer } from 'lucide-react';
+import { Calendar as CalendarIcon, MapPin, Plus, Sparkles, ArrowLeft, Save, Share2, Clock, DollarSign, Map as MapIcon, Filter, Trash2, GripVertical, Coffee, Loader2, Link2, Printer, Edit } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 import { Reorder, motion } from 'framer-motion';
@@ -49,6 +49,19 @@ const PlanTourPage = () => {
   const [selectedDayIndex, setSelectedDayIndex] = useState(null);
   const [activitySearch, setActivitySearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  
+  // -- Edit Activity Modal State --
+  const [isEditActivityOpen, setIsEditActivityOpen] = useState(false);
+  const [editingActivity, setEditingActivity] = useState(null);
+  const [editingDayIndex, setEditingDayIndex] = useState(null);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    location: '',
+    time: '',
+    estTime: '',
+    cost: '',
+    notes: ''
+  });
 
   // -- Drag State --
   const [draggedAttraction, setDraggedAttraction] = useState(null);
@@ -58,7 +71,7 @@ const PlanTourPage = () => {
   // -- Derived State --
   const availableCities = ['London', 'Paris', 'Amsterdam', 'Dubai', 'Prague', 'Edinburgh', 'Barcelona', 'Rome', 'New York', 'Tokyo'];
 
-  // Handle Location State (Pre-select destination)
+  // Handle Location State (Pre-select destination and natural language query)
   useEffect(() => {
     if (location.state?.destination) {
       setTripDetails(prev => ({
@@ -66,7 +79,178 @@ const PlanTourPage = () => {
         destination: location.state.destination
       }));
     }
+    
+    // Pre-fill AI prompt and parse natural language query
+    if (location.state?.naturalLanguageQuery) {
+      const query = location.state.naturalLanguageQuery;
+      setAiPrompt(query);
+      
+      // Parse the query to extract trip details
+      parseNaturalLanguageQuery(query);
+    }
   }, [location.state]);
+
+  // Auto-generate itinerary when trip details are complete from natural language query
+  useEffect(() => {
+    // Only auto-generate if we came from homepage with a query and have all required details
+    if (location.state?.naturalLanguageQuery && 
+        location.state?.autoGenerate && // Add explicit flag to control auto-generation
+        tripDetails.destination && 
+        tripDetails.startDate && 
+        tripDetails.endDate &&
+        !isGenerating &&
+        itinerary.length === 0) {
+      
+      // Small delay to let the UI update first
+      const timer = setTimeout(() => {
+        handleAiSuggest();
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [tripDetails.destination, tripDetails.startDate, tripDetails.endDate]);
+
+  // Parse natural language query to extract trip details (with state updates)
+  const parseNaturalLanguageQuery = (query) => {
+    const lowerQuery = query.toLowerCase();
+    
+    // Extract destination (improved patterns)
+    let extractedDestination = null;
+    
+    // Try multiple patterns
+    const patterns = [
+      /(?:trip\s+to|going\s+to|visit|explore|in)\s+([a-z]+(?:\s+[a-z]+)?)/i,
+      /^([a-z]+(?:\s+[a-z]+)?)\s+(?:trip|adventure|vacation)/i,
+      /(?:to|in)\s+([a-z]+)/i,
+    ];
+    
+    for (const pattern of patterns) {
+      const match = query.match(pattern);
+      if (match && match[1]) {
+        // Capitalize first letter of each word
+        extractedDestination = match[1]
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' ');
+        break;
+      }
+    }
+    
+    // If no pattern matched, try to find a capitalized word (likely a place name)
+    if (!extractedDestination) {
+      const capitalizedMatch = query.match(/\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\b/);
+      if (capitalizedMatch) {
+        extractedDestination = capitalizedMatch[1];
+      }
+    }
+    
+    // Extract duration (days/weeks)
+    let startDate = null;
+    let endDate = null;
+    
+    const daysMatch = lowerQuery.match(/(\d+)\s*days?/);
+    const weeksMatch = lowerQuery.match(/(\d+)\s*weeks?/);
+    const weekendMatch = lowerQuery.match(/weekend/);
+    
+    if (daysMatch) {
+      const days = parseInt(daysMatch[1]);
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() + 7); // Start next week
+      endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + days - 1);
+    } else if (weeksMatch) {
+      const weeks = parseInt(weeksMatch[1]);
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() + 7);
+      endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + (weeks * 7) - 1);
+    } else if (weekendMatch) {
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() + 7);
+      endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + 2);
+    }
+    // Removed: else block that was setting default 3 days
+    // Now dates will only be set if user explicitly mentions duration
+    
+    // Update trip details with extracted information
+    setTripDetails(prev => ({
+      ...prev,
+      destination: extractedDestination || prev.destination,
+      startDate: startDate || prev.startDate,
+      endDate: endDate || prev.endDate,
+      title: extractedDestination ? `${extractedDestination} Adventure` : prev.title
+    }));
+  };
+
+  // Parse natural language query synchronously (returns values without state updates)
+  const parseNaturalLanguageQuerySync = (query) => {
+    const lowerQuery = query.toLowerCase();
+    
+    // Extract destination (improved patterns)
+    let extractedDestination = null;
+    
+    // Try multiple patterns
+    const patterns = [
+      /(?:trip\s+to|going\s+to|visit|explore|plan.*to|plan.*for)\s+([a-z]+(?:\s+[a-z]+)?)/i,
+      /^([a-z]+(?:\s+[a-z]+)?)\s+(?:trip|adventure|vacation|for)/i,
+      /(?:to|in)\s+([a-z]+)/i,
+    ];
+    
+    for (const pattern of patterns) {
+      const match = query.match(pattern);
+      if (match && match[1]) {
+        // Capitalize first letter of each word
+        extractedDestination = match[1]
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' ');
+        break;
+      }
+    }
+    
+    // If no pattern matched, try to find a capitalized word (likely a place name)
+    if (!extractedDestination) {
+      const capitalizedMatch = query.match(/\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\b/);
+      if (capitalizedMatch) {
+        extractedDestination = capitalizedMatch[1];
+      }
+    }
+    
+    // Extract duration (days/weeks)
+    let startDate = null;
+    let endDate = null;
+    
+    const daysMatch = lowerQuery.match(/(\d+)\s*days?/);
+    const weeksMatch = lowerQuery.match(/(\d+)\s*weeks?/);
+    const weekendMatch = lowerQuery.match(/weekend/);
+    
+    if (daysMatch) {
+      const days = parseInt(daysMatch[1]);
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() + 7); // Start next week
+      endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + days - 1);
+    } else if (weeksMatch) {
+      const weeks = parseInt(weeksMatch[1]);
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() + 7);
+      endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + (weeks * 7) - 1);
+    } else if (weekendMatch) {
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() + 7);
+      endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + 2);
+    }
+    
+    // Return extracted values
+    return {
+      destination: extractedDestination,
+      startDate: startDate,
+      endDate: endDate
+    };
+  };
 
   // Initialize itinerary days when dates change
   useEffect(() => {
@@ -196,10 +380,40 @@ const PlanTourPage = () => {
   // };
 
   const handleAiSuggest = async () => {
-    if (!tripDetails.destination || !tripDetails.startDate || !tripDetails.endDate) {
+    // Don't parse from prompt if it's empty
+    if (!aiPrompt.trim()) {
+      toast({
+        title: "Please enter a prompt",
+        description: "Tell the AI what you'd like help with.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Parse the AI prompt to extract destination and dates
+    const parsed = parseNaturalLanguageQuerySync(aiPrompt);
+    
+    // Use parsed values if available, otherwise keep existing form values
+    const destination = parsed.destination || tripDetails.destination;
+    const startDate = parsed.startDate || tripDetails.startDate;
+    const endDate = parsed.endDate || tripDetails.endDate;
+    
+    // Only update form fields if we actually extracted something from the prompt
+    if (parsed.destination || parsed.startDate || parsed.endDate) {
+      setTripDetails(prev => ({
+        ...prev,
+        destination: parsed.destination || prev.destination,
+        startDate: parsed.startDate || prev.startDate,
+        endDate: parsed.endDate || prev.endDate,
+        title: parsed.destination ? `${parsed.destination} Adventure` : prev.title
+      }));
+    }
+    
+    // Check if we have all required information
+    if (!destination || !startDate || !endDate) {
       toast({
         title: "Missing Information",
-        description: "Please select destination and dates first.",
+        description: "Please provide destination and dates in your prompt (e.g., 'Plan a trip to Paris for 5 days') or fill in the form fields above.",
         variant: "destructive"
       });
       return;
@@ -214,15 +428,15 @@ const PlanTourPage = () => {
       });
 
       const response = await apiService.generateItinerary({
-        destination: tripDetails.destination,
-        startDate: tripDetails.startDate,
-        endDate: tripDetails.endDate,
+        destination: destination,
+        startDate: startDate,
+        endDate: endDate,
         preferences: aiPrompt
       });
 
       if (response.success && response.itinerary) {
         const generatedDays = response.itinerary.days.map((day, index) => ({
-          id: `day-${index}`,
+          id: `ai-day-${Date.now()}-${index}`,
           date: day.date,
           items: day.items.map(item => ({
             id: Date.now() + Math.random(),
@@ -232,9 +446,18 @@ const PlanTourPage = () => {
 
         setItinerary(generatedDays);
         
+        // Always update destination from AI response to ensure it's properly formatted
+        if (response.itinerary.destination) {
+          setTripDetails(prev => ({
+            ...prev,
+            destination: response.itinerary.destination,
+            title: `${response.itinerary.destination} Adventure`
+          }));
+        }
+        
         toast({
           title: "Itinerary Generated! 🎉",
-          description: `Created ${generatedDays.length}-day plan for ${tripDetails.destination}`,
+          description: `Created ${generatedDays.length}-day plan for ${response.itinerary.destination || destination}`,
         });
       }
 
@@ -462,6 +685,57 @@ const PlanTourPage = () => {
     });
   };
 
+  // -- Edit Activity Functions --
+  const openEditActivity = (item, dayIndex) => {
+    setEditingActivity(item);
+    setEditingDayIndex(dayIndex);
+    setEditForm({
+      name: item.name || '',
+      location: item.location || tripDetails.destination,
+      time: item.time || '',
+      estTime: item.estTime || '',
+      cost: item.cost || '',
+      notes: item.notes || ''
+    });
+    setIsEditActivityOpen(true);
+  };
+
+  const handleEditFormChange = (field, value) => {
+    setEditForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const saveEditedActivity = () => {
+    if (!editingActivity || editingDayIndex === null) return;
+
+    setItinerary(prev => {
+      const newItinerary = [...prev];
+      const itemIndex = newItinerary[editingDayIndex].items.findIndex(i => i.id === editingActivity.id);
+      
+      if (itemIndex !== -1) {
+        newItinerary[editingDayIndex].items[itemIndex] = {
+          ...newItinerary[editingDayIndex].items[itemIndex],
+          name: editForm.name,
+          location: editForm.location,
+          time: editForm.time,
+          estTime: editForm.estTime,
+          cost: editForm.cost,
+          notes: editForm.notes
+        };
+      }
+      
+      return newItinerary;
+    });
+
+    setIsEditActivityOpen(false);
+    setEditingActivity(null);
+    setEditingDayIndex(null);
+    
+    toast({
+      title: "Activity Updated! ✓",
+      description: "Your changes have been saved.",
+    });
+  };
+
   // -- Drag Handlers --
 
   // Internal Reorder (within same list)
@@ -608,15 +882,30 @@ const PlanTourPage = () => {
                     <div className="flex-1">
                         <h2 className="font-bold text-lg mb-1">Orbito AI Assistant</h2>
                         <p className="text-blue-100 text-sm mb-4">Need inspiration? Ask me to "Add a romantic dinner on Day 2" or "Optimize my route".</p>
-                        <div className="flex gap-2">
+                        <div className="flex gap-3">
                             <Input 
                                 value={aiPrompt}
                                 onChange={(e) => setAiPrompt(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleAiSuggest()}
                                 placeholder="Tell AI what to help you with..." 
-                                className="bg-white/10 border-white/20 text-white placeholder:text-blue-200 focus:bg-white/20"
+                                className="bg-white/10 border-white/20 text-white placeholder:text-blue-200 focus:bg-white/20 text-base h-12"
                             />
-                            <Button onClick={handleAiSuggest} className="bg-white text-[#0B3D91] hover:bg-blue-50 font-semibold">
-                                Ask AI
+                            <Button 
+                                onClick={handleAiSuggest} 
+                                disabled={isGenerating}
+                                className="bg-white text-[#0B3D91] hover:bg-blue-50 font-bold px-8 h-12 text-base shadow-lg hover:shadow-xl transition-all whitespace-nowrap"
+                            >
+                                {isGenerating ? (
+                                    <>
+                                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                        Generating...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Sparkles className="w-5 h-5 mr-2" />
+                                        Ask AI
+                                    </>
+                                )}
                             </Button>
                         </div>
                     </div>
@@ -683,6 +972,32 @@ const PlanTourPage = () => {
                                 </Popover>
                             </div>
                         </div>
+                        
+                        {/* Generate Itinerary Button */}
+                        <div className="mt-6 pt-6 border-t border-gray-200">
+                            <Button 
+                                onClick={handleAiSuggest}
+                                disabled={!tripDetails.destination || !tripDetails.startDate || !tripDetails.endDate || isGenerating}
+                                className="w-full bg-[#0B3D91] hover:bg-[#092C6B] text-white font-bold py-6 text-base shadow-md hover:shadow-lg transition-all"
+                            >
+                                {isGenerating ? (
+                                    <>
+                                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                        Generating Your Itinerary...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Sparkles className="w-5 h-5 mr-2" />
+                                        Generate AI Itinerary
+                                    </>
+                                )}
+                            </Button>
+                            {(!tripDetails.destination || !tripDetails.startDate || !tripDetails.endDate) && (
+                                <p className="text-xs text-gray-500 text-center mt-2">
+                                    Please fill in destination and dates to generate itinerary
+                                </p>
+                            )}
+                        </div>
                     </div>
 
                     {/* Itinerary Section */}
@@ -735,9 +1050,27 @@ const PlanTourPage = () => {
 
                                         {/* Drop Zone Indicator */}
                                         {dropTargetDay === dayIndex && (draggedAttraction || draggedActivity) && (
-                                          <div className="mb-3 p-4 border-2 border-dashed border-[#0B3D91] bg-blue-50 rounded-lg text-center text-sm text-[#0B3D91] font-semibold animate-pulse">
-                                            Drop here to add {draggedAttraction ? `"${draggedAttraction.title}"` : 'activity'}
-                                          </div>
+                                          <motion.div 
+                                            initial={{ opacity: 0, y: -10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="mb-4 p-6 border-2 border-dashed border-[#0B3D91] bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl text-center shadow-inner"
+                                          >
+                                            <div className="flex items-center justify-center gap-2 text-[#0B3D91] font-bold text-sm">
+                                              <motion.div
+                                                animate={{ y: [0, -5, 0] }}
+                                                transition={{ duration: 1, repeat: Infinity }}
+                                              >
+                                                ↓
+                                              </motion.div>
+                                              Drop here to add {draggedAttraction ? `"${draggedAttraction.title}"` : 'activity'} to Day {dayIndex + 1}
+                                              <motion.div
+                                                animate={{ y: [0, -5, 0] }}
+                                                transition={{ duration: 1, repeat: Infinity }}
+                                              >
+                                                ↓
+                                              </motion.div>
+                                            </div>
+                                          </motion.div>
                                         )}
 
                                         {/* Day Activities with Reorder */}
@@ -758,51 +1091,93 @@ const PlanTourPage = () => {
                                                       key={item.id} 
                                                       value={item}
                                                       className={cn(
-                                                        "group relative flex items-start gap-3 p-4 rounded-xl border transition-all hover:shadow-md bg-white cursor-move",
-                                                        item.type === 'break' ? 'bg-orange-50/50 border-orange-100' : 'border-gray-100'
+                                                        "group relative flex items-start gap-3 p-4 rounded-xl border transition-all hover:shadow-lg bg-white",
+                                                        item.type === 'break' ? 'bg-orange-50/50 border-orange-200' : 'border-gray-200 hover:border-[#0B3D91]/30'
                                                       )}
-                                                      whileDrag={{ scale: 1.02, opacity: 0.8, zIndex: 100 }}
+                                                      whileDrag={{ 
+                                                        scale: 1.05, 
+                                                        opacity: 0.9, 
+                                                        zIndex: 100,
+                                                        boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+                                                        rotate: 2
+                                                      }}
+                                                      transition={{ type: "spring", stiffness: 300, damping: 25 }}
                                                     >
                                                         {/* Reorder Grip Handle */}
                                                         <div className="flex-shrink-0 pt-1 touch-none cursor-grab active:cursor-grabbing">
-                                                          <GripVertical className="w-5 h-5 text-gray-300 group-hover:text-gray-500 transition-colors" />
+                                                          <GripVertical className="w-5 h-5 text-gray-400 group-hover:text-[#0B3D91] transition-colors" />
                                                         </div>
 
                                                         {/* Draggable Wrapper for Cross-Day Move (HTML5 Drag) */}
                                                         <div 
                                                           className="flex-1 flex gap-3 min-w-0" 
                                                           draggable="true"
-                                                          onDragStart={(e) => handleActivityDragStart(e, item, dayIndex)}
+                                                          onDragStart={(e) => {
+                                                            handleActivityDragStart(e, item, dayIndex);
+                                                            e.currentTarget.style.opacity = '0.5';
+                                                          }}
+                                                          onDragEnd={(e) => {
+                                                            e.currentTarget.style.opacity = '1';
+                                                          }}
                                                         >
                                                             {item.image && item.type !== 'break' ? (
-                                                                <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-200 shrink-0">
+                                                                <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-200 shrink-0 ring-2 ring-gray-100 group-hover:ring-[#0B3D91]/20 transition-all">
                                                                     <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                                                                 </div>
                                                             ) : (
-                                                                <div className={cn("w-16 h-16 rounded-lg flex items-center justify-center shrink-0", item.type === 'break' ? 'bg-orange-100 text-orange-500' : 'bg-blue-50 text-blue-500')}>
+                                                                <div className={cn(
+                                                                  "w-16 h-16 rounded-lg flex items-center justify-center shrink-0 transition-all",
+                                                                  item.type === 'break' 
+                                                                    ? 'bg-orange-100 text-orange-600 group-hover:bg-orange-200' 
+                                                                    : 'bg-blue-50 text-blue-600 group-hover:bg-blue-100'
+                                                                )}>
                                                                     {item.type === 'break' ? <Coffee className="w-6 h-6"/> : <MapPin className="w-6 h-6"/>}
                                                                 </div>
                                                             )}
                                                             
                                                             <div className="flex-1 min-w-0">
                                                                 <div className="flex justify-between items-start">
-                                                                    <h5 className="font-bold text-gray-900 truncate pr-2">{item.name}</h5>
+                                                                    <h5 className="font-bold text-gray-900 truncate pr-2 group-hover:text-[#0B3D91] transition-colors">{item.name}</h5>
                                                                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                        <Button size="icon" variant="ghost" className="h-6 w-6 text-red-400 hover:bg-red-50 hover:text-red-600" onClick={() => removeActivity(dayIndex, item.id)}>
-                                                                            <Trash2 className="w-3 h-3" />
+                                                                        <Button 
+                                                                          size="icon" 
+                                                                          variant="ghost" 
+                                                                          className="h-7 w-7 text-blue-400 hover:bg-blue-50 hover:text-blue-600 rounded-lg" 
+                                                                          onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            openEditActivity(item, dayIndex);
+                                                                          }}
+                                                                        >
+                                                                            <Edit className="w-3.5 h-3.5" />
+                                                                        </Button>
+                                                                        <Button 
+                                                                          size="icon" 
+                                                                          variant="ghost" 
+                                                                          className="h-7 w-7 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg" 
+                                                                          onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            removeActivity(dayIndex, item.id);
+                                                                          }}
+                                                                        >
+                                                                            <Trash2 className="w-3.5 h-3.5" />
                                                                         </Button>
                                                                     </div>
                                                                 </div>
                                                                 
-                                                                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-xs text-gray-500">
+                                                                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5 text-xs text-gray-500">
                                                                     {item.time && (
-                                                                        <div className="flex items-center gap-1 bg-gray-100 px-2 py-0.5 rounded text-gray-700 font-medium">
+                                                                        <div className="flex items-center gap-1 bg-[#0B3D91]/10 px-2 py-1 rounded-md text-[#0B3D91] font-medium">
                                                                             <Clock className="w-3 h-3" /> {item.time}
                                                                         </div>
                                                                     )}
-                                                                    {item.estTime && <span>Time: {item.estTime}</span>}
-                                                                    {item.cost && <span className="flex items-center gap-0.5"><DollarSign className="w-3 h-3"/> {item.cost}</span>}
+                                                                    {item.estTime && <span className="flex items-center gap-1"><Clock className="w-3 h-3"/> {item.estTime}</span>}
+                                                                    {item.cost && <span className="flex items-center gap-0.5 font-medium"><DollarSign className="w-3 h-3"/> {item.cost}</span>}
                                                                 </div>
+                                                                {item.location && item.location !== tripDetails.destination && (
+                                                                  <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                                                                    <MapPin className="w-3 h-3"/> {item.location}
+                                                                  </p>
+                                                                )}
                                                                 {item.openingHours && <p className="text-xs text-gray-400 mt-1">Open: {item.openingHours}</p>}
                                                             </div>
                                                         </div>
@@ -848,23 +1223,33 @@ const PlanTourPage = () => {
                                     attractions.filter(a => a.location === tripDetails.destination).map(suggestion => (
                                         <motion.div 
                                           key={suggestion.id} 
-                                          className="flex gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors cursor-grab active:cursor-grabbing border border-transparent hover:border-gray-200 group"
+                                          className="flex gap-3 p-3 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all cursor-grab active:cursor-grabbing border-2 border-transparent hover:border-[#0B3D91]/20 hover:shadow-md group"
                                           draggable
-                                          onDragStart={() => handleAttractionDragStart(suggestion)}
-                                          onDragEnd={handleAttractionDragEnd}
-                                          whileHover={{ scale: 1.02 }}
+                                          onDragStart={(e) => {
+                                            handleAttractionDragStart(suggestion);
+                                            e.currentTarget.style.opacity = '0.5';
+                                          }}
+                                          onDragEnd={(e) => {
+                                            handleAttractionDragEnd();
+                                            e.currentTarget.style.opacity = '1';
+                                          }}
+                                          whileHover={{ scale: 1.02, x: 4 }}
                                           whileTap={{ scale: 0.98 }}
+                                          transition={{ type: "spring", stiffness: 400, damping: 25 }}
                                         >
-                                            <GripVertical className="w-4 h-4 text-gray-300 self-center opacity-0 group-hover:opacity-100 transition-opacity" />
-                                            <div className="w-14 h-14 rounded-md overflow-hidden bg-gray-200 shrink-0">
+                                            <GripVertical className="w-5 h-5 text-gray-300 self-center opacity-0 group-hover:opacity-100 group-hover:text-[#0B3D91] transition-all" />
+                                            <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-200 shrink-0 ring-2 ring-gray-100 group-hover:ring-[#0B3D91]/30 transition-all">
                                                 <img src={suggestion.image} alt={suggestion.title} className="w-full h-full object-cover" />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <h4 className="font-bold text-sm text-gray-900 truncate">{suggestion.title}</h4>
-                                                <div className="flex gap-2 text-xs text-gray-500 mt-0.5">
-                                                    <span className="bg-blue-50 text-blue-700 px-1.5 rounded">{suggestion.tags[0]}</span>
-                                                    <span className="flex items-center gap-0.5"><DollarSign className="w-3 h-3"/> {suggestion.price}</span>
+                                                <h4 className="font-bold text-sm text-gray-900 truncate group-hover:text-[#0B3D91] transition-colors">{suggestion.title}</h4>
+                                                <div className="flex gap-2 text-xs text-gray-500 mt-1">
+                                                    <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-md font-medium">{suggestion.tags[0]}</span>
+                                                    <span className="flex items-center gap-0.5 font-medium"><DollarSign className="w-3 h-3"/> {suggestion.price}</span>
                                                 </div>
+                                                <p className="text-xs text-gray-400 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                  Drag to any day to add
+                                                </p>
                                             </div>
                                         </motion.div>
                                     ))
@@ -964,6 +1349,88 @@ const PlanTourPage = () => {
                             </div>
                         ))}
                     </div>
+                </div>
+            </DialogContent>
+        </Dialog>
+
+        {/* Edit Activity Dialog */}
+        <Dialog open={isEditActivityOpen} onOpenChange={setIsEditActivityOpen}>
+            <DialogContent className="max-w-lg">
+                <DialogHeader>
+                    <DialogTitle>Edit Activity</DialogTitle>
+                </DialogHeader>
+                
+                <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                        <Label>Activity Name</Label>
+                        <Input 
+                            value={editForm.name}
+                            onChange={(e) => handleEditFormChange('name', e.target.value)}
+                            placeholder="e.g., Visit Eiffel Tower"
+                        />
+                    </div>
+                    
+                    <div className="space-y-2">
+                        <Label>Location</Label>
+                        <Input 
+                            value={editForm.location}
+                            onChange={(e) => handleEditFormChange('location', e.target.value)}
+                            placeholder="e.g., Paris"
+                        />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label>Time</Label>
+                            <Input 
+                                type="time"
+                                value={editForm.time}
+                                onChange={(e) => handleEditFormChange('time', e.target.value)}
+                            />
+                        </div>
+                        
+                        <div className="space-y-2">
+                            <Label>Duration</Label>
+                            <Input 
+                                value={editForm.estTime}
+                                onChange={(e) => handleEditFormChange('estTime', e.target.value)}
+                                placeholder="e.g., 2 hours"
+                            />
+                        </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                        <Label>Cost</Label>
+                        <Input 
+                            value={editForm.cost}
+                            onChange={(e) => handleEditFormChange('cost', e.target.value)}
+                            placeholder="e.g., $25 or Free"
+                        />
+                    </div>
+                    
+                    <div className="space-y-2">
+                        <Label>Notes</Label>
+                        <Input 
+                            value={editForm.notes}
+                            onChange={(e) => handleEditFormChange('notes', e.target.value)}
+                            placeholder="Add any additional notes..."
+                        />
+                    </div>
+                </div>
+                
+                <div className="flex justify-end gap-3">
+                    <Button 
+                        variant="outline" 
+                        onClick={() => setIsEditActivityOpen(false)}
+                    >
+                        Cancel
+                    </Button>
+                    <Button 
+                        className="bg-[#0B3D91] hover:bg-[#092C6B] text-white"
+                        onClick={saveEditedActivity}
+                    >
+                        Save Changes
+                    </Button>
                 </div>
             </DialogContent>
         </Dialog>

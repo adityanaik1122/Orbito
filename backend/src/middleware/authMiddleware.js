@@ -48,6 +48,98 @@ async function requireAuth(req, res, next) {
   }
 }
 
+/**
+ * Middleware to check if user has admin role
+ * Must be used after requireAuth
+ */
+async function requireAdmin(req, res, next) {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ 
+        error: 'Unauthorized',
+        message: 'Authentication required' 
+      });
+    }
+
+    // Get user profile with role
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', req.user.id)
+      .single();
+
+    if (error) {
+      console.error('Error fetching user profile:', error);
+      return res.status(500).json({ 
+        error: 'Server error',
+        message: 'Failed to verify user role' 
+      });
+    }
+
+    if (!profile || profile.role !== 'admin') {
+      return res.status(403).json({ 
+        error: 'Forbidden',
+        message: 'Admin access required' 
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error('Admin middleware error:', error);
+    return res.status(500).json({ 
+      error: 'Authorization error',
+      message: 'Failed to verify admin access' 
+    });
+  }
+}
+
+/**
+ * Middleware to check if user has operator role
+ * Must be used after requireAuth
+ */
+async function requireOperator(req, res, next) {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ 
+        error: 'Unauthorized',
+        message: 'Authentication required' 
+      });
+    }
+
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', req.user.id)
+      .single();
+
+    if (error) {
+      console.error('Error fetching user profile:', error);
+      return res.status(500).json({ 
+        error: 'Server error',
+        message: 'Failed to verify user role' 
+      });
+    }
+
+    if (!profile || (profile.role !== 'operator' && profile.role !== 'admin')) {
+      return res.status(403).json({ 
+        error: 'Forbidden',
+        message: 'Operator access required' 
+      });
+    }
+
+    req.userRole = profile.role;
+    next();
+  } catch (error) {
+    console.error('Operator middleware error:', error);
+    return res.status(500).json({ 
+      error: 'Authorization error',
+      message: 'Failed to verify operator access' 
+    });
+  }
+}
+
 module.exports = {
   requireAuth,
+  requireAdmin,
+  requireOperator
 };
