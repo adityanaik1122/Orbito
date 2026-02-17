@@ -36,3 +36,5 @@ Thumbs.db
 
 # Local test files
 *.local.js
+.vercel
+.env*.local
