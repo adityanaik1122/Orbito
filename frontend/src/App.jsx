@@ -20,6 +20,7 @@ import TourDetailPage from '@/pages/TourDetailPage';
 import BookingsPage from '@/pages/BookingsPage';
 import OperatorDashboardPage from '@/pages/OperatorDashboardPage';
 import AdminDashboardPage from '@/pages/AdminDashboardPage';
+import CommissionDashboardPage from '@/pages/CommissionDashboardPage';
 import AboutUsPage from '@/pages/AboutUsPage';
 import CareersPage from '@/pages/CareersPage';
 import BlogPage from '@/pages/BlogPage';
@@ -96,6 +97,14 @@ function App() {
             element={
               <RequireRole role="admin">
                 <Layout><AdminDashboardPage /></Layout>
+              </RequireRole>
+            }
+          />
+          <Route
+            path="/admin/commissions"
+            element={
+              <RequireRole role="admin">
+                <Layout><CommissionDashboardPage /></Layout>
               </RequireRole>
             }
           />
