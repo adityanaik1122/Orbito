@@ -14,6 +14,7 @@
 
 const GYG_API_URL = process.env.GYG_API_URL || 'https://api.getyourguide.com/1';
 const GYG_API_KEY = process.env.GYG_API_KEY || null;
+const GYG_AFFILIATE_ID = process.env.GYG_AFFILIATE_ID || null;
 
 // Destination ID mapping for GetYourGuide
 const DESTINATION_IDS = {
@@ -244,8 +245,21 @@ class GetYourGuideService {
       rating: product.overall_rating,
       review_count: product.number_of_ratings || 0,
       provider: 'getyourguide',
-      booking_url: `https://www.getyourguide.com${product.url}`
+      booking_url: this._buildAffiliateUrl(product.url, product.tour_id)
     };
+  }
+
+  /**
+   * Build affiliate URL for GetYourGuide
+   */
+  static _buildAffiliateUrl(productUrl, tourId) {
+    const baseUrl = `https://www.getyourguide.com${productUrl}`;
+    
+    if (GYG_AFFILIATE_ID) {
+      return `${baseUrl}?partner_id=${GYG_AFFILIATE_ID}&utm_medium=affiliate&utm_source=orbito&cmp=gyg-${tourId}`;
+    }
+    
+    return baseUrl;
   }
 }
 

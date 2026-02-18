@@ -12,6 +12,7 @@
 
 const VIATOR_API_URL = process.env.VIATOR_API_URL || 'https://api.viator.com/partner';
 const VIATOR_API_KEY = process.env.VIATOR_API_KEY || null;
+const VIATOR_AFFILIATE_ID = process.env.VIATOR_AFFILIATE_ID || null;
 
 class ViatorService {
   /**
@@ -211,8 +212,22 @@ class ViatorService {
       cancellation_policy: product.cancellationPolicy?.description,
       rating: product.reviews?.combinedAverageRating || 0,
       review_count: product.reviews?.totalReviews || 0,
-      provider: 'viator'
+      provider: 'viator',
+      booking_url: this._buildAffiliateUrl(product.productUrl, product.productCode)
     };
+  }
+
+  /**
+   * Build affiliate URL for Viator
+   */
+  static _buildAffiliateUrl(productUrl, productCode) {
+    const baseUrl = `https://www.viator.com${productUrl}`;
+    
+    if (VIATOR_AFFILIATE_ID) {
+      return `${baseUrl}?pid=${VIATOR_AFFILIATE_ID}&mcid=via-${productCode}&medium=link&campaign=orbito`;
+    }
+    
+    return baseUrl;
   }
 
   /**

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, Search, SlidersHorizontal } from 'lucide-react';
 import TourCard from '@/components/TourCard';
+import FilterSidebar from '@/components/FilterSidebar';
 import { apiService } from '@/services/api';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -19,9 +20,9 @@ const ToursPage = () => {
   const [filters, setFilters] = useState({
     destination: urlDestination || '',
     country: '',
-    category: '',
-    minPrice: '',
-    maxPrice: '',
+    categories: [],
+    durations: [],
+    priceRange: [0, 500],
     sortBy: 'rating'
   });
   const [showFilters, setShowFilters] = useState(false);
@@ -57,8 +58,13 @@ const ToursPage = () => {
     setLoading(true);
     try {
       const filterParams = {
-        ...appliedFilters,
-        category: appliedFilters.category === 'All' ? '' : appliedFilters.category
+        destination: appliedFilters.destination,
+        country: appliedFilters.country,
+        categories: appliedFilters.categories?.join(',') || '',
+        durations: appliedFilters.durations?.join(',') || '',
+        minPrice: appliedFilters.priceRange?.[0] || 0,
+        maxPrice: appliedFilters.priceRange?.[1] || 500,
+        sortBy: appliedFilters.sortBy
       };
       
       const response = await apiService.getTours(filterParams);
@@ -75,8 +81,8 @@ const ToursPage = () => {
     }
   };
 
-  const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
   };
 
   const handleApplyFilters = () => {
@@ -87,9 +93,9 @@ const ToursPage = () => {
     const clearedFilters = {
       destination: '',
       country: '',
-      category: '',
-      minPrice: '',
-      maxPrice: '',
+      categories: [],
+      durations: [],
+      priceRange: [0, 500],
       sortBy: 'rating'
     };
     setFilters(clearedFilters);
@@ -132,7 +138,7 @@ const ToursPage = () => {
                 <Input
                   placeholder="Search destination..."
                   value={filters.destination}
-                  onChange={(e) => handleFilterChange('destination', e.target.value)}
+                  onChange={(e) => setFilters(prev => ({ ...prev, destination: e.target.value }))}
                   onKeyPress={(e) => e.key === 'Enter' && handleApplyFilters()}
                   className="border-0 focus-visible:ring-0 text-gray-900"
                 />
@@ -171,115 +177,98 @@ const ToursPage = () => {
 
       {/* Content */}
       <div className="container mx-auto px-4 py-8">
-          {/* Filters Bar */}
-          <div className="bg-white rounded-lg shadow p-4 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold text-lg">Filters</h2>
+        <div className="flex gap-6">
+          {/* Filter Sidebar */}
+          <FilterSidebar
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            onApply={handleApplyFilters}
+            onClear={handleClearFilters}
+            isOpen={showFilters}
+            onClose={() => setShowFilters(false)}
+          />
+
+          {/* Main Content */}
+          <div className="flex-1">
+            {/* Mobile Filter Toggle */}
+            <div className="lg:hidden mb-4">
               <Button
+                onClick={() => setShowFilters(true)}
                 variant="outline"
-                size="sm"
-                onClick={() => setShowFilters(!showFilters)}
-                className="lg:hidden"
+                className="w-full"
               >
                 <SlidersHorizontal className="w-4 h-4 mr-2" />
-                {showFilters ? 'Hide' : 'Show'} Filters
+                Show Filters
+                {(() => {
+                  const count = 
+                    (filters.categories?.length || 0) +
+                    (filters.durations?.length || 0) +
+                    (filters.priceRange?.[0] > 0 || filters.priceRange?.[1] < 500 ? 1 : 0);
+                  return count > 0 ? ` (${count})` : '';
+                })()}
               </Button>
             </div>
 
-            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 ${showFilters ? 'block' : 'hidden lg:grid'}`}>
-              {/* Category */}
-              <Select
-                value={filters.category || 'All'}
-                onValueChange={(value) => handleFilterChange('category', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map(cat => (
-                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Min Price */}
-              <Input
-                type="number"
-                placeholder="Min Price (£)"
-                value={filters.minPrice}
-                onChange={(e) => handleFilterChange('minPrice', e.target.value)}
-              />
-
-              {/* Max Price */}
-              <Input
-                type="number"
-                placeholder="Max Price (£)"
-                value={filters.maxPrice}
-                onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
-              />
-
-              {/* Sort By */}
-              <Select
-                value={filters.sortBy}
-                onValueChange={(value) => handleFilterChange('sortBy', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Sort By" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="rating">Highest Rated</SelectItem>
-                  <SelectItem value="price_low">Price: Low to High</SelectItem>
-                  <SelectItem value="price_high">Price: High to Low</SelectItem>
-                  <SelectItem value="popular">Most Popular</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Apply/Clear Buttons */}
-              <div className="flex gap-2">
-                <Button onClick={handleApplyFilters} className="flex-1">
-                  Apply
-                </Button>
-                <Button onClick={handleClearFilters} variant="outline">
-                  Clear
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Results */}
-          {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
-          ) : tours.length === 0 ? (
-            <div className="text-center py-20">
-              <h3 className="text-2xl font-semibold text-gray-700 mb-2">
-                No tours found
-              </h3>
-              <p className="text-gray-500">
-                Try adjusting your filters or search for a different destination
-              </p>
-            </div>
-          ) : (
-            <>
-              <div className="mb-4 flex items-center gap-3">
-                <span className="text-gray-600">
-                  Found <span className="font-semibold">{tours.length}</span> tours
-                </span>
-                {filters.destination && (
-                  <span className="bg-primary text-white px-3 py-1 rounded-full text-sm font-medium">
-                    📍 {filters.destination}
+            {/* Sort and View Options */}
+            <div className="bg-white rounded-lg shadow p-4 mb-6">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-gray-600">
+                    Found <span className="font-semibold">{tours.length}</span> tours
                   </span>
-                )}
-              </div>
+                  {filters.destination && (
+                    <span className="bg-primary text-white px-3 py-1 rounded-full text-sm font-medium">
+                      📍 {filters.destination}
+                    </span>
+                  )}
+                </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <Select
+                  value={filters.sortBy}
+                  onValueChange={(value) => {
+                    const newFilters = { ...filters, sortBy: value };
+                    setFilters(newFilters);
+                    fetchTours(newFilters);
+                  }}
+                >
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Sort By" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="rating">Highest Rated</SelectItem>
+                    <SelectItem value="price_low">Price: Low to High</SelectItem>
+                    <SelectItem value="price_high">Price: High to Low</SelectItem>
+                    <SelectItem value="popular">Most Popular</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Results */}
+            {loading ? (
+              <div className="flex items-center justify-center py-20">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            ) : tours.length === 0 ? (
+              <div className="text-center py-20">
+                <h3 className="text-2xl font-semibold text-gray-700 mb-2">
+                  No tours found
+                </h3>
+                <p className="text-gray-500 mb-4">
+                  Try adjusting your filters or search for a different destination
+                </p>
+                <Button onClick={handleClearFilters} variant="outline">
+                  Clear All Filters
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {tours.map((tour) => (
                   <TourCard key={tour.external_id || tour.id} tour={tour} />
                 ))}
               </div>
-            </>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </>

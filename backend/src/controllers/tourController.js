@@ -9,12 +9,13 @@ async function getTours(req, res) {
   try {
     const filters = {
       destination: req.query.destination,
-      category: req.query.category,
+      country: req.query.country,
+      categories: req.query.categories, // comma-separated string
+      durations: req.query.durations, // comma-separated: half-day, full-day, multi-day
       minPrice: req.query.minPrice,
       maxPrice: req.query.maxPrice,
       featured: req.query.featured,
-      sortBy: req.query.sortBy,
-      sortOrder: req.query.sortOrder
+      sortBy: req.query.sortBy
     };
 
     // Try to get from database first
@@ -33,7 +34,67 @@ async function getTours(req, res) {
     if (error || !data || data.length === 0) {
       console.log('No tours in database, fetching from Premium Tours service...');
       const apiTours = await PremiumToursService.getTours(filters);
-      return res.json({ success: true, tours: apiTours });
+      
+      // Apply client-side filtering for Premium Tours data
+      let filteredTours = apiTours;
+      
+      // Filter by categories
+      if (filters.categories) {
+        const categoriesArray = filters.categories.split(',').filter(Boolean);
+        if (categoriesArray.length > 0) {
+          filteredTours = filteredTours.filter(tour => 
+            categoriesArray.includes(tour.category)
+          );
+        }
+      }
+      
+      // Filter by duration
+      if (filters.durations) {
+        const durationsArray = filters.durations.split(',').filter(Boolean);
+        if (durationsArray.length > 0) {
+          filteredTours = filteredTours.filter(tour => {
+            const hours = tour.duration_hours || 0;
+            return durationsArray.some(duration => {
+              if (duration === 'half-day') return hours < 4;
+              if (duration === 'full-day') return hours >= 4 && hours <= 8;
+              if (duration === 'multi-day') return hours > 8;
+              return false;
+            });
+          });
+        }
+      }
+      
+      // Filter by price range
+      if (filters.minPrice) {
+        filteredTours = filteredTours.filter(tour => 
+          tour.price_adult >= parseFloat(filters.minPrice)
+        );
+      }
+      if (filters.maxPrice) {
+        filteredTours = filteredTours.filter(tour => 
+          tour.price_adult <= parseFloat(filters.maxPrice)
+        );
+      }
+      
+      // Sort
+      if (filters.sortBy) {
+        filteredTours.sort((a, b) => {
+          switch (filters.sortBy) {
+            case 'price_low':
+              return a.price_adult - b.price_adult;
+            case 'price_high':
+              return b.price_adult - a.price_adult;
+            case 'rating':
+              return (b.rating || 0) - (a.rating || 0);
+            case 'popular':
+              return (b.views_count || 0) - (a.views_count || 0);
+            default:
+              return 0;
+          }
+        });
+      }
+      
+      return res.json({ success: true, tours: filteredTours });
     }
 
     res.json({ success: true, tours: data });

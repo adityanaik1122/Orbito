@@ -22,16 +22,52 @@ async function getTours(filters = {}) {
     query = query.ilike('country', `%${filters.country}%`);
   }
 
-  if (filters.category) {
-    query = query.eq('category', filters.category);
+  // Multiple categories filter
+  if (filters.categories) {
+    const categoriesArray = Array.isArray(filters.categories) 
+      ? filters.categories 
+      : filters.categories.split(',').filter(Boolean);
+    
+    if (categoriesArray.length > 0) {
+      query = query.in('category', categoriesArray);
+    }
   }
 
-  if (filters.minPrice) {
+  // Price range filter
+  if (filters.minPrice !== undefined && filters.minPrice !== '') {
     query = query.gte('price_adult', parseFloat(filters.minPrice));
   }
 
-  if (filters.maxPrice) {
+  if (filters.maxPrice !== undefined && filters.maxPrice !== '') {
     query = query.lte('price_adult', parseFloat(filters.maxPrice));
+  }
+
+  // Duration filter (half-day, full-day, multi-day)
+  if (filters.durations) {
+    const durationsArray = Array.isArray(filters.durations)
+      ? filters.durations
+      : filters.durations.split(',').filter(Boolean);
+    
+    if (durationsArray.length > 0) {
+      // Build duration conditions
+      const durationConditions = durationsArray.map(duration => {
+        switch (duration) {
+          case 'half-day':
+            return 'duration_hours.lt.4';
+          case 'full-day':
+            return 'duration_hours.gte.4,duration_hours.lte.8';
+          case 'multi-day':
+            return 'duration_hours.gt.8';
+          default:
+            return null;
+        }
+      }).filter(Boolean);
+
+      // Apply OR logic for durations
+      if (durationConditions.length > 0) {
+        query = query.or(durationConditions.join(','));
+      }
+    }
   }
 
   if (filters.featured === 'true' || filters.featured === true) {
@@ -39,8 +75,31 @@ async function getTours(filters = {}) {
   }
 
   // Sorting
-  const sortBy = filters.sortBy || 'created_at';
-  const sortOrder = filters.sortOrder || 'desc';
+  let sortBy = filters.sortBy || 'created_at';
+  let sortOrder = 'desc';
+
+  switch (sortBy) {
+    case 'price_low':
+      sortBy = 'price_adult';
+      sortOrder = 'asc';
+      break;
+    case 'price_high':
+      sortBy = 'price_adult';
+      sortOrder = 'desc';
+      break;
+    case 'rating':
+      sortBy = 'rating';
+      sortOrder = 'desc';
+      break;
+    case 'popular':
+      sortBy = 'views_count';
+      sortOrder = 'desc';
+      break;
+    default:
+      sortBy = 'created_at';
+      sortOrder = 'desc';
+  }
+
   query = query.order(sortBy, { ascending: sortOrder === 'asc' });
 
   const { data, error } = await query;
