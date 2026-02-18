@@ -28,69 +28,60 @@ const ItineraryPrintView = ({ isOpen, onClose, itinerary, tripDetails }) => {
 
     try {
       const element = printRef.current;
+      
+      // Capture the entire content as a high-quality canvas
       const canvas = await html2canvas(element, {
         scale: 2, // Higher scale for better quality
-        useCORS: true, // Needed for external images
+        useCORS: true,
         logging: false,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight
       });
 
-      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
       const pdf = new jsPDF('p', 'mm', 'a4');
+      
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
+      
+      // Calculate dimensions
       const imgWidth = canvas.width;
       const imgHeight = canvas.height;
-      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+      const ratio = pdfWidth / imgWidth;
+      const imgHeightInPdf = imgHeight * ratio;
       
-      const imgX = (pdfWidth - imgWidth * ratio) / 2;
-      const imgY = 10; // Top margin
-
-      // Calculate height in PDF units
-      const imgHeightInPdf = imgHeight * ratio * (pdfWidth / (imgWidth * ratio));
-
-      // Check if content exceeds one page (simplified for single long image, better approach is page splitting but complex)
-      // For this implementation we'll fit to width and let height expand, adding pages if needed
+      // Calculate how many pages we need
+      const pageCount = Math.ceil(imgHeightInPdf / pdfHeight);
       
-      const pageHeight = pdf.internal.pageSize.height;
-      let heightLeft = imgHeightInPdf;
-      let position = 0;
-      
-      // Since html2canvas creates one big image, slicing it perfectly across pages is tricky without manual chunking.
-      // A safer simple approach for v1 is to just add the image scaled to fit width, and if it's too long, it will shrink or cut.
-      // For a robust multi-page PDF from HTML, complex logic is needed. 
-      // We will use a standard "Scale to Fit" or "Split" strategy.
-      
-      // Strategy: Capture the whole thing as one long image, then slice it into A4 chunks.
-      const contentHeight = canvas.height;
-      const contentWidth = canvas.width;
-      const pageHeightPx = (contentWidth / 210) * 297; // A4 aspect ratio relation to canvas width
-      
-      let y = 0;
-      
-      while (y < contentHeight) {
-        if (y > 0) pdf.addPage();
-        
-        // Add slice
-        // Note: addImage supports cropping in newer versions but it's tricky.
-        // Simplified: Just add the whole image shifted up, with masking? No.
-        
-        // Fallback: Just putting the single image on one page if it's short, or scaling it down.
-        // If content is very long, this simple method might shrink it too much.
-        // Let's stick to a single page scrollable PDF or just the view for now if it fits,
-        // OR standard approach:
-        
-        const imgProps = pdf.getImageProperties(imgData);
-        const pHeight = (imgProps.height * pdfWidth) / imgProps.width;
-        
-        if (y === 0) {
-             pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pHeight);
-             y += pageHeightPx; // Advance loop just to break it if we only do 1 page for now to be safe
-             // Real multi-page requires rendering each page div separately to canvas.
-             // Given constraint, we'll try to fit it all or just let user print to PDF via browser which is native.
-        } else {
-             break; 
+      // Split the image across multiple pages
+      for (let i = 0; i < pageCount; i++) {
+        if (i > 0) {
+          pdf.addPage();
         }
+        
+        // Calculate the portion of the image to show on this page
+        const sourceY = (i * pdfHeight) / ratio;
+        const sourceHeight = Math.min(pdfHeight / ratio, imgHeight - sourceY);
+        
+        // Create a temporary canvas for this page's slice
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = imgWidth;
+        pageCanvas.height = sourceHeight;
+        
+        const pageCtx = pageCanvas.getContext('2d');
+        pageCtx.drawImage(
+          canvas,
+          0, sourceY, // Source x, y
+          imgWidth, sourceHeight, // Source width, height
+          0, 0, // Destination x, y
+          imgWidth, sourceHeight // Destination width, height
+        );
+        
+        const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.95);
+        const pageImgHeight = sourceHeight * ratio;
+        
+        pdf.addImage(pageImgData, 'JPEG', 0, 0, pdfWidth, pageImgHeight);
       }
 
       // Naming: itinerary-[destination]-[startDate].pdf
@@ -102,7 +93,7 @@ const ItineraryPrintView = ({ isOpen, onClose, itinerary, tripDetails }) => {
 
       toast({
         title: "PDF Downloaded! 📄",
-        description: "Your itinerary has been saved.",
+        description: `Your ${pageCount}-page itinerary has been saved.`,
       });
 
     } catch (error) {
