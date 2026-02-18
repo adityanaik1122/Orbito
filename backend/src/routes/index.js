@@ -5,6 +5,7 @@ const tourRoutes = require('./tourRoutes');
 const geocodingRoutes = require('./geocodingRoutes');
 const analyticsRoutes = require('./analyticsRoutes');
 const affiliateRoutes = require('./affiliateRoutes');
+const operatorRoutes = require('./operatorRoutes');
 const { octoRoutes } = require('../octo-api');
 
 function registerRoutes(app) {
@@ -15,6 +16,7 @@ function registerRoutes(app) {
   app.use('/api', geocodingRoutes);
   app.use('/api/analytics', analyticsRoutes);
   app.use('/api/affiliate', affiliateRoutes);
+  app.use('/api/operator', operatorRoutes);
   app.use('/api/octo', octoRoutes);
 }
 
