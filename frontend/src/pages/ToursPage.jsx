@@ -150,6 +150,7 @@ const ToursPage = () => {
                 Search
               </Button>
             </div>
+          </div>
         </div>
       </div>
 
