@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Facebook, Instagram, Twitter, Linkedin } from 'lucide-react';
+import { Facebook, Instagram, Twitter, Linkedin, Phone, Mail, MapPin } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -14,6 +14,23 @@ const Footer = () => {
             <p className="text-gray-500 leading-relaxed mb-8 max-w-sm">
               Plan your perfect trip with AI-powered itineraries. Discover the world smarter, not harder.
             </p>
+            
+            {/* Contact Information */}
+            <div className="space-y-3 mb-8">
+              <a href="tel:+447566215425" className="flex items-center gap-3 text-gray-600 hover:text-[#0B3D91] transition-colors">
+                <Phone className="w-4 h-4" />
+                <span className="text-sm">+44 7566 215425</span>
+              </a>
+              <a href="mailto:TeamOrbito@protonmail.com" className="flex items-center gap-3 text-gray-600 hover:text-[#0B3D91] transition-colors">
+                <Mail className="w-4 h-4" />
+                <span className="text-sm">TeamOrbito@protonmail.com</span>
+              </a>
+              <div className="flex items-start gap-3 text-gray-600">
+                <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <span className="text-sm">30, Curzon Road, BH1 4PN<br />Bournemouth, United Kingdom</span>
+              </div>
+            </div>
+            
             <div className="flex items-center gap-4">
               <a href="#" className="text-gray-400 hover:text-[#0B3D91] transition-colors"><Facebook className="w-5 h-5" /></a>
               <a href="#" className="text-gray-400 hover:text-[#0B3D91] transition-colors"><Instagram className="w-5 h-5" /></a>

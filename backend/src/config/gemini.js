@@ -1,4 +1,5 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const logger = require('../utils/logger');
 
 let genAI = null;
 
@@ -7,7 +8,7 @@ try {
     console.warn('⚠️  WARNING: GEMINI_API_KEY missing');
   } else {
     genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    console.log('✅ Gemini AI initialized');
+    logger.success(' Gemini AI initialized');
   }
 } catch (error) {
   console.error('❌ Error initializing Gemini:', error.message);

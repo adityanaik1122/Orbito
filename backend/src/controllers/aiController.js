@@ -1,4 +1,5 @@
 const { generateContent, GROQ_MODELS } = require('../config/groq');
+const logger = require('../utils/logger');
 
 async function suggestActivities(req, res) {
   try {
@@ -12,9 +13,9 @@ Return ONLY JSON: { "suggestions": [{"dayIndex": 0, "name": "Activity", "type": 
 
     for (const modelName of modelNames) {
       try {
-        console.log(`🤖 Suggest: Trying ${modelName}`);
+        logger.info(` Suggest: Trying ${modelName}`);
         responseText = await generateContent(aiInstructions, modelName);
-        console.log(`✅ Successfully used ${modelName}`);
+        logger.success(` Successfully used ${modelName}`);
         break;
       } catch (e) {
         console.warn(`❌ ${modelName} failed:`, e.message);

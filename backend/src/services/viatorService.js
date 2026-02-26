@@ -10,9 +10,11 @@
  * 3. Add credentials to .env file
  */
 
+const logger = require('../utils/logger');
 const VIATOR_API_URL = process.env.VIATOR_API_URL || 'https://api.viator.com/partner';
 const VIATOR_API_KEY = process.env.VIATOR_API_KEY || null;
 const VIATOR_AFFILIATE_ID = process.env.VIATOR_AFFILIATE_ID || null;
+const IS_SANDBOX = VIATOR_API_URL.includes('sandbox');
 
 class ViatorService {
   /**
@@ -27,10 +29,13 @@ class ViatorService {
     }
 
     try {
+      logger.info(`[Viator${IS_SANDBOX ? ' Sandbox' : ''}] Searching tours for destination:`, params.destinationId);
+      
       const response = await fetch(`${VIATOR_API_URL}/products/search`, {
         method: 'POST',
         headers: {
-          'Accept': 'application/json',
+          'Accept': 'application/json;version=2.0',
+          'Accept-Language': 'en-US',
           'Content-Type': 'application/json',
           'exp-api-key': VIATOR_API_KEY
         },
@@ -43,10 +48,13 @@ class ViatorService {
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Viator API error (${response.status}):`, errorText);
         throw new Error(`Viator API error: ${response.statusText}`);
       }
 
       const data = await response.json();
+      logger.info(`[Viator${IS_SANDBOX ? ' Sandbox' : ''}] Found ${data.data?.length || 0} tours`);
       return this._transformViatorProducts(data.data);
     } catch (error) {
       console.error('Viator API Error:', error);
@@ -67,7 +75,8 @@ class ViatorService {
     try {
       const response = await fetch(`${VIATOR_API_URL}/products/${productCode}`, {
         headers: {
-          'Accept': 'application/json',
+          'Accept': 'application/json;version=2.0',
+          'Accept-Language': 'en-US',
           'exp-api-key': VIATOR_API_KEY
         }
       });
@@ -95,7 +104,8 @@ class ViatorService {
       const response = await fetch(`${VIATOR_API_URL}/availability/check`, {
         method: 'POST',
         headers: {
-          'Accept': 'application/json',
+          'Accept': 'application/json;version=2.0',
+          'Accept-Language': 'en-US',
           'Content-Type': 'application/json',
           'exp-api-key': VIATOR_API_KEY
         },
@@ -135,7 +145,8 @@ class ViatorService {
       const response = await fetch(`${VIATOR_API_URL}/bookings/book`, {
         method: 'POST',
         headers: {
-          'Accept': 'application/json',
+          'Accept': 'application/json;version=2.0',
+          'Accept-Language': 'en-US',
           'Content-Type': 'application/json',
           'exp-api-key': VIATOR_API_KEY
         },

@@ -1,4 +1,5 @@
 const { supabase } = require('../config/supabase');
+const logger = require('../utils/logger');
 
 async function saveItinerary({ userId, title, destination, startDate, endDate, days, activities }) {
   if (!supabase) {
@@ -22,7 +23,7 @@ async function saveItinerary({ userId, title, destination, startDate, endDate, d
     return { data, error: null };
   } catch (rpcError) {
     // Fallback to regular insert without activities if RPC doesn't exist
-    console.log('RPC not available, using regular insert without activities');
+    logger.warn('RPC not available, using regular insert without activities');
     
     const itineraryData = {
       user_id: userId,

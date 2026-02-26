@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import AIChatWidget from '@/components/AIChatWidget';
 import { Home, MapPin, Sparkles, User } from 'lucide-react';
 
 const Layout = ({ children, isLoggedIn }) => {
@@ -16,6 +17,9 @@ const Layout = ({ children, isLoggedIn }) => {
         {children}
       </main>
       <Footer />
+      
+      {/* AI Chat Widget */}
+      <AIChatWidget />
       
       {/* Mobile Bottom Navigation */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50 safe-area-inset-bottom">

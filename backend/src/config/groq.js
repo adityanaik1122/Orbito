@@ -1,18 +1,19 @@
 const Groq = require('groq-sdk');
+const logger = require('../utils/logger');
 
 let groqClient = null;
 
 try {
   if (!process.env.GROQ_API_KEY) {
-    console.warn('⚠️  WARNING: GROQ_API_KEY missing');
+    logger.warn('GROQ_API_KEY missing');
   } else {
     groqClient = new Groq({
       apiKey: process.env.GROQ_API_KEY
     });
-    console.log('✅ Groq AI initialized');
+    logger.success('Groq AI initialized');
   }
 } catch (error) {
-  console.error('❌ Error initializing Groq:', error.message);
+  logger.error('Error initializing Groq', error);
 }
 
 /**
@@ -55,7 +56,7 @@ async function generateContent(prompt, model = 'llama-3.3-70b-versatile', jsonMo
 
     return chatCompletion.choices[0]?.message?.content || '';
   } catch (error) {
-    console.error(`Error with Groq model ${model}:`, error.message);
+    logger.error(`Error with Groq model ${model}`, error);
     throw error;
   }
 }

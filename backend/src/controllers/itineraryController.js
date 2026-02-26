@@ -1,6 +1,7 @@
 const { generateContent, GROQ_MODELS } = require('../config/groq');
 const { saveItinerary, getItinerariesByUser } = require('../models/itineraryModel');
 const AITourMatchingService = require('../services/aiTourMatchingService');
+const logger = require('../utils/logger');
 
 /**
  * Generate itinerary with real bookable tours
@@ -14,7 +15,7 @@ async function generateItineraryWithTours(req, res) {
       return res.status(400).json({ error: 'Missing required fields: destination, startDate, endDate' });
     }
 
-    console.log(`🚀 Generating itinerary with tours for ${destination}`);
+    logger.info(`Generating itinerary with tours for ${destination}`);
     
     const itinerary = await AITourMatchingService.generateItineraryWithTours({
       destination,
@@ -89,9 +90,9 @@ Return this JSON structure:
 
     for (const modelName of modelNames) {
       try {
-        console.log(`🤖 Itinerary: Trying ${modelName}`);
+        logger.info(` Itinerary: Trying ${modelName}`);
         responseText = await generateContent(prompt, modelName);
-        console.log(`✅ Successfully used ${modelName}`);
+        logger.success(` Successfully used ${modelName}`);
         break;
       } catch (e) {
         lastError = e;
@@ -169,8 +170,8 @@ async function saveItineraryHandler(req, res) {
     // Use authenticated user ID from middleware instead of request body
     const userId = req.user.id;
 
-    console.log('Saving itinerary for user:', userId);
-    console.log('Received data:', { title, destination, startDate, endDate, daysCount: days?.length });
+    logger.info('Saving itinerary for user:', userId);
+    logger.debug('Received data:', { title, destination, startDate, endDate, daysCount: days?.length });
 
     const { data, error } = await saveItinerary({
       userId,
@@ -187,7 +188,7 @@ async function saveItineraryHandler(req, res) {
       throw error;
     }
 
-    console.log('Itinerary saved successfully:', data);
+    logger.success('Itinerary saved successfully:', data);
     res.json({ success: true, itinerary: data[0] });
   } catch (error) {
     console.error('Error in saveItineraryHandler:', error);

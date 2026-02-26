@@ -220,26 +220,34 @@ const HomePage = ({ isLoggedIn }) => {
 
               {/* Premium Search Interface */}
               <div className="pt-8">
-                <form onSubmit={handleAISubmit} className="max-w-3xl mx-auto">
-                  <div className="relative group">
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-teal-500 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-500"></div>
-                    <div className="relative flex items-center bg-white/95 backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl">
-                      <input
-                        type="text"
-                        placeholder="Where would you like to go?"
-                        className="flex-1 px-6 sm:px-8 py-5 sm:py-6 text-base sm:text-lg min-h-[56px] bg-transparent border-0 focus:outline-none text-gray-900 placeholder:text-gray-400 font-light"
-                        value={naturalQuery}
-                        onChange={(e) => setNaturalQuery(e.target.value)}
-                      />
-                      <Button 
-                        type="submit"
-                        className="m-2 px-6 sm:px-10 py-4 min-h-[56px] bg-[#0B3D91] hover:bg-[#092C6B] text-white text-base sm:text-lg font-semibold rounded-xl shadow-lg transition-all duration-200"
-                      >
-                        Explore
-                      </Button>
+                <div className="max-w-3xl mx-auto space-y-6">
+                  {/* Search Bar */}
+                  <form onSubmit={handleAISubmit}>
+                    <div className="relative group">
+                      <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-teal-500 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-500"></div>
+                      <div className="relative flex items-center bg-white/95 backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl">
+                        <input
+                          type="text"
+                          placeholder="Where would you like to go?"
+                          className="flex-1 px-6 sm:px-8 py-5 sm:py-6 text-base sm:text-lg min-h-[56px] bg-transparent border-0 focus:outline-none text-gray-900 placeholder:text-gray-400 font-light"
+                          value={naturalQuery}
+                          onChange={(e) => setNaturalQuery(e.target.value)}
+                        />
+                      </div>
                     </div>
+                  </form>
+
+                  {/* Try AI Planning Button - Centered */}
+                  <div className="flex justify-center">
+                    <Button 
+                      onClick={() => navigate('/plan')}
+                      className="bg-[#0B3D91] hover:bg-[#092C6B] text-white text-base font-semibold px-6 py-3 rounded-full shadow-lg transition-all duration-300 flex items-center gap-2 group"
+                    >
+                      <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                      Try AI Planning
+                    </Button>
                   </div>
-                </form>
+                </div>
                 
                 {/* Minimal Info */}
                 <p className="text-sm text-gray-400 mt-6 font-light">

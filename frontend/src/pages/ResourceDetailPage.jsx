@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Calendar, Clock, User, Share2, Facebook, Twitter, Linkedin } from 'lucide-react';
 import { resources } from '@/data/resources';
 import { useToast } from '@/components/ui/use-toast';
+import DOMPurify from 'dompurify';
 
 const ResourceDetailPage = () => {
     const { id } = useParams();
@@ -110,7 +111,7 @@ const ResourceDetailPage = () => {
                                 <p className="text-xl text-gray-500 font-medium mb-8 leading-relaxed border-l-4 border-[#0B3D91] pl-4 italic">
                                     {resource.description}
                                 </p>
-                                <div dangerouslySetInnerHTML={{ __html: resource.content }} />
+                                <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(resource.content) }} />
                             </div>
 
                              {/* Affiliate Section within Content */}

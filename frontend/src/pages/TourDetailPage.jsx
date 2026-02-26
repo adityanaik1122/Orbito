@@ -8,7 +8,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Calendar as CalendarIcon, Clock, MapPin, Star, Users, Check, X, Loader2, ArrowLeft } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, MapPin, Star, Check, Loader2, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { apiService } from '@/services/api';
@@ -138,6 +138,9 @@ const TourDetailPage = () => {
     );
   }
 
+  // Simple image URL with fallback
+  const imageUrl = tour.main_image || tour.image || tour.images?.[0] || 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1200&q=80';
+
   return (
     <>
       <Helmet>
@@ -155,26 +158,11 @@ const TourDetailPage = () => {
         </div>
 
         {/* Hero Image */}
-        <div className="relative h-[500px] overflow-hidden">
+        <div className="relative h-[500px] overflow-hidden bg-gray-200">
           <img
-            src={tour.main_image || tour.image || `https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1200&q=80`}
+            src={imageUrl}
             alt={tour.title}
             className="w-full h-full object-cover"
-            onError={(e) => {
-              // Fallback images based on city/destination
-              const city = (tour.city || tour.destination || '').toLowerCase();
-              if (city.includes('london')) {
-                e.target.src = 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1200&q=80';
-              } else if (city.includes('paris')) {
-                e.target.src = 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&q=80';
-              } else if (city.includes('rome')) {
-                e.target.src = 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=1200&q=80';
-              } else if (city.includes('dubai')) {
-                e.target.src = 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&q=80';
-              } else {
-                e.target.src = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1200&q=80';
-              }
-            }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
           {tour.provider && (

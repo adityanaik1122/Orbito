@@ -2,6 +2,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import Layout from '@/components/Layout';
 import HomePage from '@/pages/HomePage';
 import PlanTourPage from '@/pages/PlanTourPage';
@@ -35,10 +36,11 @@ import { AuthProvider } from '@/contexts/SupabaseAuthContext';
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <Toaster />
-        <Routes>
+    <ErrorBoundary>
+      <Router>
+        <AuthProvider>
+          <Toaster />
+          <Routes>
           <Route path="/" element={<Layout><HomePage /></Layout>} />
           <Route path="/login" element={<AuthPage />} />
           
@@ -111,6 +113,7 @@ function App() {
         </Routes>
       </AuthProvider>
     </Router>
+    </ErrorBoundary>
   );
 }
 

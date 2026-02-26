@@ -1,7 +1,7 @@
 import React from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
-import { Users, Globe, Heart, Target } from 'lucide-react';
+import { Users, Globe, Heart, Target, Phone, Mail, MapPin } from 'lucide-react';
 
 const AboutUsPage = () => {
     const values = [
@@ -27,11 +27,7 @@ const AboutUsPage = () => {
         }
     ];
 
-    const team = [
-        { name: 'Lewis George', role: 'CEO & Co-Founder', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face' },
-        { name: 'Aditya Naik', role: 'CTO & Co-Founder', image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face' },
-        { name: 'Pranali Tamhankar', role: 'Head of Marketing', image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face' }
-    ];
+
 
     return (
         <>
@@ -95,28 +91,56 @@ const AboutUsPage = () => {
                     </div>
                 </div>
 
-                <div>
-                    <h2 className="text-3xl font-bold text-center text-[#0B3D91] mb-12">Meet Our Team</h2>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-4xl mx-auto">
-                        {team.map((member, index) => (
-                            <motion.div
-                                key={member.name}
-                                initial={{ opacity: 0, y: 30 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.5, delay: index * 0.1 }}
-                                className="text-center"
+                {/* Contact Section */}
+                <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.4 }}
+                    className="bg-white rounded-3xl p-8 md:p-12 border border-gray-100 shadow-sm"
+                >
+                    <h2 className="text-3xl font-bold text-center text-[#0B3D91] mb-8">Get in Touch</h2>
+                    <div className="max-w-2xl mx-auto">
+                        <p className="text-center text-gray-600 mb-8">
+                            Have questions or need assistance? We're here to help make your travel dreams come true.
+                        </p>
+                        <div className="grid md:grid-cols-3 gap-6">
+                            <a 
+                                href="tel:+447566215425" 
+                                className="flex flex-col items-center p-6 rounded-xl border border-gray-200 hover:border-[#0B3D91] hover:shadow-md transition-all group"
                             >
-                                <img
-                                    src={member.image}
-                                    alt={member.name}
-                                    className="w-32 h-32 rounded-full mx-auto mb-4 object-cover"
-                                />
-                                <h3 className="font-bold text-[#0B3D91]">{member.name}</h3>
-                                <p className="text-gray-500 text-sm">{member.role}</p>
-                            </motion.div>
-                        ))}
+                                <div className="w-12 h-12 bg-[#0B3D91]/10 rounded-full flex items-center justify-center mb-3 group-hover:bg-[#0B3D91] transition-colors">
+                                    <Phone className="w-6 h-6 text-[#0B3D91] group-hover:text-white transition-colors" />
+                                </div>
+                                <h3 className="font-semibold text-gray-900 mb-1">Phone</h3>
+                                <p className="text-sm text-gray-600 text-center">+44 7566 215425</p>
+                            </a>
+                            
+                            <a 
+                                href="mailto:TeamOrbito@protonmail.com" 
+                                className="flex flex-col items-center p-6 rounded-xl border border-gray-200 hover:border-[#0B3D91] hover:shadow-md transition-all group"
+                            >
+                                <div className="w-12 h-12 bg-[#0B3D91]/10 rounded-full flex items-center justify-center mb-3 group-hover:bg-[#0B3D91] transition-colors">
+                                    <Mail className="w-6 h-6 text-[#0B3D91] group-hover:text-white transition-colors" />
+                                </div>
+                                <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
+                                <p className="text-sm text-gray-600 text-center break-all">TeamOrbito@protonmail.com</p>
+                            </a>
+                            
+                            <div className="flex flex-col items-center p-6 rounded-xl border border-gray-200">
+                                <div className="w-12 h-12 bg-[#0B3D91]/10 rounded-full flex items-center justify-center mb-3">
+                                    <MapPin className="w-6 h-6 text-[#0B3D91]" />
+                                </div>
+                                <h3 className="font-semibold text-gray-900 mb-1">Office</h3>
+                                <p className="text-sm text-gray-600 text-center">
+                                    30, Curzon Road<br />
+                                    BH1 4PN, Bournemouth<br />
+                                    United Kingdom
+                                </p>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                </motion.div>
+
             </div>
         </>
     );

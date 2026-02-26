@@ -122,12 +122,12 @@ const ToursPage = () => {
 
       <div className="min-h-screen bg-gray-50">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
+        <div className="bg-[#0B3D91] text-white py-12">
           <div className="container mx-auto px-4">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               Discover Amazing Tours & Activities
             </h1>
-            <p className="text-xl text-blue-100 mb-8">
+            <p className="text-xl text-blue-100 mb-6">
               Book experiences from top providers worldwide
             </p>
 
@@ -152,123 +152,123 @@ const ToursPage = () => {
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Country Navigation */}
-      <div className="bg-white border-b sticky top-0 z-10 shadow-sm">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center gap-2 overflow-x-auto py-4 scrollbar-hide">
-            {popularCountries.map((country) => (
-              <button
-                key={country.code}
-                onClick={() => handleCountrySelect(country.code)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-all ${
-                  selectedCountry === country.code
-                    ? 'bg-primary text-white shadow-md'
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                }`}
-              >
-                <span className="text-xl">{country.flag}</span>
-                <span className="font-medium">{country.name}</span>
-              </button>
-            ))}
+        {/* Country Navigation */}
+        <div className="bg-white border-b sticky top-0 z-10 shadow-sm">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center gap-2 overflow-x-auto py-4 scrollbar-hide">
+              {popularCountries.map((country) => (
+                <button
+                  key={country.code}
+                  onClick={() => handleCountrySelect(country.code)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-all ${
+                    selectedCountry === country.code
+                      ? 'bg-primary text-white shadow-md'
+                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                  }`}
+                >
+                  <span className="text-xl">{country.flag}</span>
+                  <span className="font-medium">{country.name}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex gap-6">
-          {/* Filter Sidebar */}
-          <FilterSidebar
-            filters={filters}
-            onFilterChange={handleFilterChange}
-            onApply={handleApplyFilters}
-            onClear={handleClearFilters}
-            isOpen={showFilters}
-            onClose={() => setShowFilters(false)}
-          />
+        {/* Content */}
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex gap-6">
+            {/* Filter Sidebar */}
+            <FilterSidebar
+              filters={filters}
+              onFilterChange={handleFilterChange}
+              onApply={handleApplyFilters}
+              onClear={handleClearFilters}
+              isOpen={showFilters}
+              onClose={() => setShowFilters(false)}
+            />
 
-          {/* Main Content */}
-          <div className="flex-1">
-            {/* Mobile Filter Toggle */}
-            <div className="lg:hidden mb-4">
-              <Button
-                onClick={() => setShowFilters(true)}
-                variant="outline"
-                className="w-full"
-              >
-                <SlidersHorizontal className="w-4 h-4 mr-2" />
-                Show Filters
-                {(() => {
-                  const count = 
-                    (filters.categories?.length || 0) +
-                    (filters.durations?.length || 0) +
-                    (filters.priceRange?.[0] > 0 || filters.priceRange?.[1] < 500 ? 1 : 0);
-                  return count > 0 ? ` (${count})` : '';
-                })()}
-              </Button>
-            </div>
-
-            {/* Sort and View Options */}
-            <div className="bg-white rounded-lg shadow p-4 mb-6">
-              <div className="flex items-center justify-between flex-wrap gap-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-gray-600">
-                    Found <span className="font-semibold">{tours.length}</span> tours
-                  </span>
-                  {filters.destination && (
-                    <span className="bg-primary text-white px-3 py-1 rounded-full text-sm font-medium">
-                      📍 {filters.destination}
-                    </span>
-                  )}
-                </div>
-
-                <Select
-                  value={filters.sortBy}
-                  onValueChange={(value) => {
-                    const newFilters = { ...filters, sortBy: value };
-                    setFilters(newFilters);
-                    fetchTours(newFilters);
-                  }}
+            {/* Main Content */}
+            <div className="flex-1">
+              {/* Mobile Filter Toggle */}
+              <div className="lg:hidden mb-4">
+                <Button
+                  onClick={() => setShowFilters(true)}
+                  variant="outline"
+                  className="w-full"
                 >
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Sort By" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="rating">Highest Rated</SelectItem>
-                    <SelectItem value="price_low">Price: Low to High</SelectItem>
-                    <SelectItem value="price_high">Price: High to Low</SelectItem>
-                    <SelectItem value="popular">Most Popular</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Results */}
-            {loading ? (
-              <div className="flex items-center justify-center py-20">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              </div>
-            ) : tours.length === 0 ? (
-              <div className="text-center py-20">
-                <h3 className="text-2xl font-semibold text-gray-700 mb-2">
-                  No tours found
-                </h3>
-                <p className="text-gray-500 mb-4">
-                  Try adjusting your filters or search for a different destination
-                </p>
-                <Button onClick={handleClearFilters} variant="outline">
-                  Clear All Filters
+                  <SlidersHorizontal className="w-4 h-4 mr-2" />
+                  Show Filters
+                  {(() => {
+                    const count = 
+                      (filters.categories?.length || 0) +
+                      (filters.durations?.length || 0) +
+                      (filters.priceRange?.[0] > 0 || filters.priceRange?.[1] < 500 ? 1 : 0);
+                    return count > 0 ? ` (${count})` : '';
+                  })()}
                 </Button>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {tours.map((tour) => (
-                  <TourCard key={tour.external_id || tour.id} tour={tour} />
-                ))}
+
+              {/* Sort and View Options */}
+              <div className="bg-white rounded-lg shadow p-4 mb-6">
+                <div className="flex items-center justify-between flex-wrap gap-4">
+                  <div className="flex items-center gap-3">
+                    <span className="text-gray-600">
+                      Found <span className="font-semibold">{tours.length}</span> tours
+                    </span>
+                    {filters.destination && (
+                      <span className="bg-primary text-white px-3 py-1 rounded-full text-sm font-medium">
+                        📍 {filters.destination}
+                      </span>
+                    )}
+                  </div>
+
+                  <Select
+                    value={filters.sortBy}
+                    onValueChange={(value) => {
+                      const newFilters = { ...filters, sortBy: value };
+                      setFilters(newFilters);
+                      fetchTours(newFilters);
+                    }}
+                  >
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Sort By" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="rating">Highest Rated</SelectItem>
+                      <SelectItem value="price_low">Price: Low to High</SelectItem>
+                      <SelectItem value="price_high">Price: High to Low</SelectItem>
+                      <SelectItem value="popular">Most Popular</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            )}
+
+              {/* Results */}
+              {loading ? (
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                </div>
+              ) : tours.length === 0 ? (
+                <div className="text-center py-20">
+                  <h3 className="text-2xl font-semibold text-gray-700 mb-2">
+                    No tours found
+                  </h3>
+                  <p className="text-gray-500 mb-4">
+                    Try adjusting your filters or search for a different destination
+                  </p>
+                  <Button onClick={handleClearFilters} variant="outline">
+                    Clear All Filters
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {tours.map((tour) => (
+                    <TourCard key={tour.external_id || tour.id} tour={tour} />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

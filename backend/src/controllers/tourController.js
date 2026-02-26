@@ -26,13 +26,13 @@ async function getTours(req, res) {
       error = result.error;
     } catch (dbError) {
       // Database not set up yet, use mock data
-      console.log('Database not available, using mock data:', dbError.message);
+      logger.warn('Database not available, using mock data:', dbError.message);
       error = dbError;
     }
 
     // If database has error or is empty, fall back to Premium Tours API/mock data
     if (error || !data || data.length === 0) {
-      console.log('No tours in database, fetching from Premium Tours service...');
+      logger.info('No tours in database, fetching from Premium Tours service...');
       const apiTours = await PremiumToursService.getTours(filters);
       
       // Apply client-side filtering for Premium Tours data
@@ -118,13 +118,13 @@ async function getTourDetail(req, res) {
       data = result.data;
       error = result.error;
     } catch (dbError) {
-      console.log('Database not available, using mock data');
+      logger.warn('Database not available, using mock data');
       error = dbError;
     }
 
     // If not in database, try Premium Tours service
     if (error || !data) {
-      console.log(`Tour ${identifier} not in database, fetching from Premium Tours service...`);
+      logger.info(`Tour ${identifier} not in database, fetching from Premium Tours service...`);
       try {
         data = await PremiumToursService.getTourById(identifier);
       } catch (serviceError) {
@@ -191,7 +191,7 @@ async function createBooking(req, res) {
     // const premiumToursResult = await PremiumToursService.createBooking(bookingData);
     // Update our booking with their external_booking_id
 
-    console.log('Booking created successfully:', data[0]);
+    logger.success('Booking created successfully:', data[0]);
 
     res.json({
       success: true,
@@ -270,6 +270,7 @@ async function cancelBooking(req, res) {
 
     // Update booking status
     const { updateBookingStatus } = require('../models/tourModel');
+const logger = require('../utils/logger');
     const { data, error } = await updateBookingStatus(id, 'cancelled', {
       cancelled_at: new Date().toISOString(),
       cancellation_reason: cancellationReason

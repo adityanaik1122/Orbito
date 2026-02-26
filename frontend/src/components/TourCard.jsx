@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, MapPin, Star, Users } from 'lucide-react';
+import { Clock, MapPin, Star } from 'lucide-react';
 
 const TourCard = ({ tour }) => {
   const navigate = useNavigate();
@@ -12,25 +12,15 @@ const TourCard = ({ tour }) => {
     navigate(`/tours/${tour.slug || tour.external_id}`);
   };
 
-  const getProviderBadgeColor = (provider) => {
-    switch (provider?.toLowerCase()) {
-      case 'viator':
-        return 'bg-red-500';
-      case 'premium-tours':
-        return 'bg-blue-500';
-      case 'getyourguide':
-        return 'bg-green-500';
-      default:
-        return 'bg-gray-500';
-    }
-  };
+  // Simple image URL with fallback
+  const imageUrl = tour.main_image || tour.image || tour.images?.[0] || 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400&q=80';
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={handleViewDetails}>
       {/* Image */}
-      <div className="relative h-48 overflow-hidden">
+      <div className="relative h-48 overflow-hidden bg-gray-200">
         <img
-          src={tour.main_image || tour.images?.[0] || 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400'}
+          src={imageUrl}
           alt={tour.title}
           className="w-full h-full object-cover"
         />
@@ -38,10 +28,8 @@ const TourCard = ({ tour }) => {
         {/* Provider Badge */}
         {tour.provider && (
           <div className="absolute top-2 left-2">
-            <Badge className={`${getProviderBadgeColor(tour.provider)} text-white`}>
-              {tour.provider === 'premium-tours' ? 'Premium Tours' : 
-               tour.provider === 'viator' ? 'Viator' :
-               tour.provider}
+            <Badge className="bg-blue-500 text-white">
+              {tour.provider === 'premium-tours' ? 'Premium Tours' : tour.provider}
             </Badge>
           </div>
         )}

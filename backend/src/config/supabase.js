@@ -22,10 +22,12 @@ const supabase = SUPABASE_URL && supabaseKey
     })
   : null;
 
+const logger = require('../utils/logger');
+
 if (supabase && SUPABASE_SERVICE_ROLE_KEY) {
-  console.log('✅ Supabase initialized with service role key (RLS bypassed)');
+  logger.success('Supabase initialized with service role key (RLS bypassed)');
 } else if (supabase) {
-  console.log('⚠️  Supabase initialized with anon key (RLS active - may cause issues)');
+  logger.warn('Supabase initialized with anon key (RLS active - may cause issues)');
 }
 
 module.exports = {

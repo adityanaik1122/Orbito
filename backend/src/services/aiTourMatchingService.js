@@ -9,6 +9,7 @@
 
 const { generateContent, GROQ_MODELS } = require('../config/groq');
 const TourAggregatorService = require('./tourAggregatorService');
+const logger = require('../utils/logger');
 
 class AITourMatchingService {
   /**
@@ -24,12 +25,12 @@ class AITourMatchingService {
     ) + 1;
 
     // Step 1: Fetch available tours for the destination
-    console.log(`🔍 Fetching tours for ${destination}...`);
+    logger.info(` Fetching tours for ${destination}...`);
     const availableTours = await this._fetchDestinationTours(destination);
-    console.log(`📦 Found ${availableTours.length} tours`);
+    logger.info(` Found ${availableTours.length} tours`);
 
     // Step 2: Generate AI itinerary with tour context
-    console.log(`🤖 Generating AI itinerary...`);
+    logger.info(` Generating AI itinerary...`);
     const aiItinerary = await this._generateAIItinerary({
       destination,
       daysCount,
@@ -40,7 +41,7 @@ class AITourMatchingService {
     });
 
     // Step 3: Match AI suggestions with real tours
-    console.log(`🔗 Matching activities with bookable tours...`);
+    logger.info(` Matching activities with bookable tours...`);
     const enrichedItinerary = await this._matchToursToActivities(
       aiItinerary,
       availableTours
@@ -159,9 +160,9 @@ Return ONLY valid JSON in this exact format:
 
     for (const modelName of modelNames) {
       try {
-        console.log(`🤖 Trying ${modelName}...`);
+        logger.info(` Trying ${modelName}...`);
         responseText = await generateContent(prompt, modelName);
-        console.log(`✅ Successfully used ${modelName}`);
+        logger.success(` Successfully used ${modelName}`);
         break;
       } catch (e) {
         console.warn(`❌ ${modelName} failed:`, e.message);
@@ -182,7 +183,7 @@ Return ONLY valid JSON in this exact format:
       return JSON.parse(cleaned);
     } catch (parseError) {
       console.error('JSON parse error:', parseError);
-      console.log('Raw response:', cleaned.substring(0, 500));
+      logger.debug('Raw response:', cleaned.substring(0, 500));
       throw new Error('Failed to parse AI response');
     }
   }

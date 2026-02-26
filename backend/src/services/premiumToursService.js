@@ -202,42 +202,7 @@ const MOCK_TOURS = [
     review_count: 3421,
     featured: false
   },
-  // Real Premium Tours from their website
-  {
-    external_id: 'PT-006',
-    title: 'Windsor, Stonehenge, Lacock, Bath & 14th Century Pub Lunch',
-    slug: 'windsor-stonehenge-bath-pub-lunch',
-    description: 'Experience the best of England in one day! Visit Windsor Castle, the mysterious Stonehenge, the charming village of Lacock, and the beautiful city of Bath. Includes a traditional pub lunch in a 14th-century establishment.',
-    highlights: [
-      'Visit Windsor Castle',
-      'See the ancient Stonehenge monument',
-      'Explore Lacock village',
-      'Full afternoon in Bath',
-      'Lunch in a 14th Century Pub included'
-    ],
-    destination: 'London',
-    city: 'London',
-    country: 'United Kingdom',
-    meeting_point: 'Premium Tours Office, London Victoria',
-    duration: 'Full day',
-    duration_hours: 11,
-    category: 'Cultural',
-    subcategory: 'Day Trips',
-    price_adult: 95.00,
-    price_child: 85.00,
-    currency: 'GBP',
-    price_includes: ['Entry to Windsor Castle', 'Entry to Stonehenge', 'Pub lunch', 'Professional guide', 'Luxury coach'],
-    price_excludes: ['Gratuities', 'Hotel pickup'],
-    main_image: 'https://images.unsplash.com/photo-1599833975787-5d9f111d0e7a?w=1200&q=80',
-    is_available: true,
-    available_days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-    start_times: ['08:00'],
-    instant_confirmation: true,
-    cancellation_policy: 'Free cancellation up to 24 hours before',
-    rating: 4.9,
-    review_count: 8234,
-    featured: true
-  },
+
   {
     external_id: 'PT-007',
     title: 'Stonehenge and Full Afternoon in Bath',
