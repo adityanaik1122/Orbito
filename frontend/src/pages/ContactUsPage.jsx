@@ -22,20 +22,20 @@ const ContactUsPage = () => {
         {
             icon: Mail,
             title: 'Email',
-            value: 'support@orbito.com',
+            value: 'TeamOrbito@protonmail.com',
             description: 'We reply within 24 hours'
         },
         {
             icon: Phone,
             title: 'Phone',
-            value: '+1 (555) 123-4567',
+            value: '+44 7566 215425',
             description: 'Mon-Fri 9am-6pm EST'
         },
         {
             icon: MapPin,
             title: 'Office',
-            value: 'San Francisco, CA',
-            description: '123 Travel Street, Suite 100'
+            value: 'Bournemouth, United Kingdom',
+            description: '30, Curzon Road, BH1 4PN'
         },
         {
             icon: Clock,

@@ -75,22 +75,66 @@ const MOCK_TOURS = [
     duration_hours: 3,
     category: 'Cultural',
     subcategory: 'Historical Sites',
-    price_adult: 34.80,
-    price_child: 17.40,
+    price_adult: 33.60,
+    price_child: 16.80,
     currency: 'GBP',
     price_includes: ['Entrance ticket', 'Access to Crown Jewels', 'Yeoman Warder tour'],
     price_excludes: ['Audio guide', 'Hotel pickup', 'Food and drinks'],
-    main_image: 'https://images.unsplash.com/photo-1529655683826-aba9b3e77383?w=800',
+    main_image: 'https://images.unsplash.com/photo-1529655683826-aba9b3e77383?w=1200&q=80',
     images: [
-      'https://images.unsplash.com/photo-1529655683826-aba9b3e77383?w=800'
+      'https://images.unsplash.com/photo-1529655683826-aba9b3e77383?w=1200&q=80',
+      'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=1200&q=80',
+      'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1200&q=80'
     ],
     is_available: true,
     available_days: ['Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
     start_times: ['09:00', '10:00', '11:00', '12:00'],
     instant_confirmation: true,
-    cancellation_policy: 'Non-refundable',
+    cancellation_policy: 'Free cancellation up to 24 hours before',
     rating: 4.8,
     review_count: 8921,
+    featured: true
+  },
+  {
+    external_id: 'PT-010',
+    title: 'The British Museum Guided Tour',
+    slug: 'british-museum-guided-tour',
+    description: 'Discover world history and culture at the British Museum with an expert guide. Explore highlights including the Rosetta Stone, Egyptian mummies, and the Parthenon sculptures in this comprehensive 2.5-hour tour.',
+    highlights: [
+      'Free admission to the museum',
+      'Expert guide commentary',
+      'See the Rosetta Stone',
+      'Explore Egyptian mummies',
+      'View the Parthenon sculptures',
+      'Small group experience'
+    ],
+    destination: 'London',
+    city: 'London',
+    country: 'United Kingdom',
+    meeting_point: 'British Museum Main Entrance, Great Russell Street, London WC1B 3DG',
+    coordinates: { lat: 51.5194, lng: -0.1270 },
+    duration: '2.5 hours',
+    duration_hours: 2.5,
+    category: 'Museum',
+    subcategory: 'Cultural',
+    price_adult: 0,
+    price_child: 0,
+    currency: 'GBP',
+    price_includes: ['Free museum admission', 'Expert guide', 'Headsets for groups over 10'],
+    price_excludes: ['Hotel pickup', 'Food and drinks', 'Special exhibition tickets'],
+    main_image: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=1200&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=1200&q=80',
+      'https://images.unsplash.com/photo-1566127444979-b3d2b654e3b7?w=1200&q=80',
+      'https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?w=1200&q=80'
+    ],
+    is_available: true,
+    available_days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+    start_times: ['10:00', '11:00', '14:00', '15:00'],
+    instant_confirmation: true,
+    cancellation_policy: 'Free cancellation up to 24 hours before',
+    rating: 4.7,
+    review_count: 6543,
     featured: true
   },
   {
@@ -118,9 +162,11 @@ const MOCK_TOURS = [
     currency: 'GBP',
     price_includes: ['24-hour ticket', 'Three bus routes', 'Live commentary', 'Walking tours', 'River cruise'],
     price_excludes: ['Hotel pickup', 'Entrance fees to attractions'],
-    main_image: 'https://cdn.pixabay.com/photo/2022/02/13/16/01/bus-6982035_1280.jpg',
+    main_image: 'https://images.unsplash.com/photo-1543832923-44667a44c804?w=1200&q=80',
     images: [
-      'https://cdn.pixabay.com/photo/2022/02/13/16/01/bus-6982035_1280.jpg'
+      'https://images.unsplash.com/photo-1543832923-44667a44c804?w=1200&q=80',
+      'https://images.unsplash.com/photo-1533929736458-ca588d08c8be?w=1200&q=80',
+      'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1200&q=80'
     ],
     is_available: true,
     available_days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
@@ -157,7 +203,12 @@ const MOCK_TOURS = [
     currency: 'GBP',
     price_includes: ['Return coach transport', 'Studio entrance', 'All exhibitions', 'Audio guide'],
     price_excludes: ['Food and drinks', 'Souvenir photos'],
-    main_image: 'https://images.unsplash.com/photo-1551269901-5c5e14c25df7?w=800',
+    main_image: 'https://images.unsplash.com/photo-1551269901-5c5e14c25df7?w=1200&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1551269901-5c5e14c25df7?w=1200&q=80',
+      'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=1200&q=80',
+      'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1200&q=80'
+    ],
     is_available: true,
     available_days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
     start_times: ['08:00', '10:00', '12:00'],
@@ -192,7 +243,12 @@ const MOCK_TOURS = [
     currency: 'GBP',
     price_includes: ['2.5-hour cruise', '3-course dinner', 'Live music', 'Welcome drink'],
     price_excludes: ['Additional drinks', 'Gratuities', 'Hotel pickup'],
-    main_image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=800',
+    main_image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1200&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1200&q=80',
+      'https://images.unsplash.com/photo-1533929736458-ca588d08c8be?w=1200&q=80',
+      'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1200&q=80'
+    ],
     is_available: true,
     available_days: ['Wednesday', 'Thursday', 'Friday', 'Saturday'],
     start_times: ['19:00'],
@@ -228,7 +284,12 @@ const MOCK_TOURS = [
     currency: 'GBP',
     price_includes: ['Entry to Stonehenge', 'Entry to Roman Baths', 'Walking tour', 'Luxury coach'],
     price_excludes: ['Lunch', 'Hotel pickup', 'Gratuities'],
-    main_image: 'https://images.unsplash.com/photo-1580837119756-563d608dd119?w=800',
+    main_image: 'https://images.unsplash.com/photo-1580837119756-563d608dd119?w=1200&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1580837119756-563d608dd119?w=1200&q=80',
+      'https://images.unsplash.com/photo-1599833975787-5d9f0e5d5c9e?w=1200&q=80',
+      'https://images.unsplash.com/photo-1592894869086-f828b161e90a?w=1200&q=80'
+    ],
     is_available: true,
     available_days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
     start_times: ['08:30'],
@@ -263,7 +324,12 @@ const MOCK_TOURS = [
     currency: 'GBP',
     price_includes: ['Return luxury coach', '3-course Eiffel Tower lunch', 'Seine River cruise', 'City tour', 'Professional guide'],
     price_excludes: ['Hotel pickup', 'Additional meals', 'Gratuities'],
-    main_image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800',
+    main_image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&q=80',
+      'https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?w=1200&q=80',
+      'https://images.unsplash.com/photo-1549144511-f099e773c147?w=1200&q=80'
+    ],
     is_available: true,
     available_days: ['Monday', 'Wednesday', 'Friday', 'Saturday'],
     start_times: ['06:00'],
@@ -297,7 +363,12 @@ const MOCK_TOURS = [
     currency: 'GBP',
     price_includes: ['Priority entry', 'Live guide', 'Refreshments in Cellarium', 'Small group (max 20)'],
     price_excludes: ['Hotel pickup', 'Gratuities'],
-    main_image: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800',
+    main_image: 'https://images.unsplash.com/photo-1529655683826-aba9b3e77383?w=1200&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1529655683826-aba9b3e77383?w=1200&q=80',
+      'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=1200&q=80',
+      'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=1200&q=80'
+    ],
     is_available: true,
     available_days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
     start_times: ['09:30', '14:00'],
