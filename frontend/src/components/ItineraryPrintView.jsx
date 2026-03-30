@@ -186,7 +186,7 @@ const ItineraryPrintView = ({ isOpen, onClose, itinerary, tripDetails }) => {
                 <div key={day.id || dayIndex} className="page-break-inside-avoid break-inside-avoid">
                   <div className="bg-gradient-to-r from-[#0B3D91] to-[#1E5BA8] text-white rounded-t-xl px-6 py-4 print:bg-[#0B3D91] print:text-white">
                     <h2 className="text-2xl font-bold">Day {dayIndex + 1}</h2>
-                    <p className="text-blue-100">{format(new Date(day.date), 'EEEE, MMMM do, yyyy')}</p>
+                    <p className="text-blue-100">{formatDate(day.date, locale)}</p>
                   </div>
                   
                   <div className="border-x-2 border-b-2 border-gray-200 rounded-b-xl p-6 space-y-5 bg-white">
