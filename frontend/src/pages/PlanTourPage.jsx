@@ -73,9 +73,15 @@ const PlanTourPage = () => {
   const [draggedActivity, setDraggedActivity] = useState(null);
   const [dropTargetDay, setDropTargetDay] = useState(null);
   const [highlightDayIndex, setHighlightDayIndex] = useState(null);
+  const [endDateError, setEndDateError] = useState('');
 
   // -- Derived State --
   const availableCities = ['London', 'Paris', 'Amsterdam', 'Dubai', 'Prague', 'Edinburgh', 'Barcelona', 'Rome', 'New York', 'Tokyo'];
+  const getSafeDate = (value) => {
+    if (!value) return null;
+    const date = value instanceof Date ? value : new Date(value);
+    return isValid(date) ? date : null;
+  };
 
   // Handle Location State (Pre-select destination and natural language query)
   useEffect(() => {
@@ -1010,6 +1016,9 @@ const PlanTourPage = () => {
     return matchesCity && matchesSearch && matchesCategory;
   });
 
+  const startDateValue = getSafeDate(tripDetails.startDate);
+  const endDateValue = getSafeDate(tripDetails.endDate);
+
   return (
     <>
       <Helmet>
@@ -1139,13 +1148,27 @@ const PlanTourPage = () => {
                                 <Label>Start Date</Label>
                                 <Popover>
                                     <PopoverTrigger asChild>
-                                        <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !tripDetails.startDate && "text-muted-foreground")}>
+                                        <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !startDateValue && "text-muted-foreground")}>
                                             <CalendarIcon className="mr-2 h-4 w-4" />
-                                            {tripDetails.startDate ? format(new Date(tripDetails.startDate), "PPP") : "Pick a date"}
+                                            {startDateValue ? format(startDateValue, "PPP") : "Pick a date"}
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-auto p-0 bg-white z-[9999]" align="start">
-                                        <Calendar mode="single" selected={tripDetails.startDate} onSelect={(d) => setTripDetails({...tripDetails, startDate: d})} initialFocus className="bg-white" />
+                                        <Calendar
+                                            mode="single"
+                                            selected={startDateValue}
+                                            onSelect={(d) => {
+                                                setTripDetails((prev) => {
+                                                    const nextStart = d || null;
+                                                    const prevEnd = getSafeDate(prev.endDate);
+                                                    const nextEnd = nextStart && prevEnd && prevEnd < nextStart ? nextStart : prev.endDate;
+                                                    return { ...prev, startDate: nextStart, endDate: nextEnd };
+                                                });
+                                                setEndDateError('');
+                                            }}
+                                            initialFocus
+                                            className="bg-white"
+                                        />
                                     </PopoverContent>
                                 </Popover>
                             </div>
@@ -1153,15 +1176,31 @@ const PlanTourPage = () => {
                                 <Label>End Date</Label>
                                 <Popover>
                                     <PopoverTrigger asChild>
-                                        <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !tripDetails.endDate && "text-muted-foreground")}>
+                                        <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !endDateValue && "text-muted-foreground")}>
                                             <CalendarIcon className="mr-2 h-4 w-4" />
-                                            {tripDetails.endDate ? format(new Date(tripDetails.endDate), "PPP") : "Pick a date"}
+                                            {endDateValue ? format(endDateValue, "PPP") : "Pick a date"}
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-auto p-0 bg-white z-[9999]" align="start">
-                                        <Calendar mode="single" selected={tripDetails.endDate} onSelect={(d) => setTripDetails({...tripDetails, endDate: d})} initialFocus className="bg-white" />
+                                        <Calendar
+                                            mode="single"
+                                            selected={endDateValue}
+                                            onSelect={(d) => {
+                                                if (d && startDateValue && d < startDateValue) {
+                                                    setEndDateError("End date can't be before start date.");
+                                                    return;
+                                                }
+                                                setEndDateError('');
+                                                setTripDetails((prev) => ({ ...prev, endDate: d || null }));
+                                            }}
+                                            initialFocus
+                                            className="bg-white"
+                                        />
                                     </PopoverContent>
                                 </Popover>
+                                {endDateError ? (
+                                    <p className="text-xs text-amber-600">{endDateError}</p>
+                                ) : null}
                             </div>
                         </div>
                         
