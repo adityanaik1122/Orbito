@@ -4,9 +4,11 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Clock, MapPin, Star } from 'lucide-react';
+import { useLocale } from '@/contexts/LocaleContext';
 
 const TourCard = ({ tour }) => {
   const navigate = useNavigate();
+  const { formatMoney, t } = useLocale();
 
   const handleViewDetails = () => {
     navigate(`/tours/${tour.slug || tour.external_id}`);
@@ -104,14 +106,11 @@ const TourCard = ({ tour }) => {
 
       <CardFooter className="pt-3 flex items-center justify-between">
         <div>
-          <div className="text-sm text-gray-500">From</div>
+          <div className="text-sm text-gray-500">{t('tours_from')}</div>
           <div className="text-2xl font-bold text-primary">
-            {tour.currency === 'USD' ? '$' : 
-             tour.currency === 'EUR' ? '€' : 
-             tour.currency === 'GBP' ? '£' : ''}
-            {tour.price_adult?.toFixed(2)}
+            {formatMoney(tour.price_adult, tour.currency || 'GBP')}
           </div>
-          <div className="text-xs text-gray-500">per person</div>
+          <div className="text-xs text-gray-500">{t('tours_per_person')}</div>
         </div>
 
         <Button onClick={handleViewDetails} className="bg-primary hover:bg-primary/90">

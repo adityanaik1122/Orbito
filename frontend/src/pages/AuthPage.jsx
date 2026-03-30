@@ -10,12 +10,16 @@ import { useToast } from '@/components/ui/use-toast';
 import { ArrowLeft, Mail, Lock, User, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { supabase } from '@/lib/customSupabaseClient';
+import { useLocale } from '@/contexts/LocaleContext';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { COUNTRIES } from '@/lib/countries';
 
 const AuthPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
   const { signIn, signUp } = useAuth();
+  const { locale, currency, country, t } = useLocale();
   
   // Get the intended destination from location state, or default to my-account
   const from = location.state?.from?.pathname || '/my-account';
@@ -25,7 +29,8 @@ const AuthPage = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    password: ''
+    password: '',
+    country: ''
   });
 
   const handleInputChange = (e) => {
@@ -96,19 +101,40 @@ const AuthPage = () => {
     }
 
     try {
-      const { error } = await signUp(formData.email, formData.password, {
+      const { data, error } = await signUp(formData.email, formData.password, {
         data: {
-          full_name: formData.name
-        }
+          full_name: formData.name,
+          country: formData.country || null
+        },
+        emailRedirectTo: `${window.location.origin}/auth`
       });
       
       if (error) throw error;
 
-      toast({
-        title: "Account created! 🎉",
-        description: "Please check your email to confirm your account, then log in.",
-      });
-      // Optionally navigate to a "check email" page or stay here
+      if (data?.user?.id) {
+        await supabase
+          .from('profiles')
+          .upsert({
+            id: data.user.id,
+            country: formData.country || country || null,
+            locale: locale || null,
+            currency: currency || null,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'id' });
+      }
+
+      if (data?.session) {
+        toast({
+          title: "Welcome! 🎉",
+          description: "Your account is ready and you're now signed in.",
+        });
+        navigate(from);
+      } else {
+        toast({
+          title: "Account created! 🎉",
+          description: "Please check your email to confirm your account.",
+        });
+      }
     } catch (error) {
       console.error(error);
     } finally {
@@ -137,10 +163,10 @@ const AuthPage = () => {
               ORBITO
             </h2>
             <h2 className="mt-2 text-2xl font-bold text-gray-900">
-              Welcome to your next adventure
+              {t('auth_welcome_title')}
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              Plan, book, and manage your trips in one place
+              {t('auth_welcome_sub')}
             </p>
           </div>
         </div>
@@ -149,14 +175,14 @@ const AuthPage = () => {
           <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 border border-gray-100">
             <Tabs defaultValue="login" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="login">Login</TabsTrigger>
-                <TabsTrigger value="register">Sign Up</TabsTrigger>
+                <TabsTrigger value="login">{t('auth_login')}</TabsTrigger>
+                <TabsTrigger value="register">{t('auth_signup')}</TabsTrigger>
               </TabsList>
               
               <TabsContent value="login">
                 <form className="space-y-6" onSubmit={handleLogin}>
                   <div>
-                    <Label htmlFor="email">Email address</Label>
+                    <Label htmlFor="email">{t('auth_email')}</Label>
                     <div className="mt-1 relative rounded-md shadow-sm">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Mail className="h-5 w-5 text-gray-400" />
@@ -174,7 +200,26 @@ const AuthPage = () => {
                   </div>
 
                   <div>
-                    <Label htmlFor="password">Password</Label>
+                    <Label htmlFor="country">{t('auth_country_optional')}</Label>
+                    <Select
+                      value={formData.country}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, country: value }))}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Select country" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {COUNTRIES.map((countryItem) => (
+                          <SelectItem key={countryItem.code} value={countryItem.code}>
+                            {countryItem.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="password">{t('auth_password')}</Label>
                     <div className="mt-1 relative rounded-md shadow-sm">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Lock className="h-5 w-5 text-gray-400" />
@@ -207,7 +252,7 @@ const AuthPage = () => {
                     className="w-full bg-[#0B3D91] hover:bg-[#092C6B] text-white"
                     disabled={isLoading}
                   >
-                    {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing in...</> : "Sign in"}
+                    {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing in...</> : t('auth_signin')}
                   </Button>
                   
                   <div className="text-center">
@@ -221,7 +266,7 @@ const AuthPage = () => {
               <TabsContent value="register">
                 <form className="space-y-6" onSubmit={handleRegister}>
                   <div>
-                    <Label htmlFor="name">Full Name</Label>
+                    <Label htmlFor="name">{t('auth_full_name')}</Label>
                     <div className="mt-1 relative rounded-md shadow-sm">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <User className="h-5 w-5 text-gray-400" />
@@ -239,7 +284,7 @@ const AuthPage = () => {
                   </div>
 
                   <div>
-                    <Label htmlFor="email">Email address</Label>
+                    <Label htmlFor="email">{t('auth_email')}</Label>
                     <div className="mt-1 relative rounded-md shadow-sm">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Mail className="h-5 w-5 text-gray-400" />
@@ -257,7 +302,7 @@ const AuthPage = () => {
                   </div>
 
                   <div>
-                    <Label htmlFor="password">Password</Label>
+                    <Label htmlFor="password">{t('auth_password')}</Label>
                     <div className="mt-1 relative rounded-md shadow-sm">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Lock className="h-5 w-5 text-gray-400" />
@@ -290,7 +335,7 @@ const AuthPage = () => {
                     className="w-full bg-[#0B3D91] hover:bg-[#092C6B] text-white"
                     disabled={isLoading}
                   >
-                    {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating Account...</> : "Create Account"}
+                    {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating Account...</> : t('auth_create_account')}
                   </Button>
                   
                   <p className="text-xs text-center text-gray-500">

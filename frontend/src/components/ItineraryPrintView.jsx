@@ -1,15 +1,17 @@
 
 import React, { useRef, useState } from 'react';
-import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { MapPin, Clock, DollarSign, Calendar, Printer, Download, Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { useLocale } from '@/contexts/LocaleContext';
+import { formatDate } from '@/lib/locale';
 
 const ItineraryPrintView = ({ isOpen, onClose, itinerary, tripDetails }) => {
   const { toast } = useToast();
+  const { locale } = useLocale();
   const printRef = useRef(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
@@ -152,7 +154,7 @@ const ItineraryPrintView = ({ isOpen, onClose, itinerary, tripDetails }) => {
                   <div className="flex items-center gap-2">
                     <Calendar className="w-5 h-5 text-[#0B3D91]" />
                     <span className="text-lg">
-                      {format(new Date(tripDetails.startDate), 'MMM d, yyyy')} - {format(new Date(tripDetails.endDate), 'MMM d, yyyy')}
+                      {formatDate(tripDetails.startDate, locale)} - {formatDate(tripDetails.endDate, locale)}
                     </span>
                   </div>
                 )}
@@ -254,7 +256,7 @@ const ItineraryPrintView = ({ isOpen, onClose, itinerary, tripDetails }) => {
             {/* Footer */}
             <div className="mt-10 pt-6 border-t-2 border-gray-200 text-center text-sm text-gray-500">
               <p className="font-semibold">Created with Orbito Trip Planner</p>
-              <p className="mt-1">Generated on {format(new Date(), 'PPP')}</p>
+              <p className="mt-1">Generated on {formatDate(new Date(), locale)}</p>
             </div>
           </div>
         </div>

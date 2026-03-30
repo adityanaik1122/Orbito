@@ -9,7 +9,15 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
  */
 async function getAuthToken() {
   const { data: { session } } = await supabase.auth.getSession();
-  return session?.access_token || null;
+  if (session?.access_token) return session.access_token;
+
+  // Attempt a refresh if session is missing/stale
+  try {
+    const { data: refreshed } = await supabase.auth.refreshSession();
+    return refreshed?.session?.access_token || null;
+  } catch {
+    return null;
+  }
 }
 
 /**

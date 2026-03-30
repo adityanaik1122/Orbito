@@ -63,11 +63,14 @@ export const AuthProvider = ({ children }) => {
   const signUp = useCallback(async (email, password, options) => {
     console.log("Attempting signup for:", email);
 
+    const emailRedirectTo = options?.emailRedirectTo || `${window.location.origin}/auth`;
+
     // 1. Create User (Database Trigger will handle the Profile)
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
+        emailRedirectTo,
         data: {
           full_name: options?.data?.full_name,
           ...options?.data 

@@ -1,8 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Facebook, Instagram, Twitter, Linkedin, Phone, Mail, MapPin } from 'lucide-react';
+import { useLocale } from '@/contexts/LocaleContext';
 
 const Footer = () => {
+  const { t } = useLocale();
   return (
     <footer className="bg-white border-t border-gray-100 pt-16 pb-8">
       <div className="container mx-auto px-4 lg:px-8">
@@ -40,31 +42,33 @@ const Footer = () => {
           </div>
 
           <div>
-            <h3 className="font-bold text-gray-900 mb-6">Company</h3>
+            <h3 className="font-bold text-gray-900 mb-6">{t('footer_company')}</h3>
             <ul className="space-y-4">
-              <li><Link to="/about" className="text-gray-500 hover:text-[#0B3D91]">About Us</Link></li>
-              <li><Link to="/careers" className="text-gray-500 hover:text-[#0B3D91]">Careers</Link></li>
-              <li><Link to="/blog" className="text-gray-500 hover:text-[#0B3D91]">Blog</Link></li>
+              <li><Link to="/about" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_about')}</Link></li>
+              <li><Link to="/careers" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_careers')}</Link></li>
+              <li><Link to="/blog" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_blog')}</Link></li>
             </ul>
           </div>
 
           <div>
-            <h3 className="font-bold text-gray-900 mb-6">Support</h3>
+            <h3 className="font-bold text-gray-900 mb-6">{t('footer_support')}</h3>
             <ul className="space-y-4">
-              <li><Link to="/help" className="text-gray-500 hover:text-[#0B3D91]">Help Center</Link></li>
-              <li><Link to="/contact" className="text-gray-500 hover:text-[#0B3D91]">Contact Us</Link></li>
-              <li><Link to="/privacy" className="text-gray-500 hover:text-[#0B3D91]">Privacy Policy</Link></li>
-              <li><Link to="/terms" className="text-gray-500 hover:text-[#0B3D91]">Terms of Service</Link></li>
+              <li><Link to="/help" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_help')}</Link></li>
+              <li><Link to="/contact" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_contact')}</Link></li>
+              <li><Link to="/privacy" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_privacy')}</Link></li>
+              <li><Link to="/terms" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_terms')}</Link></li>
+              <li><Link to="/refunds" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_refunds')}</Link></li>
+              <li><Link to="/supplier-terms" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_supplier_terms')}</Link></li>
             </ul>
           </div>
 
           <div>
-            <h3 className="font-bold text-gray-900 mb-6">Discover</h3>
+            <h3 className="font-bold text-gray-900 mb-6">{t('footer_discover')}</h3>
             <ul className="space-y-4">
-              <li><Link to="/destinations" className="text-gray-500 hover:text-[#0B3D91]">Popular Destinations</Link></li>
-              <li><Link to="/itineraries" className="text-gray-500 hover:text-[#0B3D91]">Featured Itineraries</Link></li>
-              <li><Link to="/resources" className="text-gray-500 hover:text-[#0B3D91]">Travel Guides</Link></li>
-              <li><Link to="/resources" className="text-gray-500 hover:text-[#0B3D91]">Travel Articles</Link></li>
+              <li><Link to="/destinations" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_destinations')}</Link></li>
+              <li><Link to="/itineraries" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_itineraries')}</Link></li>
+              <li><Link to="/resources" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_guides')}</Link></li>
+              <li><Link to="/resources" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_articles')}</Link></li>
             </ul>
           </div>
         </div>
@@ -76,11 +80,11 @@ const Footer = () => {
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2 text-gray-400 text-sm">
               <span className="w-4 h-4 border border-gray-300 rounded-full flex items-center justify-center text-[10px]">✓</span>
-              Secure Payments
+              {t('footer_secure')}
             </div>
             <div className="flex items-center gap-2 text-gray-400 text-sm">
               <span className="w-4 h-4 border border-gray-300 rounded-full flex items-center justify-center text-[10px]">✓</span>
-              Verified Reviews
+              {t('footer_reviews')}
             </div>
           </div>
         </div>

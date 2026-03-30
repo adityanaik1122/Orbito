@@ -1,16 +1,24 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Menu, X, User, Loader2, Sparkles } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { useLocale } from '@/contexts/LocaleContext';
+import { LOCALE_OPTIONS } from '@/lib/locale';
 
 const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
   const { user, signOut, loading } = useAuth();
+  const { locale, currency, setLocalePreset, t } = useLocale();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const currentPreset = LOCALE_OPTIONS.find(
+    (opt) => opt.locale === locale && opt.currency === currency
+  ) || LOCALE_OPTIONS[0];
 
   const handleLogout = async () => {
     await signOut();
@@ -22,11 +30,11 @@ const Navigation = () => {
   };
 
   const navItems = [
-    { name: 'Tours', path: '/tours' },
-    { name: 'Itineraries', path: '/itineraries' },
-    { name: 'Why AI', path: '/why-ai', highlight: true },
-    { name: 'About', path: '/about' },
-    { name: 'Contact', path: '/contact' },
+    { key: 'nav_tours', path: '/tours' },
+    { key: 'nav_itineraries', path: '/itineraries' },
+    { key: 'nav_why_ai', path: '/why-ai', highlight: true },
+    { key: 'nav_about', path: '/about' },
+    { key: 'nav_contact', path: '/contact' },
   ];
 
   return (
@@ -41,7 +49,7 @@ const Navigation = () => {
         <div className="hidden lg:flex items-center gap-6">
           {navItems.map((item) => (
             <Link
-              key={item.name}
+              key={item.key}
               to={item.path}
               className={`text-[14px] font-medium transition-colors hover:text-[#0B3D91] flex items-center gap-1.5 ${
                 item.highlight 
@@ -50,13 +58,25 @@ const Navigation = () => {
               }`}
             >
               {item.highlight && <Sparkles className="w-3.5 h-3.5" />}
-              {item.name}
+              {t(item.key)}
             </Link>
           ))}
         </div>
 
         {/* Right Actions */}
         <div className="hidden lg:flex items-center gap-4">
+          <Select value={currentPreset.id} onValueChange={setLocalePreset}>
+            <SelectTrigger className="h-9 w-[160px] text-xs">
+              <SelectValue placeholder="Locale" />
+            </SelectTrigger>
+            <SelectContent>
+              {LOCALE_OPTIONS.map((opt) => (
+                <SelectItem key={opt.id} value={opt.id}>
+                  {opt.label} • {opt.currency}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {loading ? (
              <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
           ) : !user ? (
@@ -64,7 +84,7 @@ const Navigation = () => {
               <Button 
                 className="bg-[#0B3D91] hover:bg-[#092C6B] text-white font-bold px-8 rounded-full h-10 text-[14px] shadow-md"
               >
-                Login
+                {t('nav_login')}
               </Button>
             </Link>
           ) : (
@@ -75,7 +95,7 @@ const Navigation = () => {
                   className="text-gray-600 hover:text-[#0B3D91] font-medium"
                 >
                   <User className="w-4 h-4 mr-2" />
-                  Profile
+                  {t('nav_profile')}
                 </Button>
               </Link>
               <Button 
@@ -83,7 +103,7 @@ const Navigation = () => {
                 variant="ghost"
                 className="text-gray-600 hover:text-[#0B3D91] font-medium"
               >
-                Log Out
+                {t('nav_logout')}
               </Button>
             </>
           )}
@@ -101,14 +121,28 @@ const Navigation = () => {
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div className="lg:hidden bg-white border-t border-gray-100 absolute w-full shadow-lg py-4 px-4 flex flex-col gap-2">
+          <div className="px-2">
+            <Select value={currentPreset.id} onValueChange={setLocalePreset}>
+              <SelectTrigger className="h-10 w-full text-sm">
+                <SelectValue placeholder="Locale" />
+              </SelectTrigger>
+              <SelectContent>
+                {LOCALE_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.id} value={opt.id}>
+                    {opt.label} • {opt.currency}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           {navItems.map((item) => (
             <Link
-              key={item.name}
+              key={item.key}
               to={item.path}
               className="py-3 px-4 text-gray-600 hover:bg-gray-50 hover:text-[#0B3D91] rounded-lg font-medium"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              {item.name}
+              {t(item.key)}
             </Link>
           ))}
           <div className="h-px bg-gray-100 my-2" />
@@ -116,17 +150,17 @@ const Navigation = () => {
             <div className="py-2 text-center text-gray-400"><Loader2 className="w-5 h-5 animate-spin inline" /></div>
           ) : !user ? (
             <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
-              <Button className="w-full bg-[#0B3D91] text-white">Login</Button>
+              <Button className="w-full bg-[#0B3D91] text-white">{t('nav_login')}</Button>
             </Link>
           ) : (
             <>
               <Link to="/my-account" onClick={() => setIsMobileMenuOpen(false)}>
                  <Button variant="outline" className="w-full justify-start mb-2">
-                   <User className="w-4 h-4 mr-2" /> Profile
+                   <User className="w-4 h-4 mr-2" /> {t('nav_profile')}
                  </Button>
               </Link>
               <Button onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }} variant="outline" className="w-full">
-                Log Out
+                {t('nav_logout')}
               </Button>
             </>
           )}

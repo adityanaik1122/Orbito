@@ -2,16 +2,18 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { useParams, useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { MapPin, Clock, DollarSign, Calendar, Printer, Download, ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
 import { supabase } from '@/lib/customSupabaseClient';
 import { useToast } from '@/components/ui/use-toast';
+import { useLocale } from '@/contexts/LocaleContext';
+import { formatDate } from '@/lib/locale';
 
 const ShareableItineraryPage = () => {
   const { shareId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { locale } = useLocale();
   const [itinerary, setItinerary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -135,7 +137,7 @@ const ShareableItineraryPage = () => {
                 <div className="flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-[#0B3D91]" />
                   <span>
-                    {format(new Date(itinerary.start_date), 'MMM d, yyyy')} - {format(new Date(itinerary.end_date), 'MMM d, yyyy')}
+                    {formatDate(itinerary.start_date, locale)} - {formatDate(itinerary.end_date, locale)}
                   </span>
                 </div>
               </div>

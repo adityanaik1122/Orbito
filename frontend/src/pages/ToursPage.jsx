@@ -9,14 +9,18 @@ import TourCard from '@/components/TourCard';
 import FilterSidebar from '@/components/FilterSidebar';
 import { apiService } from '@/services/api';
 import { useToast } from '@/components/ui/use-toast';
+import { useLocale } from '@/contexts/LocaleContext';
 
 const ToursPage = () => {
   const { toast } = useToast();
+  const { t } = useLocale();
   const [searchParams] = useSearchParams();
   const urlDestination = searchParams.get('destination');
   
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [apiError, setApiError] = useState(false);
+  const [isFiltering, setIsFiltering] = useState(false);
   const [filters, setFilters] = useState({
     destination: urlDestination || '',
     country: '',
@@ -54,8 +58,19 @@ const ToursPage = () => {
     fetchTours();
   }, []);
 
-  const fetchTours = async (appliedFilters = filters) => {
-    setLoading(true);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchTours(filters, true);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [filters.destination, filters.country, filters.sortBy]);
+
+  const fetchTours = async (appliedFilters = filters, silent = false) => {
+    if (silent) {
+      setIsFiltering(true);
+    } else {
+      setLoading(true);
+    }
     try {
       const filterParams = {
         destination: appliedFilters.destination,
@@ -69,15 +84,14 @@ const ToursPage = () => {
       
       const response = await apiService.getTours(filterParams);
       setTours(response.tours || []);
+      setApiError(false);
     } catch (error) {
       console.error('Error fetching tours:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to load tours. Please try again.'
-      });
+      setTours([]);
+      setApiError(true);
     } finally {
       setLoading(false);
+      setIsFiltering(false);
     }
   };
 
@@ -125,10 +139,10 @@ const ToursPage = () => {
         <div className="bg-[#0B3D91] text-white py-12">
           <div className="container mx-auto px-4">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Discover Amazing Tours & Activities
+              {t('tours_title')}
             </h1>
             <p className="text-xl text-blue-100 mb-6">
-              Book experiences from top providers worldwide
+              {t('tours_subtitle')}
             </p>
 
             {/* Search Bar */}
@@ -136,7 +150,7 @@ const ToursPage = () => {
               <div className="flex-1 flex items-center gap-2 px-3">
                 <Search className="w-5 h-5 text-gray-400" />
                 <Input
-                  placeholder="Search destination..."
+                  placeholder={t('tours_search_placeholder')}
                   value={filters.destination}
                   onChange={(e) => setFilters(prev => ({ ...prev, destination: e.target.value }))}
                   onKeyPress={(e) => e.key === 'Enter' && handleApplyFilters()}
@@ -147,7 +161,7 @@ const ToursPage = () => {
                 onClick={handleApplyFilters}
                 className="bg-primary hover:bg-primary/90"
               >
-                Search
+                {t('tours_search_button')}
               </Button>
             </div>
           </div>
@@ -198,7 +212,7 @@ const ToursPage = () => {
                   className="w-full"
                 >
                   <SlidersHorizontal className="w-4 h-4 mr-2" />
-                  Show Filters
+                  {t('tours_filters_button')}
                   {(() => {
                     const count = 
                       (filters.categories?.length || 0) +
@@ -214,8 +228,14 @@ const ToursPage = () => {
                 <div className="flex items-center justify-between flex-wrap gap-4">
                   <div className="flex items-center gap-3">
                     <span className="text-gray-600">
-                      Found <span className="font-semibold">{tours.length}</span> tours
+                      {t('tours_found')} <span className="font-semibold">{tours.length}</span> {t('tours_label')}
                     </span>
+                    {isFiltering && (
+                      <span className="text-xs text-gray-400 flex items-center gap-2">
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        Updating…
+                      </span>
+                    )}
                     {filters.destination && (
                       <span className="bg-primary text-white px-3 py-1 rounded-full text-sm font-medium">
                         📍 {filters.destination}
@@ -235,16 +255,21 @@ const ToursPage = () => {
                       <SelectValue placeholder="Sort By" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="rating">Highest Rated</SelectItem>
-                      <SelectItem value="price_low">Price: Low to High</SelectItem>
-                      <SelectItem value="price_high">Price: High to Low</SelectItem>
-                      <SelectItem value="popular">Most Popular</SelectItem>
+                      <SelectItem value="rating">{t('tours_sort_rating')}</SelectItem>
+                      <SelectItem value="price_low">{t('tours_sort_low')}</SelectItem>
+                      <SelectItem value="price_high">{t('tours_sort_high')}</SelectItem>
+                      <SelectItem value="popular">{t('tours_sort_popular')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
               {/* Results */}
+              {apiError && (
+                <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-lg p-4 mb-6">
+                  Tours are coming soon. We’re finishing the provider integration, so search results may be empty for now.
+                </div>
+              )}
               {loading ? (
                 <div className="flex items-center justify-center py-20">
                   <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -252,13 +277,13 @@ const ToursPage = () => {
               ) : tours.length === 0 ? (
                 <div className="text-center py-20">
                   <h3 className="text-2xl font-semibold text-gray-700 mb-2">
-                    No tours found
+                    {t('tours_no_results_title')}
                   </h3>
                   <p className="text-gray-500 mb-4">
-                    Try adjusting your filters or search for a different destination
+                    {t('tours_no_results_desc')}
                   </p>
                   <Button onClick={handleClearFilters} variant="outline">
-                    Clear All Filters
+                    {t('tours_clear_filters')}
                   </Button>
                 </div>
               ) : (

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet';
 import { Button } from '@/components/ui/button';
+import { useLocale } from '@/contexts/LocaleContext';
 import { 
   Sparkles, MapPin, ArrowRight, TrendingUp, Star, Calendar, Heart, 
   Users, Clock, Shield, ChevronRight, CheckCircle2, CreditCard,
@@ -11,6 +12,7 @@ import {
 
 const HomePage = ({ isLoggedIn }) => {
   const navigate = useNavigate();
+  const { formatMoney, t } = useLocale();
   const [naturalQuery, setNaturalQuery] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [trendingDestinations, setTrendingDestinations] = useState([]);
@@ -63,9 +65,19 @@ const HomePage = ({ isLoggedIn }) => {
 
 
   const handleAISubmit = (e) => {
-    e.preventDefault();
-    if (naturalQuery.trim()) {
-      navigate('/plan', { state: { naturalLanguageQuery: naturalQuery } });
+    if (e) {
+      e.preventDefault();
+    }
+    const trimmedQuery = naturalQuery.trim();
+    if (trimmedQuery) {
+      navigate('/plan', { 
+        state: { 
+          naturalLanguageQuery: trimmedQuery,
+          autoGenerate: true
+        } 
+      });
+    } else {
+      navigate('/plan');
     }
   };
 
@@ -206,16 +218,16 @@ const HomePage = ({ isLoggedIn }) => {
             >
               {/* Premium Typography - Mobile Optimized */}
               <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-light text-white tracking-tight leading-none">
-                Travel
+                {t('home_hero_title_1')}
                 <br />
-                <span className="font-semibold">reimagined</span>
+                <span className="font-semibold">{t('home_hero_title_2')}</span>
               </h1>
               
               {/* Subtle Description */}
               <p className="text-xl md:text-2xl text-gray-300 font-light max-w-2xl mx-auto leading-relaxed">
-                AI-powered itineraries tailored to you.
+                {t('home_hero_sub_1')}
                 <br className="hidden md:block" />
-                Plan smarter. Travel better.
+                {t('home_hero_sub_2')}
               </p>
 
               {/* Premium Search Interface */}
@@ -235,18 +247,17 @@ const HomePage = ({ isLoggedIn }) => {
                         />
                       </div>
                     </div>
+                    {/* Try AI Planning Button - Centered */}
+                    <div className="flex justify-center mt-6">
+                      <Button 
+                        type="submit"
+                        className="bg-[#0B3D91] hover:bg-[#092C6B] text-white text-base font-semibold px-6 py-3 rounded-full shadow-lg transition-all duration-300 flex items-center gap-2 group"
+                      >
+                        <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                        {t('home_cta_try_ai')}
+                      </Button>
+                    </div>
                   </form>
-
-                  {/* Try AI Planning Button - Centered */}
-                  <div className="flex justify-center">
-                    <Button 
-                      onClick={() => navigate('/plan')}
-                      className="bg-[#0B3D91] hover:bg-[#092C6B] text-white text-base font-semibold px-6 py-3 rounded-full shadow-lg transition-all duration-300 flex items-center gap-2 group"
-                    >
-                      <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-                      Try AI Planning
-                    </Button>
-                  </div>
                 </div>
                 
                 {/* Minimal Info */}
@@ -311,7 +322,9 @@ const HomePage = ({ isLoggedIn }) => {
                           <Star className="w-4 h-4 fill-gray-900 text-gray-900" />
                           <span className="font-medium text-gray-900">{tour.rating}</span>
                         </div>
-                        <p className="text-lg font-medium text-gray-900">${tour.price}</p>
+                        <p className="text-lg font-medium text-gray-900">
+                          {formatMoney(tour.price, 'GBP')}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -325,7 +338,7 @@ const HomePage = ({ isLoggedIn }) => {
                 variant="outline"
                 className="px-8 py-3 border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white rounded-full font-medium transition-all duration-300"
               >
-                Explore all tours
+                {t('home_cta_explore_tours')}
               </Button>
             </div>
           </div>
@@ -452,7 +465,7 @@ const HomePage = ({ isLoggedIn }) => {
                 onClick={() => navigate('/plan')}
                 className="mt-8 bg-[#0B3D91] text-white hover:bg-[#092C6B] font-medium px-12 py-6 text-lg rounded-full transition-all duration-300"
               >
-                Get started
+                {t('home_cta_get_started')}
               </Button>
             </motion.div>
           </div>

@@ -4,6 +4,24 @@
 -- =====================================================
 -- 1. TOUR PROVIDERS TABLE
 -- =====================================================
+-- Ensure updated_at trigger function exists (required by triggers below)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_proc
+    WHERE proname = 'update_updated_at_column'
+  ) THEN
+    CREATE OR REPLACE FUNCTION update_updated_at_column()
+    RETURNS TRIGGER AS $func$
+    BEGIN
+      NEW.updated_at = NOW();
+      RETURN NEW;
+    END;
+    $func$ LANGUAGE plpgsql;
+  END IF;
+END $$;
+
 CREATE TABLE IF NOT EXISTS tour_providers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
@@ -209,9 +227,18 @@ CREATE POLICY "Admins can manage providers"
   ON tour_providers FOR ALL
   USING (
     EXISTS (
-      SELECT 1 FROM auth.users
-      WHERE auth.uid() = id
-      AND raw_user_meta_data->>'role' = 'admin'
+      SELECT 1
+      FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.role = 'admin'
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1
+      FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.role = 'admin'
     )
   );
 
@@ -235,9 +262,28 @@ CREATE POLICY "Admins can view commissions"
   ON commissions FOR SELECT
   USING (
     EXISTS (
-      SELECT 1 FROM auth.users
-      WHERE auth.uid() = id
-      AND raw_user_meta_data->>'role' = 'admin'
+      SELECT 1
+      FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.role = 'admin'
+    )
+  );
+CREATE POLICY "Admins can manage commissions"
+  ON commissions FOR ALL
+  USING (
+    EXISTS (
+      SELECT 1
+      FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.role = 'admin'
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1
+      FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.role = 'admin'
     )
   );
 
@@ -267,10 +313,19 @@ RETURNS TRIGGER AS $$
 DECLARE
   provider_commission_rate DECIMAL(5,2);
   provider_id_var UUID;
+  commission_exists BOOLEAN;
 BEGIN
   -- Only create commission when booking is confirmed and payment is successful
   IF NEW.booking_status = 'confirmed' AND NEW.payment_status = 'paid' 
      AND OLD.booking_status != 'confirmed' THEN
+    -- Avoid duplicates
+    SELECT EXISTS(
+      SELECT 1 FROM commissions WHERE booking_id = NEW.id
+    ) INTO commission_exists;
+
+    IF commission_exists THEN
+      RETURN NEW;
+    END IF;
     
     -- Get provider info from tour
     SELECT t.provider_id, tp.commission_rate
@@ -325,6 +380,22 @@ BEGIN
   RETURN ref;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Auto-generate booking reference if missing
+CREATE OR REPLACE FUNCTION set_booking_reference()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.booking_reference IS NULL OR NEW.booking_reference = '' THEN
+    NEW.booking_reference := generate_booking_reference();
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER bookings_reference_trigger
+  BEFORE INSERT ON bookings
+  FOR EACH ROW
+  EXECUTE FUNCTION set_booking_reference();
 
 -- =====================================================
 -- SEED DATA (Premium Tours as first provider)

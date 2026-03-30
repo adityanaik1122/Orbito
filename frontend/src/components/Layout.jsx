@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import AIChatWidget from '@/components/AIChatWidget';
+import CookieConsent from '@/components/CookieConsent';
 import { Home, MapPin, Sparkles, User } from 'lucide-react';
 
 const Layout = ({ children, isLoggedIn }) => {
@@ -17,6 +18,7 @@ const Layout = ({ children, isLoggedIn }) => {
         {children}
       </main>
       <Footer />
+      <CookieConsent />
       
       {/* AI Chat Widget */}
       <AIChatWidget />

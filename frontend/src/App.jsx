@@ -29,18 +29,22 @@ import HelpCenterPage from '@/pages/HelpCenterPage';
 import ContactUsPage from '@/pages/ContactUsPage';
 import PrivacyPolicyPage from '@/pages/PrivacyPolicyPage';
 import TermsOfServicePage from '@/pages/TermsOfServicePage';
+import RefundPolicyPage from '@/pages/RefundPolicyPage';
+import SupplierTermsPage from '@/pages/SupplierTermsPage';
 import WhyAIPage from '@/pages/WhyAIPage';
 import RequireRole from '@/components/RequireRole';
 import RequireAuth from '@/components/RequireAuth';
 import { AuthProvider } from '@/contexts/SupabaseAuthContext';
+import { LocaleProvider } from '@/contexts/LocaleContext';
 
 function App() {
   return (
     <ErrorBoundary>
       <Router>
-        <AuthProvider>
-          <Toaster />
-          <Routes>
+        <LocaleProvider>
+          <AuthProvider>
+            <Toaster />
+            <Routes>
           <Route path="/" element={<Layout><HomePage /></Layout>} />
           <Route path="/login" element={<AuthPage />} />
           
@@ -84,6 +88,8 @@ function App() {
           <Route path="/contact" element={<Layout><ContactUsPage /></Layout>} />
           <Route path="/privacy" element={<Layout><PrivacyPolicyPage /></Layout>} />
           <Route path="/terms" element={<Layout><TermsOfServicePage /></Layout>} />
+          <Route path="/refunds" element={<Layout><RefundPolicyPage /></Layout>} />
+          <Route path="/supplier-terms" element={<Layout><SupplierTermsPage /></Layout>} />
 
           {/* Operator & Admin dashboards */}
           <Route
@@ -110,8 +116,9 @@ function App() {
               </RequireRole>
             }
           />
-        </Routes>
-      </AuthProvider>
+            </Routes>
+          </AuthProvider>
+        </LocaleProvider>
     </Router>
     </ErrorBoundary>
   );

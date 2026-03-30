@@ -45,7 +45,7 @@ async function generateItineraryWithTours(req, res) {
  */
 async function generateItinerary(req, res) {
   try {
-    const { destination, startDate, endDate, preferences } = req.body;
+    const { destination, startDate, endDate, preferences, variants } = req.body;
     if (!destination || !startDate || !endDate) {
       return res.status(400).json({ error: 'Missing fields' });
     }
@@ -104,7 +104,63 @@ Return this JSON structure:
       const message =
         (lastError && (lastError.message || lastError.toString())) ||
         'Failed to generate itinerary';
-      return res.status(500).json({ error: message });
+      
+      // Fallback itinerary (keeps planner usable even if AI provider is down)
+      const makeFallback = (variantIndex) => {
+        const fallbackDays = [];
+        for (let i = 0; i < daysCount; i++) {
+          const date = new Date(startDate);
+          date.setDate(date.getDate() + i);
+          const isoDate = date.toISOString().slice(0, 10);
+          fallbackDays.push({
+            dayNumber: i + 1,
+            date: isoDate,
+            items: [
+              {
+                name: `Explore ${destination} highlights`,
+                type: 'attraction',
+                location: destination,
+                time: '09:30',
+                estTime: '2h',
+                cost: 'Free',
+                notes: 'Start with a walking route to get oriented.'
+              },
+              {
+                name: `Local cuisine tasting`,
+                type: 'food',
+                location: destination,
+                time: variantIndex % 2 === 0 ? '12:30' : '13:00',
+                estTime: '1.5h',
+                cost: '£25',
+                notes: 'Pick a highly rated local spot.'
+              },
+              {
+                name: `Neighborhood stroll & photo stops`,
+                type: 'relax',
+                location: destination,
+                time: variantIndex % 2 === 0 ? '16:00' : '17:00',
+                estTime: '2h',
+                cost: 'Free',
+                notes: 'Look for a scenic viewpoint or park.'
+              }
+            ]
+          });
+        }
+        return { destination, days: fallbackDays };
+      };
+
+      const variantCount = Math.min(Math.max(parseInt(variants || 1, 10), 1), 5);
+      const fallbackVariants = Array.from({ length: variantCount }, (_, i) => makeFallback(i));
+
+      return res.status(200).json({
+        success: true,
+        itinerary: fallbackVariants[0],
+        itineraries: fallbackVariants,
+        meta: {
+          fallback: true,
+          message
+        }
+      });
     }
 
     // Clean the response - remove markdown, extra text, and extract JSON
@@ -119,6 +175,8 @@ Return this JSON structure:
       cleaned = jsonMatch[0];
     }
     
+    const variantCount = Math.min(Math.max(parseInt(variants || 1, 10), 1), 5);
+
     // Parse and validate
     let itinerary;
     try {
@@ -133,7 +191,52 @@ Return this JSON structure:
       itinerary.destination = destination;
     }
 
-    res.json({ success: true, itinerary });
+    const itineraries = [itinerary];
+
+    if (variantCount > 1) {
+      const variantPrompt = `Create a DIFFERENT ${daysCount}-day itinerary for ${destination} starting from ${startDate}.
+Preferences: ${preferences || 'none'}.
+
+Return ONLY valid JSON matching:
+{
+  "destination": "${destination}",
+  "days": [
+    {
+      "dayNumber": 1,
+      "date": "YYYY-MM-DD",
+      "items": [
+        {
+          "name": "Activity Name",
+          "type": "attraction",
+          "location": "Specific Address",
+          "time": "09:00",
+          "estTime": "2h",
+          "cost": "£25",
+          "notes": "Brief tip or description"
+        }
+      ]
+    }
+  ]
+}`;
+
+      for (let i = 1; i < variantCount; i++) {
+        try {
+          const variantText = await generateContent(variantPrompt, modelNames[0]);
+          let variantCleaned = variantText.trim().replace(/```json\s*/g, '').replace(/```\s*/g, '');
+          const variantJsonMatch = variantCleaned.match(/\{[\s\S]*\}/);
+          if (variantJsonMatch) variantCleaned = variantJsonMatch[0];
+          const variantItinerary = JSON.parse(variantCleaned);
+          if (!variantItinerary.destination || variantItinerary.destination === '${destination}') {
+            variantItinerary.destination = destination;
+          }
+          itineraries.push(variantItinerary);
+        } catch (variantError) {
+          console.warn('Variant generation failed, skipping:', variantError.message || variantError);
+        }
+      }
+    }
+
+    res.json({ success: true, itinerary: itineraries[0], itineraries });
   } catch (error) {
     console.error('Error in generateItinerary:', error);
     res.status(500).json({ error: error.message || 'Failed to generate itinerary' });

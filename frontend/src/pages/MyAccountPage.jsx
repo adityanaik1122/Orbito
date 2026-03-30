@@ -6,22 +6,30 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { COUNTRIES } from '@/lib/countries';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { User, Mail, MapPin, Calendar, Heart, Trash2, Edit, Star, Loader2, Save } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { useLocale } from '@/contexts/LocaleContext';
+import { LOCALE_OPTIONS, CURRENCY_OPTIONS, formatDate } from '@/lib/locale';
 import { supabase } from '@/lib/customSupabaseClient';
 
 const MyAccountPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
+  const { locale, currency, country, setLocalePreset, setCurrency, setCountry, t } = useLocale();
   
   const [profile, setProfile] = useState({
     name: '',
     email: '',
     location: '',
-    joinDate: ''
+    joinDate: '',
+    locale: '',
+    currency: '',
+    country: ''
   });
   const [itineraries, setItineraries] = useState([]);
   const [favorites, setFavorites] = useState([]);
@@ -60,7 +68,10 @@ const MyAccountPage = () => {
                 name: profileData.name || '',
                 email: profileData.email || user.email,
                 location: profileData.location || '',
-                joinDate: profileData.join_date || new Date().toISOString()
+                joinDate: profileData.join_date || new Date().toISOString(),
+                locale: profileData.locale || locale,
+                currency: profileData.currency || currency,
+                country: profileData.country || country
             });
         } else {
             // Fallback if profile doesn't exist yet
@@ -68,7 +79,10 @@ const MyAccountPage = () => {
                 name: user.user_metadata?.full_name || '',
                 email: user.email,
                 location: '',
-                joinDate: user.created_at || new Date().toISOString()
+                joinDate: user.created_at || new Date().toISOString(),
+                locale,
+                currency,
+                country
             });
         }
 
@@ -122,6 +136,9 @@ const MyAccountPage = () => {
                 name: profile.name,
                 email: profile.email,
                 location: profile.location,
+                locale: profile.locale,
+                currency: profile.currency,
+                country: profile.country,
                 updated_at: new Date().toISOString()
             }, { onConflict: 'id' });
 
@@ -224,16 +241,16 @@ const MyAccountPage = () => {
                 </Avatar>
                 <div className="flex-1 text-center md:text-left">
                   <h1 className="text-3xl font-bold text-[#0B3D91] mb-1">{profile.name || user?.email}</h1>
-                  <p className="text-gray-600">Member since {new Date(profile.joinDate).toLocaleDateString()}</p>
+                  <p className="text-gray-600">Member since {formatDate(profile.joinDate, locale)}</p>
                 </div>
                 <div className="flex gap-4">
                   <div className="text-center px-6 py-3 bg-blue-50/50 rounded-xl">
                     <div className="text-2xl font-bold text-[#0B3D91]">{itineraries.length}</div>
-                    <div className="text-sm text-gray-600">Trips</div>
+                    <div className="text-sm text-gray-600">{t('account_trips_count')}</div>
                   </div>
                   <div className="text-center px-6 py-3 bg-blue-50/50 rounded-xl">
                     <div className="text-2xl font-bold text-[#0B3D91]">{favorites.length}</div>
-                    <div className="text-sm text-gray-600">Favorites</div>
+                    <div className="text-sm text-gray-600">{t('account_favs_count')}</div>
                   </div>
                 </div>
               </div>
@@ -244,17 +261,17 @@ const MyAccountPage = () => {
               <TabsList className="grid w-full grid-cols-3 bg-white rounded-xl p-1 shadow-sm mb-6 h-auto">
                 <TabsTrigger value="trips" className="py-3 data-[state=active]:bg-[#0B3D91] data-[state=active]:text-white">
                   <Calendar className="w-4 h-4 mr-2" />
-                  <span className="hidden sm:inline">My Trips</span>
-                  <span className="sm:hidden">Trips</span>
+                  <span className="hidden sm:inline">{t('account_my_trips')}</span>
+                  <span className="sm:hidden">{t('account_trips_short')}</span>
                 </TabsTrigger>
                 <TabsTrigger value="favorites" className="py-3 data-[state=active]:bg-[#0B3D91] data-[state=active]:text-white">
                   <Heart className="w-4 h-4 mr-2" />
-                  <span className="hidden sm:inline">Favorites</span>
-                  <span className="sm:hidden">Favs</span>
+                  <span className="hidden sm:inline">{t('account_favorites')}</span>
+                  <span className="sm:hidden">{t('account_favs_short')}</span>
                 </TabsTrigger>
                 <TabsTrigger value="profile" className="py-3 data-[state=active]:bg-[#0B3D91] data-[state=active]:text-white">
                   <User className="w-4 h-4 mr-2" />
-                  Profile
+                  {t('account_profile_tab')}
                 </TabsTrigger>
               </TabsList>
 
@@ -263,13 +280,13 @@ const MyAccountPage = () => {
                 {itineraries.length === 0 ? (
                   <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
                     <Calendar className="w-16 h-16 text-[#0B3D91]/20 mx-auto mb-4" />
-                    <h3 className="text-xl font-bold text-[#0B3D91] mb-2">No trips yet</h3>
-                    <p className="text-gray-600 mb-6">Start planning your first adventure!</p>
+                    <h3 className="text-xl font-bold text-[#0B3D91] mb-2">{t('account_no_trips_title')}</h3>
+                    <p className="text-gray-600 mb-6">{t('account_no_trips_desc')}</p>
                     <Button
                       onClick={() => navigate('/plan')}
                       className="bg-[#0B3D91] hover:bg-[#092C6B] text-white"
                     >
-                      Create Your First Trip
+                      {t('account_create_first_trip')}
                     </Button>
                   </div>
                 ) : (
@@ -297,11 +314,11 @@ const MyAccountPage = () => {
                           {item.startDate && item.endDate && (
                             <p className="text-sm text-gray-500 mb-4 flex items-center gap-2">
                               <Calendar className="w-4 h-4" />
-                              {new Date(item.startDate).toLocaleDateString()} - {new Date(item.endDate).toLocaleDateString()}
+                              {formatDate(item.startDate, locale)} - {formatDate(item.endDate, locale)}
                             </p>
                           )}
                           <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                            <span className="text-sm text-gray-600">{item.activities?.length || 0} activities</span>
+                            <span className="text-sm text-gray-600">{item.activities?.length || 0} {t('account_activities_label')}</span>
                             <div className="flex gap-2">
                               <Button
                                 variant="ghost"
@@ -339,13 +356,13 @@ const MyAccountPage = () => {
                 {favorites.length === 0 ? (
                   <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
                     <Heart className="w-16 h-16 text-[#0B3D91]/20 mx-auto mb-4" />
-                    <h3 className="text-xl font-bold text-[#0B3D91] mb-2">No favorites yet</h3>
-                    <p className="text-gray-600 mb-6">Start exploring and save your favorite places!</p>
+                    <h3 className="text-xl font-bold text-[#0B3D91] mb-2">{t('account_no_favs_title')}</h3>
+                    <p className="text-gray-600 mb-6">{t('account_no_favs_desc')}</p>
                     <Button
                       onClick={() => navigate('/plan')}
                       className="bg-[#0B3D91] hover:bg-[#092C6B] text-white"
                     >
-                      Explore Destinations
+                      {t('account_explore_destinations')}
                     </Button>
                   </div>
                 ) : (
@@ -386,7 +403,7 @@ const MyAccountPage = () => {
               {/* Profile Tab */}
               <TabsContent value="profile">
                 <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
-                  <h2 className="text-2xl font-bold text-[#0B3D91] mb-6">Profile Settings</h2>
+                  <h2 className="text-2xl font-bold text-[#0B3D91] mb-6">{t('account_profile_settings')}</h2>
                   <div className="space-y-6 max-w-2xl">
                     <div>
                       <Label htmlFor="name" className="flex items-center gap-2 mb-2 text-gray-700">
@@ -425,6 +442,83 @@ const MyAccountPage = () => {
                         className="h-12"
                       />
                     </div>
+                    <div>
+                      <Label htmlFor="country" className="flex items-center gap-2 mb-2 text-gray-700">
+                        <MapPin className="w-4 h-4" /> Country
+                      </Label>
+                      <Select
+                        value={profile.country}
+                        onValueChange={(value) => {
+                          setProfile({ ...profile, country: value });
+                          setCountry(value);
+                        }}
+                      >
+                        <SelectTrigger className="h-12">
+                          <SelectValue placeholder="Select country" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {COUNTRIES.map((countryItem) => (
+                            <SelectItem key={countryItem.code} value={countryItem.code}>
+                              {countryItem.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label className="flex items-center gap-2 mb-2 text-gray-700">
+                          Locale
+                        </Label>
+                        <Select
+                          value={profile.locale || locale}
+                          onValueChange={(value) => {
+                            const preset = LOCALE_OPTIONS.find((opt) => opt.locale === value);
+                            if (preset) {
+                              setProfile({ ...profile, locale: preset.locale, currency: preset.currency });
+                              setLocalePreset(preset.id);
+                              setCurrency(preset.currency);
+                            } else {
+                              setProfile({ ...profile, locale: value });
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="h-12">
+                            <SelectValue placeholder="Locale" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {LOCALE_OPTIONS.map((opt) => (
+                              <SelectItem key={opt.id} value={opt.locale}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="flex items-center gap-2 mb-2 text-gray-700">
+                          Currency
+                        </Label>
+                        <Select
+                          value={profile.currency || currency}
+                          onValueChange={(value) => {
+                            setProfile({ ...profile, currency: value });
+                            setCurrency(value);
+                          }}
+                        >
+                          <SelectTrigger className="h-12">
+                            <SelectValue placeholder="Currency" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {CURRENCY_OPTIONS.map((opt) => (
+                              <SelectItem key={opt} value={opt}>
+                                {opt}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
                     <Button
                       onClick={handleSaveProfile}
                       disabled={isSaving}
@@ -432,6 +526,14 @@ const MyAccountPage = () => {
                     >
                       {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : <><Save className="mr-2 h-4 w-4" /> Save Changes</>}
                     </Button>
+                    <div className="pt-2">
+                      <a
+                        href="mailto:TeamOrbito@protonmail.com?subject=Data%20Deletion%20Request"
+                        className="text-xs text-gray-500 hover:text-[#0B3D91] underline"
+                      >
+                        Request account data deletion
+                      </a>
+                    </div>
                   </div>
                 </div>
               </TabsContent>

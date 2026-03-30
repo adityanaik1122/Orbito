@@ -9,17 +9,19 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Calendar as CalendarIcon, Clock, MapPin, Star, Check, Loader2, ArrowLeft } from 'lucide-react';
-import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { apiService } from '@/services/api';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useToast } from '@/components/ui/use-toast';
+import { useLocale } from '@/contexts/LocaleContext';
+import { formatDate } from '@/lib/locale';
 
 const TourDetailPage = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { locale, formatMoney, t } = useLocale();
 
   const [tour, setTour] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -259,17 +261,17 @@ const TourDetailPage = () => {
             <div className="lg:col-span-1">
               <div className="bg-white rounded-lg shadow p-6 sticky top-4">
                 <div className="mb-4">
-                  <div className="text-sm text-gray-500">From</div>
+                  <div className="text-sm text-gray-500">{t('tourdetail_from')}</div>
                   <div className="text-3xl font-bold text-primary">
-                    £{tour.price_adult?.toFixed(2)}
+                    {formatMoney(tour.price_adult, tour.currency || 'GBP')}
                   </div>
-                  <div className="text-sm text-gray-500">per adult</div>
+                  <div className="text-sm text-gray-500">{t('tourdetail_per_adult')}</div>
                 </div>
 
                 <div className="space-y-4">
                   {/* Date */}
                   <div>
-                    <Label>Select Date</Label>
+                    <Label>{t('tourdetail_select_date')}</Label>
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
@@ -277,7 +279,7 @@ const TourDetailPage = () => {
                           className={cn("w-full justify-start text-left font-normal", !bookingData.date && "text-muted-foreground")}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {bookingData.date ? format(bookingData.date, 'PPP') : 'Pick a date'}
+                          {bookingData.date ? formatDate(bookingData.date, locale) : t('tourdetail_pick_date')}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
@@ -294,7 +296,7 @@ const TourDetailPage = () => {
                   {/* Participants */}
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <Label>Adults</Label>
+                      <Label>{t('tourdetail_adults')}</Label>
                       <Input
                         type="number"
                         min="1"
@@ -303,7 +305,7 @@ const TourDetailPage = () => {
                       />
                     </div>
                     <div>
-                      <Label>Children</Label>
+                      <Label>{t('tourdetail_children')}</Label>
                       <Input
                         type="number"
                         min="0"
@@ -315,7 +317,7 @@ const TourDetailPage = () => {
 
                   {/* Contact Info */}
                   <div>
-                    <Label>Full Name</Label>
+                    <Label>{t('tourdetail_full_name')}</Label>
                     <Input
                       value={bookingData.customerName}
                       onChange={(e) => setBookingData({...bookingData, customerName: e.target.value})}
@@ -324,7 +326,7 @@ const TourDetailPage = () => {
                   </div>
 
                   <div>
-                    <Label>Email</Label>
+                    <Label>{t('tourdetail_email')}</Label>
                     <Input
                       type="email"
                       value={bookingData.customerEmail}
@@ -334,7 +336,7 @@ const TourDetailPage = () => {
                   </div>
 
                   <div>
-                    <Label>Phone (Optional)</Label>
+                    <Label>{t('tourdetail_phone_optional')}</Label>
                     <Input
                       value={bookingData.customerPhone}
                       onChange={(e) => setBookingData({...bookingData, customerPhone: e.target.value})}
@@ -343,7 +345,7 @@ const TourDetailPage = () => {
                   </div>
 
                   <div>
-                    <Label>Special Requirements (Optional)</Label>
+                    <Label>{t('tourdetail_special_optional')}</Label>
                     <Textarea
                       value={bookingData.specialRequirements}
                       onChange={(e) => setBookingData({...bookingData, specialRequirements: e.target.value})}
@@ -355,9 +357,9 @@ const TourDetailPage = () => {
                   {/* Total */}
                   <div className="border-t pt-4">
                     <div className="flex justify-between items-center mb-4">
-                      <span className="font-semibold">Total</span>
+                      <span className="font-semibold">{t('tourdetail_total')}</span>
                       <span className="text-2xl font-bold text-primary">
-                        £{calculateTotal().toFixed(2)}
+                        {formatMoney(calculateTotal(), tour.currency || 'GBP')}
                       </span>
                     </div>
 
@@ -372,7 +374,7 @@ const TourDetailPage = () => {
                           Booking...
                         </>
                       ) : (
-                        'Book Now'
+                        t('tourdetail_book_now')
                       )}
                     </Button>
                   </div>

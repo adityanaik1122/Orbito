@@ -3,6 +3,8 @@ const itineraryRoutes = require('./itineraryRoutes');
 const aiRoutes = require('./aiRoutes');
 const tourRoutes = require('./tourRoutes');
 const geocodingRoutes = require('./geocodingRoutes');
+const geoRoutes = require('./geoRoutes');
+const fxRoutes = require('./fxRoutes');
 const analyticsRoutes = require('./analyticsRoutes');
 const affiliateRoutes = require('./affiliateRoutes');
 const operatorRoutes = require('./operatorRoutes');
@@ -14,6 +16,8 @@ function registerRoutes(app) {
   app.use('/api', aiRoutes);
   app.use('/api', tourRoutes);
   app.use('/api', geocodingRoutes);
+  app.use('/api', geoRoutes);
+  app.use('/api', fxRoutes);
   app.use('/api/analytics', analyticsRoutes);
   app.use('/api/affiliate', affiliateRoutes);
   app.use('/api/operator', operatorRoutes);
