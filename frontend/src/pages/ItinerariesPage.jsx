@@ -141,7 +141,7 @@ const ItinerariesPage = () => {
                                     <img 
                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                                         alt={itinerary.title} 
-                                        src={itinerary.image}
+                                        src={itinerary.heroImage || itinerary.image || FALLBACK_IMAGE}
                                         loading="lazy"
                                         decoding="async"
                                         referrerPolicy="no-referrer"
