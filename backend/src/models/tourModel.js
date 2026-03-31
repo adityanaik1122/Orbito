@@ -205,7 +205,6 @@ async function updateBookingStatus(bookingId, status, additionalData = {}) {
   return { data, error };
 }
 
-/**
 module.exports = {
   getTours,
   getTourById,
