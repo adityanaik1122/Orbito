@@ -66,8 +66,10 @@ async function recordConversion(req, res) {
   try {
     const {
       clickId,
+      bookingAmount
     } = req.body;
 
+    if (!clickId || !bookingAmount) {
       return res.status(400).json({ 
         error: 'Missing required fields' 
       });
