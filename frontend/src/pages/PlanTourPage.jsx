@@ -553,19 +553,21 @@ const PlanTourPage = () => {
   // };
 
   const handleAiSuggest = async () => {
-    // Don't parse from prompt if it's empty
-    if (!aiPrompt.trim()) {
+    const trimmedPrompt = aiPrompt.trim();
+    const hasPrompt = trimmedPrompt.length > 0;
+
+    if (!hasPrompt && (!tripDetails.startDate || !tripDetails.endDate)) {
       toast({
-        title: "Please enter a prompt",
-        description: "Tell the AI what you'd like help with.",
+        title: "Dates Required",
+        description: "Please select start and end dates for your trip.",
         variant: "destructive"
       });
       return;
     }
 
-    // Parse the AI prompt to extract destination and dates
-    const parsed = parseNaturalLanguageQuerySync(aiPrompt);
-    const variantsMatch = aiPrompt.match(/\b(\d+)\s*(?:different\s+)?itineraries?\b/i);
+    // Parse the AI prompt to extract destination and dates when provided
+    const parsed = hasPrompt ? parseNaturalLanguageQuerySync(trimmedPrompt) : {};
+    const variantsMatch = hasPrompt ? trimmedPrompt.match(/\b(\d+)\s*(?:different\s+)?itineraries?\b/i) : null;
     const variants = variantsMatch ? Math.min(parseInt(variantsMatch[1], 10), 5) : 1;
     
     // Use parsed values if available, otherwise keep existing form values
@@ -573,7 +575,7 @@ const PlanTourPage = () => {
     let startDate = parsed.startDate || tripDetails.startDate;
     let endDate = parsed.endDate || tripDetails.endDate;
 
-    if (!startDate || !endDate) {
+    if (hasPrompt && (!startDate || !endDate)) {
       const fallbackDates = getDefaultDateRange();
       startDate = startDate || fallbackDates.startDate;
       endDate = endDate || fallbackDates.endDate;
@@ -594,13 +596,13 @@ const PlanTourPage = () => {
     if (!destination) {
       toast({
         title: "Missing Destination",
-        description: "Please include a destination in your prompt (e.g., 'Plan a trip to Paris for 5 days').",
+        description: "Please add a destination (select a city or mention it in the prompt).",
         variant: "destructive"
       });
       return;
     }
 
-    if (!parsed.startDate && !parsed.endDate && !tripDetails.startDate && !tripDetails.endDate) {
+    if (hasPrompt && !parsed.startDate && !parsed.endDate && !tripDetails.startDate && !tripDetails.endDate) {
       toast({
         title: "Using default dates",
         description: "I picked a 3-day trip starting next week. You can adjust dates anytime.",
@@ -619,7 +621,7 @@ const PlanTourPage = () => {
         destination: destination,
         startDate: startDate,
         endDate: endDate,
-        preferences: aiPrompt,
+        preferences: trimmedPrompt,
         variants
       });
 
@@ -1082,7 +1084,8 @@ const PlanTourPage = () => {
                     </div>
                     <div className="flex-1">
                         <h2 className="font-bold text-lg mb-1">{t('planner_title')}</h2>
-                        <p className="text-blue-100 text-sm mb-4">{t('planner_hint')}</p>
+                        <p className="text-blue-100 text-sm mb-2">{t('planner_hint')}</p>
+                        <p className="text-blue-100/90 text-xs font-medium mb-3">{t('planner_prompt_label')}</p>
                         <div className="flex gap-3">
                             <Input 
                                 value={aiPrompt}
