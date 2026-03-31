@@ -299,7 +299,7 @@ export default function CommissionDashboardPage() {
                               <span className="text-sm font-medium capitalize">{conversion.provider}</span>
                             </td>
                             <td className="py-3 px-4 text-sm text-gray-600">
-                              {conversion.booking_reference || 'N/A'}
+                              {conversion.booking_id || conversion.booking_reference || 'N/A'}
                             </td>
                             <td className="py-3 px-4 text-right text-sm font-medium">
                               £{parseFloat(conversion.booking_amount).toFixed(2)}

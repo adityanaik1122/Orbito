@@ -10,24 +10,21 @@ const AffiliateTrackingService = require('../services/affiliateTrackingService')
  */
 async function trackClick(req, res) {
   try {
-    const { trackingCode } = req.params;
     const { userId } = req.user || {};
-    const sessionId = req.session?.id || req.cookies?.sessionId;
-    const ipAddress = req.ip || req.connection.remoteAddress;
-    const userAgent = req.headers['user-agent'];
-    const referrer = req.headers['referer'] || req.headers['referrer'];
+    const { provider, tourId, url } = req.query;
 
-    const result = await AffiliateTrackingService.trackClick({
-      trackingCode,
-      userId,
-      sessionId,
-      ipAddress,
-      userAgent,
-      referrer
+    await AffiliateTrackingService.trackClick({
+      provider,
+      tourId,
+      affiliateUrl: url,
+      userId
     });
 
-    // Redirect to affiliate URL
-    res.redirect(result.redirectUrl);
+    if (url) {
+      return res.redirect(url);
+    }
+
+    return res.status(204).end();
   } catch (error) {
     console.error('Track click error:', error);
     res.status(500).json({ error: 'Failed to track click' });
@@ -68,35 +65,17 @@ async function generateLink(req, res) {
 async function recordConversion(req, res) {
   try {
     const {
-      trackingCode,
       clickId,
-      provider,
-      tourId,
-      userId,
-      bookingReference,
-      bookingDate,
-      travelDate,
-      bookingAmount,
-      currency
     } = req.body;
 
-    if (!trackingCode || !provider || !tourId || !bookingAmount) {
       return res.status(400).json({ 
         error: 'Missing required fields' 
       });
     }
 
     const result = await AffiliateTrackingService.recordConversion({
-      trackingCode,
       clickId,
-      provider,
-      tourId,
-      userId,
-      bookingReference,
-      bookingDate,
-      travelDate,
-      bookingAmount,
-      currency
+      bookingAmount
     });
 
     res.json(result);

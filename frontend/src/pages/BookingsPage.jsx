@@ -8,12 +8,14 @@ import { Loader2, Calendar, MapPin, Users, Clock } from 'lucide-react';
 import { apiService } from '@/services/api';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useToast } from '@/components/ui/use-toast';
-import { format } from 'date-fns';
+import { formatDate } from '@/lib/locale';
+import { useLocale } from '@/contexts/LocaleContext';
 
 const BookingsPage = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
+  const { locale } = useLocale();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -98,6 +100,10 @@ const BookingsPage = () => {
                         src={booking.tours?.main_image || 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400'}
                         alt={booking.tours?.title}
                         className="w-full h-full object-cover"
+                        loading="lazy"
+                        decoding="async"
+                        referrerPolicy="no-referrer"
+                        onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400'; }}
                       />
                     </div>
                     <div className="flex-1">
@@ -106,11 +112,11 @@ const BookingsPage = () => {
                           <div>
                             <h3 className="text-xl font-bold">{booking.tours?.title}</h3>
                             <div className="flex items-center gap-2 mt-2">
-                              <Badge className={getStatusColor(booking.booking_status)}>
-                                {booking.booking_status.toUpperCase()}
+                              <Badge className={getStatusColor(booking.status)}>
+                                {(booking.status || 'pending').toUpperCase()}
                               </Badge>
                               <span className="text-sm text-gray-500">
-                                Ref: {booking.booking_reference}
+                                ID: {booking.id}
                               </span>
                             </div>
                           </div>
@@ -121,15 +127,19 @@ const BookingsPage = () => {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div className="flex items-center gap-2 text-gray-600">
                             <Calendar className="w-4 h-4" />
-                            <span>{format(new Date(booking.tour_date), 'PPP')}</span>
+                            <span>
+                              {booking.customer_contact?.preferred_date
+                                ? formatDate(booking.customer_contact.preferred_date, locale)
+                                : 'Date TBD'}
+                            </span>
                           </div>
                           <div className="flex items-center gap-2 text-gray-600">
                             <Users className="w-4 h-4" />
-                            <span>{booking.num_adults} Adults{booking.num_children > 0 ? `, ${booking.num_children} Children` : ''}</span>
+                            <span>{booking.num_people || 1} People</span>
                           </div>
                           <div className="flex items-center gap-2 text-gray-600">
                             <MapPin className="w-4 h-4" />
-                            <span>{booking.tours?.destination}</span>
+                            <span>{booking.tours?.city || booking.tours?.destination_city || '—'}</span>
                           </div>
                         </div>
 
@@ -137,12 +147,12 @@ const BookingsPage = () => {
                           <div>
                             <div className="text-sm text-gray-500">Total Amount</div>
                             <div className="text-2xl font-bold text-primary">
-                              £{booking.total_amount?.toFixed(2)}
+                              {booking.currency || 'USD'} {booking.total_amount?.toFixed(2) || '0.00'}
                             </div>
                           </div>
                           <Button 
                             variant="outline" 
-                            onClick={() => navigate(`/tours/${booking.tours?.slug}`)}
+                            onClick={() => navigate(`/tours/${booking.tours?.id}`)}
                           >
                             View Tour
                           </Button>

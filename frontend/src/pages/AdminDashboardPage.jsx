@@ -335,11 +335,11 @@ const AdminDashboardPage = () => {
                           <div className="text-right">
                             <p className="font-bold text-green-600">£{parseFloat(booking.total_amount).toFixed(2)}</p>
                             <span className={`text-xs px-2 py-1 rounded-full ${
-                              booking.booking_status === 'confirmed' ? 'bg-green-100 text-green-700' :
-                              booking.booking_status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                              booking.status === 'confirmed' ? 'bg-green-100 text-green-700' :
+                              booking.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
                               'bg-red-100 text-red-700'
                             }`}>
-                              {booking.booking_status}
+                              {booking.status || 'pending'}
                             </span>
                           </div>
                         </div>

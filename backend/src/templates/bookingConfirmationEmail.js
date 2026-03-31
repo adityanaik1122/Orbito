@@ -3,9 +3,13 @@
  */
 
 function generateBookingConfirmationHTML(bookingData, tourData, userData) {
-  const { booking_reference, tour_date, num_adults, num_children, total_amount } = bookingData;
-  const { title, destination, duration, meeting_point } = tourData;
-  const { name, email } = userData;
+  const bookingRef = bookingData?.booking_reference || bookingData?.id || 'PENDING';
+  const preferredDate = bookingData?.customer_contact?.preferred_date || bookingData?.tour_date;
+  const participants = bookingData?.num_people || bookingData?.units || 1;
+  const totalAmount = bookingData?.total_amount || bookingData?.total_price_amount;
+  const currency = bookingData?.currency || 'USD';
+  const { title, city, country_code, duration_minutes, meeting_point } = tourData;
+  const { name } = userData;
 
   return `
 <!DOCTYPE html>
@@ -107,7 +111,7 @@ function generateBookingConfirmationHTML(bookingData, tourData, userData) {
     
     <div class="booking-ref">
       <p style="margin: 0 0 5px 0; color: #6b7280;">Booking Reference</p>
-      <strong>${booking_reference}</strong>
+      <strong>${bookingRef}</strong>
     </div>
     
     <h2 style="color: #0B3D91; margin-top: 30px;">Tour Details</h2>
@@ -118,23 +122,23 @@ function generateBookingConfirmationHTML(bookingData, tourData, userData) {
       </div>
       <div class="detail-row">
         <span class="detail-label">Destination</span>
-        <span class="detail-value">${destination}</span>
+        <span class="detail-value">${[city, country_code].filter(Boolean).join(', ') || '—'}</span>
       </div>
       <div class="detail-row">
         <span class="detail-label">Date</span>
-        <span class="detail-value">${new Date(tour_date).toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+        <span class="detail-value">${preferredDate ? new Date(preferredDate).toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'To be confirmed'}</span>
       </div>
       <div class="detail-row">
         <span class="detail-label">Duration</span>
-        <span class="detail-value">${duration}</span>
+        <span class="detail-value">${duration_minutes ? `${duration_minutes} minutes` : '—'}</span>
       </div>
       <div class="detail-row">
         <span class="detail-label">Participants</span>
-        <span class="detail-value">${num_adults} Adult${num_adults > 1 ? 's' : ''}${num_children > 0 ? `, ${num_children} Child${num_children > 1 ? 'ren' : ''}` : ''}</span>
+        <span class="detail-value">${participants} ${participants > 1 ? 'People' : 'Person'}</span>
       </div>
       <div class="detail-row">
         <span class="detail-label">Total Amount</span>
-        <span class="detail-value"><strong>£${parseFloat(total_amount).toFixed(2)}</strong></span>
+        <span class="detail-value"><strong>${currency} ${totalAmount ? parseFloat(totalAmount).toFixed(2) : '0.00'}</strong></span>
       </div>
     </div>
     
@@ -147,7 +151,7 @@ function generateBookingConfirmationHTML(bookingData, tourData, userData) {
     <ul style="line-height: 1.8;">
       <li>You'll receive a reminder email 24 hours before your tour</li>
       <li>Please arrive 15 minutes before the start time</li>
-      <li>Bring your booking reference (${booking_reference})</li>
+      <li>Bring your booking reference (${bookingRef})</li>
       <li>Check the weather and dress appropriately</li>
     </ul>
     
@@ -174,8 +178,12 @@ function generateBookingConfirmationHTML(bookingData, tourData, userData) {
 }
 
 function generateBookingConfirmationText(bookingData, tourData, userData) {
-  const { booking_reference, tour_date, num_adults, num_children, total_amount } = bookingData;
-  const { title, destination, duration, meeting_point } = tourData;
+  const bookingRef = bookingData?.booking_reference || bookingData?.id || 'PENDING';
+  const preferredDate = bookingData?.customer_contact?.preferred_date || bookingData?.tour_date;
+  const participants = bookingData?.num_people || bookingData?.units || 1;
+  const totalAmount = bookingData?.total_amount || bookingData?.total_price_amount;
+  const currency = bookingData?.currency || 'USD';
+  const { title, city, country_code, duration_minutes, meeting_point } = tourData;
   const { name } = userData;
 
   return `
@@ -183,15 +191,15 @@ Hi ${name},
 
 Great news! Your booking has been confirmed. We're excited to have you join us!
 
-BOOKING REFERENCE: ${booking_reference}
+BOOKING REFERENCE: ${bookingRef}
 
 TOUR DETAILS:
 - Tour: ${title}
-- Destination: ${destination}
-- Date: ${new Date(tour_date).toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-- Duration: ${duration}
-- Participants: ${num_adults} Adult${num_adults > 1 ? 's' : ''}${num_children > 0 ? `, ${num_children} Child${num_children > 1 ? 'ren' : ''}` : ''}
-- Total Amount: £${parseFloat(total_amount).toFixed(2)}
+- Destination: ${[city, country_code].filter(Boolean).join(', ') || '—'}
+- Date: ${preferredDate ? new Date(preferredDate).toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'To be confirmed'}
+- Duration: ${duration_minutes ? `${duration_minutes} minutes` : '—'}
+- Participants: ${participants} ${participants > 1 ? 'People' : 'Person'}
+- Total Amount: ${currency} ${totalAmount ? parseFloat(totalAmount).toFixed(2) : '0.00'}
 
 MEETING POINT:
 ${meeting_point || 'Details will be sent 24 hours before your tour'}
@@ -199,7 +207,7 @@ ${meeting_point || 'Details will be sent 24 hours before your tour'}
 WHAT'S NEXT?
 - You'll receive a reminder email 24 hours before your tour
 - Please arrive 15 minutes before the start time
-- Bring your booking reference (${booking_reference})
+- Bring your booking reference (${bookingRef})
 - Check the weather and dress appropriately
 
 View your booking: https://www.orbitotrip.com/bookings

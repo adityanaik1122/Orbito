@@ -191,40 +191,19 @@ class ViatorService {
     return {
       external_id: product.productCode,
       title: product.title,
-      slug: product.productCode.toLowerCase(),
       description: product.description,
-      highlights: product.highlights || [],
-      destination: product.destination?.name,
       city: product.destination?.city,
-      country: product.destination?.country,
-      meeting_point: product.logistics?.start?.[0]?.description,
-      coordinates: {
-        lat: product.location?.latitude,
-        lng: product.location?.longitude
-      },
-      duration: product.duration?.fixedDurationInMinutes 
-        ? `${Math.floor(product.duration.fixedDurationInMinutes / 60)} hours`
-        : product.duration?.variableDurationFromMinutes
-        ? `${Math.floor(product.duration.variableDurationFromMinutes / 60)}-${Math.floor(product.duration.variableDurationToMinutes / 60)} hours`
-        : 'Flexible',
-      duration_hours: product.duration?.fixedDurationInMinutes 
-        ? product.duration.fixedDurationInMinutes / 60
-        : null,
-      category: product.productCategories?.[0]?.name || 'General',
-      subcategory: product.productCategories?.[1]?.name,
-      price_adult: product.pricing?.summary?.fromPrice || 0,
-      currency: product.pricing?.currency || 'GBP',
-      price_includes: product.inclusions?.map(i => i.description) || [],
-      price_excludes: product.exclusions?.map(e => e.description) || [],
-      main_image: product.images?.[0]?.variants?.[0]?.url,
+      country_code: product.destination?.country,
+      duration_minutes: product.duration?.fixedDurationInMinutes
+        ? product.duration.fixedDurationInMinutes
+        : product.duration?.variableDurationFromMinutes || null,
+      price_amount: product.pricing?.summary?.fromPrice || 0,
+      price_currency: product.pricing?.currency || 'GBP',
+      is_active: true,
+      source: 'viator',
+      booking_url: this._buildAffiliateUrl(product.productUrl, product.productCode),
       images: product.images?.map(img => img.variants?.[0]?.url) || [],
-      is_available: true,
-      instant_confirmation: product.bookingConfirmationSettings?.confirmationType === 'INSTANT',
-      cancellation_policy: product.cancellationPolicy?.description,
-      rating: product.reviews?.combinedAverageRating || 0,
-      review_count: product.reviews?.totalReviews || 0,
-      provider: 'viator',
-      booking_url: this._buildAffiliateUrl(product.productUrl, product.productCode)
+      highlights: product.highlights || []
     };
   }
 
@@ -254,8 +233,10 @@ class ViatorService {
       external_id: productCode,
       title: 'Mock Viator Tour',
       description: 'This is a mock tour for testing',
-      price_adult: 50.00,
-      provider: 'viator'
+      price_amount: 50.0,
+      price_currency: 'GBP',
+      source: 'viator',
+      is_active: true
     };
   }
 }

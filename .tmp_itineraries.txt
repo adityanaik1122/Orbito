@@ -1,0 +1,334 @@
+export const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=1600&auto=format&fit=crop';
+
+export const itineraries = [
+  {
+    id: 'london-royal-3d',
+    title: 'Royal London & Palaces',
+    city: 'London',
+    country: 'United Kingdom',
+    duration: '3 Days',
+    rating: 4.8,
+    reviews: 234,
+    price: 'Free',
+    tags: ['History', 'Royal', 'Sightseeing'],
+    styles: ['luxury', 'culture'],
+    heroImage: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?q=80&w=1600&auto=format&fit=crop',
+    summary: 'Palaces, royal parks, and iconic landmarks with time for afternoon tea.',
+    highlights: ['Buckingham Palace', 'Westminster Abbey', 'St. James’s Park', 'Thames Riverside'],
+    days: [
+      {
+        day: 1,
+        title: 'Westminster Icons',
+        theme: 'Royal & Classic',
+        items: [
+          { time: '09:00', name: 'Westminster Abbey', note: 'Arrive early to beat crowds', duration: '1.5h' },
+          { time: '11:00', name: 'Parliament & Big Ben', note: 'Photostop + river walk', duration: '1h' },
+          { time: '13:00', name: 'Lunch at St. James’s Market', note: 'Local favorites', duration: '1h' },
+          { time: '15:00', name: 'Buckingham Palace', note: 'Guards area & gates', duration: '1.5h' },
+          { time: '17:00', name: 'St. James’s Park stroll', note: 'Golden hour views', duration: '1h' }
+        ]
+      },
+      {
+        day: 2,
+        title: 'Royal Museums & Streets',
+        theme: 'Culture & Heritage',
+        items: [
+          { time: '10:00', name: 'Victoria & Albert Museum', note: 'Top galleries', duration: '2h' },
+          { time: '12:30', name: 'Kensington Gardens', note: 'Relaxed walk', duration: '1h' },
+          { time: '14:00', name: 'Notting Hill', note: 'Colorful streets', duration: '1.5h' },
+          { time: '16:00', name: 'Afternoon tea', note: 'Classic London treat', duration: '1.5h' }
+        ]
+      },
+      {
+        day: 3,
+        title: 'Riverside & Skyline',
+        theme: 'Views & Markets',
+        items: [
+          { time: '09:30', name: 'Tower of London (exterior)', note: 'Photo stop', duration: '45m' },
+          { time: '10:30', name: 'Tower Bridge walkway', note: 'Great views', duration: '1h' },
+          { time: '12:00', name: 'Borough Market', note: 'Street food lunch', duration: '1.5h' },
+          { time: '14:30', name: 'Tate Modern', note: 'Free collection', duration: '1.5h' },
+          { time: '17:00', name: 'South Bank sunset', note: 'Riverside stroll', duration: '1h' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'paris-romance-3d',
+    title: 'Romantic Paris Getaway',
+    city: 'Paris',
+    country: 'France',
+    duration: '3 Days',
+    rating: 4.9,
+    reviews: 520,
+    price: '€50',
+    tags: ['Romance', 'Views', 'Food'],
+    styles: ['luxury', 'foodie'],
+    heroImage: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=1600&auto=format&fit=crop',
+    summary: 'Eiffel at sunset, Seine strolls, and café-hopping in Montmartre.',
+    highlights: ['Eiffel Tower', 'Louvre', 'Montmartre', 'Seine Cruise'],
+    days: [
+      {
+        day: 1,
+        title: 'Seine & Eiffel',
+        theme: 'Icons & River',
+        items: [
+          { time: '09:30', name: 'Trocadéro viewpoint', note: 'Best Eiffel photos', duration: '45m' },
+          { time: '10:30', name: 'Eiffel Tower area', note: 'Picnic on Champ de Mars', duration: '2h' },
+          { time: '13:00', name: 'Lunch in Rue Cler', note: 'Market street', duration: '1.5h' },
+          { time: '17:30', name: 'Seine sunset cruise', note: 'Golden hour', duration: '1h' }
+        ]
+      },
+      {
+        day: 2,
+        title: 'Louvre & Le Marais',
+        theme: 'Art & Neighborhoods',
+        items: [
+          { time: '09:00', name: 'Louvre Museum', note: 'Focus on highlights', duration: '2.5h' },
+          { time: '12:00', name: 'Tuileries Garden', note: 'Cafe break', duration: '1h' },
+          { time: '14:00', name: 'Le Marais', note: 'Boutiques + pastries', duration: '2h' },
+          { time: '17:00', name: 'Place des Vosges', note: 'Relax and people-watch', duration: '1h' }
+        ]
+      },
+      {
+        day: 3,
+        title: 'Montmartre & Views',
+        theme: 'Romantic Streets',
+        items: [
+          { time: '09:30', name: 'Sacré-Cœur', note: 'Panoramic city view', duration: '1h' },
+          { time: '11:00', name: 'Montmartre walk', note: 'Artists’ square', duration: '2h' },
+          { time: '13:30', name: 'Bistro lunch', note: 'Classic Parisian meal', duration: '1.5h' },
+          { time: '16:00', name: 'Galeries Lafayette rooftop', note: 'Free skyline spot', duration: '1h' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'amsterdam-canals-3d',
+    title: 'Amsterdam Canals & Museums',
+    city: 'Amsterdam',
+    country: 'Netherlands',
+    duration: '3 Days',
+    rating: 4.8,
+    reviews: 402,
+    price: '€65',
+    tags: ['Canals', 'Museums', 'Bike'],
+    styles: ['budget', 'culture'],
+    heroImage: 'https://images.unsplash.com/photo-1534351590666-13e3e96b5017?q=80&w=1600&auto=format&fit=crop',
+    summary: 'Bike the canals, Van Gogh Museum, and a relaxed Jordaan evening.',
+    highlights: ['Van Gogh Museum', 'Canal Cruise', 'Jordaan'],
+    days: [
+      {
+        day: 1,
+        title: 'Museum Quarter',
+        theme: 'Art & Parks',
+        items: [
+          { time: '09:30', name: 'Van Gogh Museum', note: 'Pre-booked time slot', duration: '2h' },
+          { time: '12:00', name: 'Vondelpark', note: 'Chill stroll', duration: '1h' },
+          { time: '13:30', name: 'Food halls lunch', note: 'Local bites', duration: '1h' },
+          { time: '15:00', name: 'Rijksmuseum exterior', note: 'Photo spot', duration: '45m' }
+        ]
+      },
+      {
+        day: 2,
+        title: 'Canals & Jordaan',
+        theme: 'Water & Neighborhoods',
+        items: [
+          { time: '10:00', name: 'Canal cruise', note: 'Classic highlights', duration: '1.5h' },
+          { time: '12:00', name: 'Jordaan walk', note: 'Coffee + boutiques', duration: '2h' },
+          { time: '15:00', name: 'Anne Frank House area', note: 'Exterior + memorial', duration: '1h' }
+        ]
+      },
+      {
+        day: 3,
+        title: 'Local Amsterdam',
+        theme: 'Markets & Bikes',
+        items: [
+          { time: '09:30', name: 'Albert Cuyp Market', note: 'Street food', duration: '1.5h' },
+          { time: '12:00', name: 'Bike along Amstel', note: 'Scenic route', duration: '2h' },
+          { time: '16:00', name: 'Brouwerij t IJ', note: 'Windmill brewery', duration: '1.5h' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'nyc-classics-4d',
+    title: 'NYC Classics in 4 Days',
+    city: 'New York',
+    country: 'USA',
+    duration: '4 Days',
+    rating: 4.9,
+    reviews: 350,
+    price: '$50',
+    tags: ['City', 'Views', 'Culture'],
+    styles: ['culture', 'adventure'],
+    heroImage: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?q=80&w=1600&auto=format&fit=crop',
+    summary: 'Central Park, Brooklyn Bridge, and skyline views from Top of the Rock.',
+    highlights: ['Central Park', 'Brooklyn Bridge', 'Times Square'],
+    days: [
+      {
+        day: 1,
+        title: 'Midtown Icons',
+        theme: 'Skylines',
+        items: [
+          { time: '09:00', name: 'Times Square', note: 'Early photos', duration: '45m' },
+          { time: '10:00', name: 'Bryant Park & Library', note: 'Quick stop', duration: '1h' },
+          { time: '12:00', name: 'Lunch in Koreatown', note: 'Great food', duration: '1h' },
+          { time: '15:00', name: 'Top of the Rock', note: 'Skyline view', duration: '1.5h' }
+        ]
+      },
+      {
+        day: 2,
+        title: 'Central Park & Museums',
+        theme: 'Nature & Art',
+        items: [
+          { time: '09:30', name: 'Central Park loop', note: 'Strawberry Fields', duration: '2h' },
+          { time: '12:00', name: 'Met Museum', note: 'Highlights only', duration: '2h' },
+          { time: '15:30', name: 'Upper East Side cafe', note: 'Relax', duration: '1h' }
+        ]
+      },
+      {
+        day: 3,
+        title: 'Downtown & Brooklyn',
+        theme: 'Neighborhoods',
+        items: [
+          { time: '09:30', name: '9/11 Memorial', note: 'Quiet visit', duration: '1h' },
+          { time: '11:00', name: 'Wall Street walk', note: 'Charging Bull', duration: '1h' },
+          { time: '13:00', name: 'Brooklyn Bridge', note: 'Walk across', duration: '1.5h' },
+          { time: '16:00', name: 'DUMBO', note: 'Waterfront views', duration: '1.5h' }
+        ]
+      },
+      {
+        day: 4,
+        title: 'Local Food & Views',
+        theme: 'Culture & Food',
+        items: [
+          { time: '10:00', name: 'Chelsea Market', note: 'Food crawl', duration: '1.5h' },
+          { time: '12:00', name: 'High Line', note: 'Elevated park', duration: '1.5h' },
+          { time: '15:00', name: 'Greenwich Village', note: 'Cafe stroll', duration: '2h' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'tokyo-modern-5d',
+    title: 'Tokyo Traditional & Modern',
+    city: 'Tokyo',
+    country: 'Japan',
+    duration: '5 Days',
+    rating: 4.9,
+    reviews: 560,
+    price: '¥5000',
+    tags: ['History', 'Technology', 'Food'],
+    styles: ['foodie', 'adventure'],
+    heroImage: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1600&auto=format&fit=crop',
+    summary: 'Shrines in Asakusa, Shibuya nights, and the best ramen spots.',
+    highlights: ['Senso-ji', 'Shibuya', 'Tsukiji Outer Market'],
+    days: [
+      {
+        day: 1,
+        title: 'Asakusa & Old Tokyo',
+        theme: 'Temples',
+        items: [
+          { time: '09:00', name: 'Senso-ji Temple', note: 'Early calm vibes', duration: '1.5h' },
+          { time: '11:00', name: 'Nakamise Street', note: 'Snacks + souvenirs', duration: '1h' },
+          { time: '13:00', name: 'Sumida River walk', note: 'Skytree views', duration: '1h' }
+        ]
+      },
+      {
+        day: 2,
+        title: 'Shibuya & Harajuku',
+        theme: 'Modern Tokyo',
+        items: [
+          { time: '10:00', name: 'Meiji Shrine', note: 'Forest walk', duration: '1.5h' },
+          { time: '12:00', name: 'Takeshita Street', note: 'Trendy snacks', duration: '1h' },
+          { time: '16:00', name: 'Shibuya Crossing', note: 'Iconic photos', duration: '1h' }
+        ]
+      },
+      {
+        day: 3,
+        title: 'Tsukiji & Ginza',
+        theme: 'Food & Shopping',
+        items: [
+          { time: '09:00', name: 'Tsukiji Outer Market', note: 'Sushi breakfast', duration: '1.5h' },
+          { time: '11:30', name: 'Ginza stroll', note: 'Luxury shops', duration: '2h' },
+          { time: '15:00', name: 'Hibiya Park', note: 'Short break', duration: '1h' }
+        ]
+      },
+      {
+        day: 4,
+        title: 'Odaiba Bay',
+        theme: 'Views & Tech',
+        items: [
+          { time: '10:00', name: 'teamLab Planets', note: 'Book in advance', duration: '2h' },
+          { time: '13:00', name: 'Odaiba seaside', note: 'Rainbow Bridge views', duration: '1.5h' },
+          { time: '16:00', name: 'DiverCity Tokyo', note: 'Gundam statue', duration: '1h' }
+        ]
+      },
+      {
+        day: 5,
+        title: 'Neighborhood Choice',
+        theme: 'Flexible',
+        items: [
+          { time: '10:00', name: 'Choose: Shimokitazawa or Nakameguro', note: 'Cafes & canals', duration: '2.5h' },
+          { time: '14:00', name: 'Ramen of the day', note: 'Local favorite', duration: '1h' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'dubai-skyline-3d',
+    title: 'Dubai Skyline & Desert Escape',
+    city: 'Dubai',
+    country: 'UAE',
+    duration: '3 Days',
+    rating: 4.7,
+    reviews: 290,
+    price: 'AED 220',
+    tags: ['Desert', 'Luxury', 'Modern'],
+    styles: ['luxury', 'adventure'],
+    heroImage: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=1600&auto=format&fit=crop',
+    summary: 'Burj Khalifa views, dhow cruise, and a golden desert safari.',
+    highlights: ['Burj Khalifa', 'Desert Safari', 'Dubai Marina'],
+    days: [
+      {
+        day: 1,
+        title: 'Downtown Dubai',
+        theme: 'Skyline',
+        items: [
+          { time: '10:00', name: 'Dubai Mall', note: 'Aquarium area', duration: '1.5h' },
+          { time: '12:00', name: 'Burj Khalifa', note: 'At The Top tickets', duration: '1.5h' },
+          { time: '18:30', name: 'Dubai Fountain show', note: 'Best at night', duration: '45m' }
+        ]
+      },
+      {
+        day: 2,
+        title: 'Desert Adventure',
+        theme: 'Adventure',
+        items: [
+          { time: '15:00', name: 'Desert safari pickup', note: 'Dune bashing', duration: '4h' },
+          { time: '19:30', name: 'Camp dinner', note: 'Live shows', duration: '2h' }
+        ]
+      },
+      {
+        day: 3,
+        title: 'Marina & Old Dubai',
+        theme: 'Contrast',
+        items: [
+          { time: '10:00', name: 'Dubai Marina walk', note: 'Morning light', duration: '1.5h' },
+          { time: '12:30', name: 'JBR beach time', note: 'Relax', duration: '2h' },
+          { time: '16:30', name: 'Al Fahidi & Souks', note: 'Old Dubai feel', duration: '2h' }
+        ]
+      }
+    ]
+  }
+];
+
+export const getItineraryById = (id) => itineraries.find((itinerary) => itinerary.id === id);
+
+export const getItinerariesByCity = (city) => {
+  if (!city || city === 'All') {
+    return itineraries;
+  }
+  return itineraries.filter((itinerary) => itinerary.city === city);
+};

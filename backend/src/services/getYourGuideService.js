@@ -218,34 +218,17 @@ class GetYourGuideService {
     return {
       external_id: `gyg-${product.tour_id}`,
       title: product.title,
-      slug: `gyg-${product.tour_id}`,
       description: product.abstract || product.description,
-      highlights: product.highlights || [],
-      destination: product.locations?.[0]?.name,
       city: product.locations?.[0]?.city,
-      country: product.locations?.[0]?.country,
-      meeting_point: product.meeting_point,
-      coordinates: product.coordinates ? {
-        lat: product.coordinates.lat,
-        lng: product.coordinates.lng
-      } : null,
-      duration: product.duration?.label || 'Flexible',
-      duration_hours: product.duration?.value,
-      category: product.categories?.[0]?.name || 'General',
-      subcategory: product.categories?.[1]?.name,
-      price_adult: product.price?.values?.adult || product.price?.startingPrice,
-      currency: product.price?.currency || 'GBP',
-      price_includes: product.inclusions || [],
-      price_excludes: product.exclusions || [],
-      main_image: product.pictures?.[0]?.url,
+      country_code: product.locations?.[0]?.country,
+      duration_minutes: product.duration?.value ? Math.round(product.duration.value * 60) : null,
+      price_amount: product.price?.values?.adult || product.price?.startingPrice,
+      price_currency: product.price?.currency || 'GBP',
+      is_active: product.is_available !== false,
+      source: 'getyourguide',
+      booking_url: this._buildAffiliateUrl(product.url, product.tour_id),
       images: product.pictures?.map(p => p.url) || [],
-      is_available: product.is_available !== false,
-      instant_confirmation: product.confirmation === 'INSTANT',
-      cancellation_policy: product.cancellation_policy?.text,
-      rating: product.overall_rating,
-      review_count: product.number_of_ratings || 0,
-      provider: 'getyourguide',
-      booking_url: this._buildAffiliateUrl(product.url, product.tour_id)
+      highlights: product.highlights || []
     };
   }
 

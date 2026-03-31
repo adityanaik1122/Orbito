@@ -11,7 +11,7 @@ const TourCard = ({ tour }) => {
   const { formatMoney, t } = useLocale();
 
   const handleViewDetails = () => {
-    navigate(`/tours/${tour.slug || tour.external_id}`);
+    navigate(`/tours/${tour.id || tour.external_id}`);
   };
 
   // Simple image URL with fallback
@@ -25,13 +25,17 @@ const TourCard = ({ tour }) => {
           src={imageUrl}
           alt={tour.title}
           className="w-full h-full object-cover"
+          loading="lazy"
+          decoding="async"
+          referrerPolicy="no-referrer"
+          onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400&q=80'; }}
         />
         
         {/* Provider Badge */}
-        {tour.provider && (
+        {tour.source && (
           <div className="absolute top-2 left-2">
             <Badge className="bg-blue-500 text-white">
-              {tour.provider === 'premium-tours' ? 'Premium Tours' : tour.provider}
+              {tour.source === 'premium-tours' ? 'Premium Tours' : tour.source}
             </Badge>
           </div>
         )}
@@ -63,7 +67,7 @@ const TourCard = ({ tour }) => {
         {/* Location */}
         <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
           <MapPin className="w-4 h-4" />
-          <span>{tour.city || tour.destination}</span>
+          <span>{tour.city || tour.destination_city}</span>
         </div>
       </CardHeader>
 
@@ -75,10 +79,10 @@ const TourCard = ({ tour }) => {
 
         {/* Details */}
         <div className="flex flex-wrap gap-3 text-sm text-gray-600">
-          {tour.duration && (
+          {tour.duration_minutes && (
             <div className="flex items-center gap-1">
               <Clock className="w-4 h-4" />
-              <span>{tour.duration}</span>
+              <span>{Math.round(tour.duration_minutes / 60)} hrs</span>
             </div>
           )}
           
@@ -108,7 +112,7 @@ const TourCard = ({ tour }) => {
         <div>
           <div className="text-sm text-gray-500">{t('tours_from')}</div>
           <div className="text-2xl font-bold text-primary">
-            {formatMoney(tour.price_adult, tour.currency || 'GBP')}
+            {formatMoney(tour.price_amount, tour.price_currency || 'USD')}
           </div>
           <div className="text-xs text-gray-500">{t('tours_per_person')}</div>
         </div>

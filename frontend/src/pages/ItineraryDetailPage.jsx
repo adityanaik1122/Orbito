@@ -4,8 +4,9 @@ import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import MapView from '@/components/MapView';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Share2, Edit, Calendar, MapPin, Clock } from 'lucide-react';
+import { ArrowLeft, Share2, Edit, Calendar, MapPin, Clock, Sparkles } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { getItineraryById, FALLBACK_IMAGE } from '@/data/itineraries';
 
 const ItineraryDetailPage = () => {
   const { id } = useParams();
@@ -14,9 +15,8 @@ const ItineraryDetailPage = () => {
   const [itinerary, setItinerary] = useState(null);
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem('itineraries') || '[]');
-    const found = saved.find(item => item.id === id);
-    setItinerary(found);
+    const found = getItineraryById(id);
+    setItinerary(found || null);
   }, [id]);
 
   const handleShare = () => {
@@ -60,10 +60,17 @@ const ItineraryDetailPage = () => {
           </Button>
 
           <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-6 shadow-sm">
-            <div className="h-64 bg-gradient-to-br from-[#0B3D91] to-[#1E5BA8] relative">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <MapPin className="w-24 h-24 text-white opacity-20" />
-              </div>
+            <div className="h-72 bg-gray-200 relative overflow-hidden">
+              <img
+                src={itinerary.heroImage || FALLBACK_IMAGE}
+                alt={itinerary.title}
+                className="w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
+                referrerPolicy="no-referrer"
+                onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
             </div>
             
             <div className="p-8">
@@ -72,8 +79,9 @@ const ItineraryDetailPage = () => {
                   <h1 className="text-4xl font-bold mb-2 text-[#0B3D91]">{itinerary.title}</h1>
                   <p className="text-xl text-gray-600 flex items-center gap-2">
                     <MapPin className="w-5 h-5 text-[#0B3D91]" />
-                    {itinerary.destination}
+                    {itinerary.city}, {itinerary.country}
                   </p>
+                  <p className="text-gray-600 mt-2 max-w-2xl">{itinerary.summary}</p>
                 </div>
                 
                 <div className="flex gap-3">
@@ -86,63 +94,93 @@ const ItineraryDetailPage = () => {
                     Share
                   </Button>
                   <Button
-                    onClick={() => navigate('/plan')}
+                    onClick={() => navigate('/plan', { state: { destination: itinerary.city, prefillItinerary: itinerary } })}
                     className="bg-[#0B3D91] hover:bg-[#092C6B] text-white"
                   >
-                    <Edit className="w-4 h-4 mr-2" />
-                    Edit
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Use This Itinerary
                   </Button>
                 </div>
               </div>
 
-              {itinerary.startDate && itinerary.endDate && (
-                <div className="flex items-center gap-2 text-gray-600 mb-6">
-                  <Calendar className="w-5 h-5 text-[#0B3D91]" />
-                  <span>
-                    {new Date(itinerary.startDate).toLocaleDateString()} - {new Date(itinerary.endDate).toLocaleDateString()}
-                  </span>
+              <div className="flex items-center gap-3 text-gray-600 mb-2">
+                <Calendar className="w-5 h-5 text-[#0B3D91]" />
+                <span>{itinerary.duration}</span>
+              </div>
+              {itinerary.highlights && itinerary.highlights.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-4">
+                  {itinerary.highlights.map((highlight) => (
+                    <span
+                      key={highlight}
+                      className="px-3 py-1 bg-blue-50 text-[#0B3D91] text-xs font-semibold rounded-full"
+                    >
+                      {highlight}
+                    </span>
+                  ))}
                 </div>
               )}
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-6">
-            <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-              <h2 className="text-2xl font-bold mb-6 text-[#0B3D91]">Activities</h2>
-              
-              {itinerary.activities && itinerary.activities.length > 0 ? (
-                <div className="space-y-4">
-                  {itinerary.activities.map((activity, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-200 transition-colors"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 bg-[#0B3D91] rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                          {index + 1}
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold mb-1 text-[#0B3D91]">{activity.name || 'Activity'}</h3>
-                          {activity.time && (
-                            <p className="text-sm text-gray-500 flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              {activity.time}
-                            </p>
-                          )}
+          <div className="grid lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+                <h2 className="text-2xl font-bold mb-6 text-[#0B3D91]">Day-by-day plan</h2>
+                <div className="space-y-6">
+                  {itinerary.days.map((day) => (
+                    <div key={day.day} className="border border-gray-100 rounded-2xl p-5">
+                      <div className="flex flex-wrap items-center gap-3 mb-4">
+                        <span className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-[#0B3D91] text-white font-semibold">
+                          {day.day}
+                        </span>
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900">{day.title}</h3>
+                          <p className="text-sm text-gray-500">{day.theme}</p>
                         </div>
                       </div>
-                    </motion.div>
+                      <div className="space-y-3">
+                        {day.items.map((item, index) => (
+                          <div key={`${day.day}-${index}`} className="flex items-start gap-4 bg-gray-50 rounded-xl p-4">
+                            <div className="text-sm font-semibold text-[#0B3D91] w-14 flex-shrink-0">
+                              {item.time}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold text-gray-900">{item.name}</span>
+                                {item.duration && (
+                                  <span className="text-xs text-gray-500 flex items-center gap-1">
+                                    <Clock className="w-3 h-3" /> {item.duration}
+                                  </span>
+                                )}
+                              </div>
+                              {item.note && <p className="text-sm text-gray-600 mt-1">{item.note}</p>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
-              ) : (
-                <p className="text-gray-400 text-center py-8">No activities added yet</p>
-              )}
+              </div>
             </div>
 
-            <MapView destination={itinerary.destination} activities={itinerary.activities} />
+            <div className="lg:col-span-1">
+              <MapView destination={itinerary.city} activities={[]} />
+              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm mt-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">AI itinerary notes</h3>
+                <p className="text-sm text-gray-600">
+                  This plan is AI-generated based on popular routes, pacing, and neighborhood clusters.
+                  You can customize it further in the planner.
+                </p>
+                <Button
+                  onClick={() => navigate('/plan', { state: { destination: itinerary.city, prefillItinerary: itinerary } })}
+                  className="mt-4 w-full bg-[#0B3D91] hover:bg-[#092C6B] text-white"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Customize in Planner
+                </Button>
+              </div>
+            </div>
           </div>
         </motion.div>
       </div>

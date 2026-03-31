@@ -9,17 +9,19 @@ const SupabaseService = require('./SupabaseService');
  */
 router.post('/availability', async (req, res) => {
   try {
-    const { productId, localDateStart, localDateEnd, units } = req.body;
+    const { productId, tourId, localDateStart, localDateEnd, units } = req.body;
 
-    if (!productId || !localDateStart || !localDateEnd) {
+    const resolvedTourId = tourId || productId;
+
+    if (!resolvedTourId || !localDateStart || !localDateEnd) {
       return res.status(400).json({
         error: 'INVALID_REQUEST',
-        errorMessage: 'productId, localDateStart, and localDateEnd are required',
+        errorMessage: 'tourId (or productId), localDateStart, and localDateEnd are required',
       });
     }
 
     const availability = await SupabaseService.checkAvailability(
-      productId,
+      resolvedTourId,
       localDateStart,
       localDateEnd,
       units || 1
@@ -28,13 +30,13 @@ router.post('/availability', async (req, res) => {
     // Format response per OCTo standard
     const response = availability.map((slot) => ({
       id: slot.id,
-      localDate: slot.local_date,
-      status: slot.status,
-      vacancies: slot.vacancies,
-      available: slot.vacancies > 0,
-      productId: slot.product_id,
+      localDate: slot.start_time ? new Date(slot.start_time).toISOString().slice(0, 10) : null,
+      status: slot.remaining > 0 ? 'AVAILABLE' : 'SOLD_OUT',
+      vacancies: slot.remaining,
+      available: slot.remaining > 0,
+      productId: slot.tour_id,
       localDateTimeStart: slot.start_time,
-      localDateTimeEnd: slot.end_time,
+      localDateTimeEnd: null,
     }));
 
     res.json(response);
@@ -56,49 +58,50 @@ router.post('/bookings', async (req, res) => {
   try {
     const {
       productId,
+      tourId,
       availabilityId,
-      localDate,
       units,
       contact,
       notes,
     } = req.body;
 
-    if (!productId || !availabilityId || !localDate) {
+    const resolvedTourId = tourId || productId;
+
+    if (!resolvedTourId || !availabilityId) {
       return res.status(400).json({
         error: 'INVALID_REQUEST',
-        errorMessage: 'productId, availabilityId, and localDate are required',
+        errorMessage: 'tourId (or productId) and availabilityId are required',
       });
     }
 
     // Verify product exists
-    const product = await SupabaseService.getProduct(productId);
-    if (!product) {
+    const tour = await SupabaseService.getTour(resolvedTourId);
+    if (!tour) {
       return res.status(404).json({
-        error: 'INVALID_PRODUCT_ID',
-        errorMessage: 'Product not found',
+        error: 'INVALID_TOUR_ID',
+        errorMessage: 'Tour not found',
       });
     }
 
     // Create booking
     const booking = await SupabaseService.createBooking({
-      product_id: productId,
+      tour_id: resolvedTourId,
       availability_id: availabilityId,
-      local_date: localDate,
-      units: units || 1,
-      contact: contact || {},
-      notes: notes || '',
+      num_people: units || 1,
+      customer_contact: contact || {},
+      special_requests: notes || '',
     });
 
     // Format response per OCTo standard
     res.status(201).json({
-      uuid: booking.uuid,
+      id: booking.id,
       status: booking.status,
-      productId: booking.product_id,
+      productId: booking.tour_id,
       availabilityId: booking.availability_id,
-      localDate: booking.local_date,
-      units: booking.units,
-      contact: booking.contact,
-      notes: booking.notes,
+      localDate: booking.customer_contact?.preferred_date || null,
+      units: booking.num_people,
+      contact: booking.customer_contact,
+      notes: booking.special_requests,
       createdAt: booking.created_at,
     });
   } catch (error) {
@@ -117,25 +120,27 @@ router.post('/bookings', async (req, res) => {
  */
 router.post('/bookings/confirm', async (req, res) => {
   try {
-    const { uuid } = req.body;
+    const { bookingId, uuid } = req.body;
 
-    if (!uuid) {
+    const resolvedId = bookingId || uuid;
+
+    if (!resolvedId) {
       return res.status(400).json({
         error: 'INVALID_REQUEST',
-        errorMessage: 'uuid is required',
+        errorMessage: 'bookingId (or uuid) is required',
       });
     }
 
     // Verify booking exists
-    const existingBooking = await SupabaseService.getBooking(uuid);
+    const existingBooking = await SupabaseService.getBooking(resolvedId);
     if (!existingBooking) {
       return res.status(404).json({
-        error: 'INVALID_BOOKING_UUID',
+        error: 'INVALID_BOOKING_ID',
         errorMessage: 'Booking not found',
       });
     }
 
-    if (existingBooking.status !== 'ON_HOLD') {
+    if (existingBooking.status !== 'pending') {
       return res.status(400).json({
         error: 'INVALID_BOOKING_STATUS',
         errorMessage: `Cannot confirm booking with status: ${existingBooking.status}`,
@@ -143,20 +148,20 @@ router.post('/bookings/confirm', async (req, res) => {
     }
 
     // Confirm booking
-    const confirmedBooking = await SupabaseService.confirmBooking(uuid);
+    const confirmedBooking = await SupabaseService.confirmBooking(resolvedId);
 
     // Format response per OCTo standard
     res.json({
-      uuid: confirmedBooking.uuid,
+      id: confirmedBooking.id,
       status: confirmedBooking.status,
-      productId: confirmedBooking.product_id,
+      productId: confirmedBooking.tour_id,
       availabilityId: confirmedBooking.availability_id,
-      localDate: confirmedBooking.local_date,
-      units: confirmedBooking.units,
-      contact: confirmedBooking.contact,
-      notes: confirmedBooking.notes,
+      localDate: confirmedBooking.customer_contact?.preferred_date || null,
+      units: confirmedBooking.num_people,
+      contact: confirmedBooking.customer_contact,
+      notes: confirmedBooking.special_requests,
       createdAt: confirmedBooking.created_at,
-      confirmedAt: confirmedBooking.confirmed_at,
+      confirmedAt: confirmedBooking.updated_at,
     });
   } catch (error) {
     console.error('Booking confirmation error:', error);

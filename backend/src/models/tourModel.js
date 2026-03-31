@@ -11,35 +11,26 @@ async function getTours(filters = {}) {
   let query = supabase
     .from('tours')
     .select('*')
-    .eq('is_available', true);
+    .eq('is_active', true);
 
   // Apply filters
   if (filters.destination) {
-    query = query.ilike('destination', `%${filters.destination}%`);
+    query = query.ilike('city', `%${filters.destination}%`);
   }
 
   if (filters.country) {
-    query = query.ilike('country', `%${filters.country}%`);
+    query = query.ilike('country_code', `%${filters.country}%`);
   }
 
-  // Multiple categories filter
-  if (filters.categories) {
-    const categoriesArray = Array.isArray(filters.categories) 
-      ? filters.categories 
-      : filters.categories.split(',').filter(Boolean);
-    
-    if (categoriesArray.length > 0) {
-      query = query.in('category', categoriesArray);
-    }
-  }
+  // Categories are not part of v2 schema (ignore if provided)
 
   // Price range filter
   if (filters.minPrice !== undefined && filters.minPrice !== '') {
-    query = query.gte('price_adult', parseFloat(filters.minPrice));
+    query = query.gte('price_amount', parseFloat(filters.minPrice));
   }
 
   if (filters.maxPrice !== undefined && filters.maxPrice !== '') {
-    query = query.lte('price_adult', parseFloat(filters.maxPrice));
+    query = query.lte('price_amount', parseFloat(filters.maxPrice));
   }
 
   // Duration filter (half-day, full-day, multi-day)
@@ -53,11 +44,11 @@ async function getTours(filters = {}) {
       const durationConditions = durationsArray.map(duration => {
         switch (duration) {
           case 'half-day':
-            return 'duration_hours.lt.4';
+            return 'duration_minutes.lt.240';
           case 'full-day':
-            return 'duration_hours.gte.4,duration_hours.lte.8';
+            return 'duration_minutes.gte.240,duration_minutes.lte.480';
           case 'multi-day':
-            return 'duration_hours.gt.8';
+            return 'duration_minutes.gt.480';
           default:
             return null;
         }
@@ -70,9 +61,7 @@ async function getTours(filters = {}) {
     }
   }
 
-  if (filters.featured === 'true' || filters.featured === true) {
-    query = query.eq('featured', true);
-  }
+  // Featured is not part of v2 schema (ignore if provided)
 
   // Sorting
   let sortBy = filters.sortBy || 'created_at';
@@ -80,19 +69,11 @@ async function getTours(filters = {}) {
 
   switch (sortBy) {
     case 'price_low':
-      sortBy = 'price_adult';
+      sortBy = 'price_amount';
       sortOrder = 'asc';
       break;
     case 'price_high':
-      sortBy = 'price_adult';
-      sortOrder = 'desc';
-      break;
-    case 'rating':
-      sortBy = 'rating';
-      sortOrder = 'desc';
-      break;
-    case 'popular':
-      sortBy = 'views_count';
+      sortBy = 'price_amount';
       sortOrder = 'desc';
       break;
     default:
@@ -123,23 +104,14 @@ async function getTourById(identifier) {
     .single();
 
   if (error && error.code === 'PGRST116') {
-    // Not found by ID, try slug
     const result = await supabase
       .from('tours')
       .select('*')
-      .eq('slug', identifier)
+      .eq('external_id', identifier)
       .single();
     
     data = result.data;
     error = result.error;
-  }
-
-  // Increment view count
-  if (data && !error) {
-    await supabase
-      .from('tours')
-      .update({ views_count: (data.views_count || 0) + 1 })
-      .eq('id', data.id);
   }
 
   return { data, error };
@@ -153,15 +125,10 @@ async function createBooking(bookingData) {
     throw new Error('Supabase is not initialized');
   }
 
-  // Generate unique booking reference
-  const { data: refData } = await supabase.rpc('generate_booking_reference');
-  const bookingReference = refData || `ORB-${Date.now()}`;
-
   const { data, error } = await supabase
     .from('bookings')
     .insert([{
-      ...bookingData,
-      booking_reference: bookingReference
+      ...bookingData
     }])
     .select();
 
@@ -181,12 +148,13 @@ async function getUserBookings(userId) {
     .select(`
       *,
       tours (
+        id,
         title,
-        slug,
-        main_image,
-        destination,
-        duration,
-        category
+        city,
+        country_code,
+        duration_minutes,
+        price_amount,
+        price_currency
       )
     `)
     .eq('user_id', userId)
@@ -211,16 +179,7 @@ async function getBookingById(identifier, userId) {
     `)
     .eq('user_id', userId);
 
-  // Try ID first, then booking_reference
-  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(identifier);
-  
-  if (isUUID) {
-    query = query.eq('id', identifier);
-  } else {
-    query = query.eq('booking_reference', identifier);
-  }
-
-  const { data, error } = await query.single();
+  const { data, error } = await query.eq('id', identifier).single();
 
   return { data, error };
 }
@@ -236,7 +195,7 @@ async function updateBookingStatus(bookingId, status, additionalData = {}) {
   const { data, error } = await supabase
     .from('bookings')
     .update({
-      booking_status: status,
+      status: status,
       ...additionalData,
       updated_at: new Date().toISOString()
     })
@@ -247,37 +206,11 @@ async function updateBookingStatus(bookingId, status, additionalData = {}) {
 }
 
 /**
- * Get commission stats for admin
- */
-async function getCommissionStats() {
-  if (!supabase) {
-    throw new Error('Supabase is not initialized');
-  }
-
-  const { data, error } = await supabase
-    .from('commissions')
-    .select(`
-      *,
-      bookings (
-        booking_reference,
-        tour_date,
-        customer_name
-      ),
-      tour_providers (
-        name
-      )
-    `)
-    .order('created_at', { ascending: false });
-
-  return { data, error };
-}
-
 module.exports = {
   getTours,
   getTourById,
   createBooking,
   getUserBookings,
   getBookingById,
-  updateBookingStatus,
-  getCommissionStats
+  updateBookingStatus
 };

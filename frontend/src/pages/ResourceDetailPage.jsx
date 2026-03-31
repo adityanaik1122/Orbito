@@ -8,6 +8,8 @@ import { resources } from '@/data/resources';
 import { useToast } from '@/components/ui/use-toast';
 import DOMPurify from 'dompurify';
 
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=1200&auto=format&fit=crop';
+
 const ResourceDetailPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -48,6 +50,10 @@ const ResourceDetailPage = () => {
                         src={resource.image} 
                         alt={resource.title} 
                         className="w-full h-full object-cover"
+                        loading="lazy"
+                        decoding="async"
+                        referrerPolicy="no-referrer"
+                        onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#0B3D91]/90 via-black/20 to-transparent"></div>
                     <div className="absolute top-24 left-4 lg:left-8">

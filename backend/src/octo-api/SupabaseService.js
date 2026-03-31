@@ -2,26 +2,25 @@ const { supabase } = require('../config/supabase');
 
 class SupabaseService {
   /**
-   * Check availability for a product on specific dates
-   * @param {string} productId - The product/tour ID
-   * @param {string} localDateStart - Start date (YYYY-MM-DD)
-   * @param {string} localDateEnd - End date (YYYY-MM-DD)
+   * Check availability for a tour on specific dates
+   * @param {string} tourId - The tour ID
+   * @param {string} startDate - Start date (YYYY-MM-DD)
+   * @param {string} endDate - End date (YYYY-MM-DD)
    * @param {number} units - Number of units/participants requested
    * @returns {Promise<Array>} Available slots
    */
-  async checkAvailability(productId, localDateStart, localDateEnd, units = 1) {
+  async checkAvailability(tourId, startDate, endDate, units = 1) {
     if (!supabase) {
       throw new Error('Supabase client not initialized');
     }
 
     const { data, error } = await supabase
-      .from('availability')
+      .from('tour_availability')
       .select('*')
-      .eq('product_id', productId)
-      .gte('local_date', localDateStart)
-      .lte('local_date', localDateEnd)
-      .gte('vacancies', units)
-      .eq('status', 'AVAILABLE');
+      .eq('tour_id', tourId)
+      .gte('start_time', `${startDate}T00:00:00Z`)
+      .lte('start_time', `${endDate}T23:59:59Z`)
+      .gte('remaining', units);
 
     if (error) {
       throw new Error(`Availability check failed: ${error.message}`);
@@ -31,19 +30,19 @@ class SupabaseService {
   }
 
   /**
-   * Get product details by ID
-   * @param {string} productId
+   * Get tour details by ID
+   * @param {string} tourId
    * @returns {Promise<Object|null>}
    */
-  async getProduct(productId) {
+  async getTour(tourId) {
     if (!supabase) {
       throw new Error('Supabase client not initialized');
     }
 
     const { data, error } = await supabase
-      .from('products')
+      .from('tours')
       .select('*')
-      .eq('id', productId)
+      .eq('id', tourId)
       .single();
 
     if (error && error.code !== 'PGRST116') {
@@ -54,7 +53,7 @@ class SupabaseService {
   }
 
   /**
-   * Create a new booking (ON_HOLD status)
+   * Create a new booking (pending status)
    * @param {Object} bookingData
    * @returns {Promise<Object>} Created booking
    */
@@ -65,9 +64,8 @@ class SupabaseService {
 
     const booking = {
       ...bookingData,
-      status: 'ON_HOLD',
-      created_at: new Date().toISOString(),
-      uuid: this.generateUUID(),
+      status: 'pending',
+      created_at: new Date().toISOString()
     };
 
     const { data, error } = await supabase
@@ -81,21 +79,22 @@ class SupabaseService {
     }
 
     // Decrement availability
-    await this.decrementAvailability(
-      bookingData.product_id,
-      bookingData.local_date,
-      bookingData.units
-    );
+    if (bookingData.availability_id && bookingData.units) {
+      await this.decrementAvailability(
+        bookingData.availability_id,
+        bookingData.units
+      );
+    }
 
     return data;
   }
 
   /**
-   * Get booking by UUID
-   * @param {string} uuid
+   * Get booking by ID
+   * @param {string} bookingId
    * @returns {Promise<Object|null>}
    */
-  async getBooking(uuid) {
+  async getBooking(bookingId) {
     if (!supabase) {
       throw new Error('Supabase client not initialized');
     }
@@ -103,7 +102,7 @@ class SupabaseService {
     const { data, error } = await supabase
       .from('bookings')
       .select('*')
-      .eq('uuid', uuid)
+      .eq('id', bookingId)
       .single();
 
     if (error && error.code !== 'PGRST116') {
@@ -114,11 +113,11 @@ class SupabaseService {
   }
 
   /**
-   * Confirm a booking (change status to CONFIRMED)
-   * @param {string} uuid - Booking UUID
+   * Confirm a booking (change status to confirmed)
+   * @param {string} bookingId - Booking ID
    * @returns {Promise<Object>} Updated booking
    */
-  async confirmBooking(uuid) {
+  async confirmBooking(bookingId) {
     if (!supabase) {
       throw new Error('Supabase client not initialized');
     }
@@ -126,11 +125,11 @@ class SupabaseService {
     const { data, error } = await supabase
       .from('bookings')
       .update({
-        status: 'CONFIRMED',
-        confirmed_at: new Date().toISOString(),
+        status: 'confirmed',
+        updated_at: new Date().toISOString(),
       })
-      .eq('uuid', uuid)
-      .eq('status', 'ON_HOLD')
+      .eq('id', bookingId)
+      .eq('status', 'pending')
       .select()
       .single();
 
@@ -146,33 +145,31 @@ class SupabaseService {
   }
 
   /**
-   * Decrement availability vacancies
-   * @param {string} productId
-   * @param {string} localDate
+   * Decrement availability remaining
+   * @param {string} availabilityId
    * @param {number} units
    */
-  async decrementAvailability(productId, localDate, units) {
-    const { error } = await supabase.rpc('decrement_availability', {
-      p_product_id: productId,
-      p_local_date: localDate,
-      p_units: units,
-    });
+  async decrementAvailability(availabilityId, units) {
+    const { data, error } = await supabase
+      .from('tour_availability')
+      .select('remaining')
+      .eq('id', availabilityId)
+      .single();
 
     if (error) {
-      console.error('Failed to decrement availability:', error.message);
+      console.error('Failed to fetch availability:', error.message);
+      return;
     }
-  }
 
-  /**
-   * Generate a UUID v4
-   * @returns {string}
-   */
-  generateUUID() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-      const r = (Math.random() * 16) | 0;
-      const v = c === 'x' ? r : (r & 0x3) | 0x8;
-      return v.toString(16);
-    });
+    const nextRemaining = Math.max((data?.remaining || 0) - units, 0);
+    const { error: updateError } = await supabase
+      .from('tour_availability')
+      .update({ remaining: nextRemaining })
+      .eq('id', availabilityId);
+
+    if (updateError) {
+      console.error('Failed to decrement availability:', updateError.message);
+    }
   }
 }
 

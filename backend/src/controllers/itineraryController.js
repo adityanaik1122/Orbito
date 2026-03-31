@@ -268,7 +268,7 @@ async function suggestToursForActivity(req, res) {
 
 async function saveItineraryHandler(req, res) {
   try {
-    const { title, destination, startDate, endDate, days, activities } = req.body;
+    const { title, destination, destinationCountry, startDate, endDate, days } = req.body;
     
     // Use authenticated user ID from middleware instead of request body
     const userId = req.user.id;
@@ -279,11 +279,11 @@ async function saveItineraryHandler(req, res) {
     const { data, error } = await saveItinerary({
       userId,
       title,
-      destination,
+      destinationCity: destination,
+      destinationCountry: destinationCountry || null,
       startDate,
       endDate,
       days,
-      activities,
     });
 
     if (error) {

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Calendar, Heart, Star, Search, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { itineraries, getItinerariesByCity, FALLBACK_IMAGE } from '@/data/itineraries';
 
 const cityImages = {
     'London': 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?q=80&w=1000&auto=format&fit=crop',
@@ -13,33 +14,40 @@ const cityImages = {
     'Amsterdam': 'https://images.unsplash.com/photo-1534351590666-13e3e96b5017?q=80&w=1000&auto=format&fit=crop',
     'New York': 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?q=80&w=1000&auto=format&fit=crop',
     'Tokyo': 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1000&auto=format&fit=crop',
-    'Dubai': 'https://images.unsplash.com/photo-1512453979798-5ea936a79483?q=80&w=1000&auto=format&fit=crop',
-    'Rome': 'https://images.unsplash.com/photo-1531572753322-ad063cecc140?q=80&w=1000&auto=format&fit=crop',
+    'Dubai': 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=1000&auto=format&fit=crop',
+    'Rome': 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=1000&auto=format&fit=crop',
     'Barcelona': 'https://images.unsplash.com/photo-1583422409516-2895a77efded?q=80&w=1000&auto=format&fit=crop',
     'Prague': 'https://images.unsplash.com/photo-1519677100203-a0e668c92439?q=80&w=1000&auto=format&fit=crop',
     'Edinburgh': 'https://images.unsplash.com/photo-1506377295352-e3154d43ea9e?q=80&w=1000&auto=format&fit=crop',
+    'Lisbon': 'https://images.unsplash.com/photo-1585208798174-6cedd86e019a?q=80&w=1000&auto=format&fit=crop',
+    'Vienna': 'https://images.unsplash.com/photo-1516550893923-42d28e5677af?q=80&w=1000&auto=format&fit=crop',
+    'Athens': 'https://images.unsplash.com/photo-1555993539-1732b0258235?q=80&w=1000&auto=format&fit=crop',
+    'Istanbul': 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?q=80&w=1000&auto=format&fit=crop',
+    'Marrakech': 'https://images.unsplash.com/photo-1597212618440-806262de4f6b?q=80&w=1000&auto=format&fit=crop',
+    'Cape Town': 'https://images.unsplash.com/photo-1580060839134-75a5edca2e99?q=80&w=1000&auto=format&fit=crop',
+    'Sydney': 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?q=80&w=1000&auto=format&fit=crop',
+    'Melbourne': 'https://images.unsplash.com/photo-1514395462725-fb4566210144?q=80&w=1000&auto=format&fit=crop',
+    'Auckland': 'https://images.unsplash.com/photo-1507699622108-4be3abd695ad?q=80&w=1000&auto=format&fit=crop',
+    'Singapore': 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?q=80&w=1000&auto=format&fit=crop',
+    'Bangkok': 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?q=80&w=1000&auto=format&fit=crop',
+    'Bali': 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1000&auto=format&fit=crop',
+    'Seoul': 'https://images.unsplash.com/photo-1534274988757-a28bf1a57c17?q=80&w=1000&auto=format&fit=crop',
+    'Hong Kong': 'https://images.unsplash.com/photo-1536599018102-9f803c140fc1?q=80&w=1000&auto=format&fit=crop',
+    'Mexico City': 'https://images.unsplash.com/photo-1585464231875-d9ef1f5ad396?q=80&w=1000&auto=format&fit=crop',
+    'Rio de Janeiro': 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?q=80&w=1000&auto=format&fit=crop',
 };
 
 const ItinerariesPage = () => {
     const navigate = useNavigate();
-    const [selectedCity, setSelectedCity] = useState('London');
-    const cities = Object.keys(cityImages);
+    const [selectedCity, setSelectedCity] = useState('All');
+    const [selectedStyle, setSelectedStyle] = useState('All');
+    const cityList = Array.from(new Set(itineraries.map((item) => item.city)));
+    const cities = ['All', ...cityList];
 
-    const featuredItineraries = [
-        { id: 1, title: "Royal London & Palaces", city: 'London', duration: '3 Days', rating: 4.8, reviews: 234, price: 'Free', image: 'https://images.unsplash.com/photo-1759875522780-bba93968ca12?q=80&w=1200&auto=format&fit=crop', tags: ['History', 'Royal', 'Sightseeing'] },
-        { id: 2, title: 'Harry Potter Film Locations', city: 'London', duration: '2 Days', rating: 4.9, reviews: 412, price: 'Free', image: 'https://images.unsplash.com/photo-1762732293127-a9f979075949?q=80&w=1200&auto=format&fit=crop', tags: ['Movies', 'Magic', 'Walking'] },
-        { id: 3, title: 'Historic Greenwich & Maritime', city: 'London', duration: '1 Day', rating: 4.7, reviews: 189, price: 'Free', image: 'https://images.unsplash.com/photo-1486234357357-0a4b4a4cab25?q=80&w=1200&auto=format&fit=crop', tags: ['History', 'Maritime', 'River'] },
-        { id: 4, title: 'Romantic Paris Gateway', city: 'Paris', duration: '3 Days', rating: 4.9, reviews: 520, price: '€50', image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=1000&auto=format&fit=crop', tags: ['Romance', 'Views', 'Food'] },
-        { id: 5, title: 'Art & Culture in Paris', city: 'Paris', duration: '4 Days', rating: 4.8, reviews: 310, price: '€80', image: 'https://images.unsplash.com/photo-1565099824688-e93eb20fe622?q=80&w=1000&auto=format&fit=crop', tags: ['Art', 'History', 'Culture'] },
-        { id: 6, title: 'Ancient Rome Exploration', city: 'Rome', duration: '3 Days', rating: 4.9, reviews: 650, price: '€60', image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=1000&auto=format&fit=crop', tags: ['History', 'Ancient', 'Walking'] },
-        { id: 7, title: 'Rome Food & Wine Tour', city: 'Rome', duration: '2 Days', rating: 4.8, reviews: 420, price: '€120', image: 'https://images.unsplash.com/photo-1515542622106-78bda8ba30c6?q=80&w=1000&auto=format&fit=crop', tags: ['Food', 'Wine', 'Culture'] },
-        { id: 8, title: 'NYC Highlights', city: 'New York', duration: '4 Days', rating: 4.9, reviews: 350, price: '$50', image: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?q=80&w=1000&auto=format&fit=crop', tags: ['City', 'Views', 'Culture'] },
-        { id: 9, title: 'Tokyo Traditional & Modern', city: 'Tokyo', duration: '5 Days', rating: 4.9, reviews: 560, price: '¥5000', image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1000&auto=format&fit=crop', tags: ['History', 'Technology', 'Food'] },
-    ];
-    
-    const filteredItineraries = selectedCity === 'All' 
-        ? featuredItineraries 
-        : featuredItineraries.filter(item => item.city === selectedCity);
+    const filteredItineraries = getItinerariesByCity(selectedCity).filter((itinerary) => {
+        if (selectedStyle === 'All') return true;
+        return (itinerary.styles || []).includes(selectedStyle);
+    });
 
     return (
         <>
@@ -75,9 +83,13 @@ const ItinerariesPage = () => {
                                     )}
                                 >
                                     <img 
-                                        src={cityImages[city]} 
+                                        src={city === 'All' ? FALLBACK_IMAGE : (cityImages[city] || FALLBACK_IMAGE)} 
                                         alt={city} 
                                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                                        loading="lazy"
+                                        decoding="async"
+                                        referrerPolicy="no-referrer"
+                                        onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
                                     />
                                     {/* City Label Badge */}
                                     <div className="absolute top-3 left-3 bg-[#1B263B] text-white text-base font-bold px-4 py-2 rounded-md shadow-md z-10"> {/* Adjusted text size and padding */}
@@ -93,6 +105,25 @@ const ItinerariesPage = () => {
                         <ScrollBar orientation="horizontal" />
                     </ScrollArea>
                 </div>
+
+                {/* Style Filter */}
+                <div className="mb-8">
+                    <div className="flex flex-wrap gap-3">
+                        {['All', 'budget', 'luxury', 'foodie', 'adventure'].map((style) => (
+                            <Button
+                                key={style}
+                                variant={selectedStyle === style ? 'default' : 'outline'}
+                                onClick={() => setSelectedStyle(style)}
+                                className={cn(
+                                    'rounded-full text-xs font-semibold uppercase tracking-wide',
+                                    selectedStyle === style ? 'bg-[#0B3D91] hover:bg-[#092C6B]' : 'border-gray-200 text-gray-600'
+                                )}
+                            >
+                                {style}
+                            </Button>
+                        ))}
+                    </div>
+                </div>
                 
                 {filteredItineraries.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -104,6 +135,7 @@ const ItinerariesPage = () => {
                                 transition={{ delay: index * 0.05 }}
                                 className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer group border border-gray-100"
                                 whileHover={{ y: -4 }}
+                                onClick={() => navigate(`/itinerary/${itinerary.id}`)}
                             >
                                 <div className="relative aspect-[4/3] overflow-hidden bg-gray-200">
                                     <img 
@@ -113,7 +145,7 @@ const ItinerariesPage = () => {
                                         loading="lazy"
                                         decoding="async"
                                         referrerPolicy="no-referrer"
-                                        onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?q=80&w=1200&auto=format&fit=crop"; }}
+                                        onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
                                     />
                                     <button className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md text-gray-400 hover:text-[#0B3D91] transition-colors">
                                         <Heart className="w-4 h-4" />
@@ -125,13 +157,19 @@ const ItinerariesPage = () => {
                                 </div>
                                 <div className="p-6">
                                     <div className="flex items-center gap-2 mb-3 flex-wrap">
+                                        {(itinerary.styles || []).map(style => (
+                                            <span key={style} className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-full uppercase tracking-wide">
+                                                {style}
+                                            </span>
+                                        ))}
                                         {itinerary.tags.map(tag => (
                                             <span key={tag} className="px-2 py-0.5 bg-blue-50 text-[#0B3D91] text-[10px] font-bold rounded-full uppercase tracking-wide">
                                                 {tag}
                                             </span>
                                         ))}
                                     </div>
-                                    <h3 className="text-lg font-bold text-gray-900 mb-3 group-hover:text-[#0B3D91] transition-colors">{itinerary.title}</h3>
+                                    <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-[#0B3D91] transition-colors">{itinerary.title}</h3>
+                                    <p className="text-sm text-gray-600 line-clamp-2 mb-3">{itinerary.summary}</p>
                                     <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
                                         <div className="flex items-center gap-1.5">
                                             <Calendar className="w-4 h-4" />
@@ -145,7 +183,14 @@ const ItinerariesPage = () => {
                                     </div>
                                     <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                                         <span className="text-base font-bold text-gray-900">{itinerary.price}</span>
-                                        <Button size="sm" className="bg-[#0B3D91] hover:bg-[#092C6B] text-white h-9">
+                                        <Button
+                                            size="sm"
+                                            className="bg-[#0B3D91] hover:bg-[#092C6B] text-white h-9"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                navigate(`/itinerary/${itinerary.id}`);
+                                            }}
+                                        >
                                             View Details
                                         </Button>
                                     </div>

@@ -27,15 +27,16 @@ async function sendBookingConfirmation(bookingData, tourData, userData) {
     const htmlContent = generateBookingConfirmationHTML(bookingData, tourData, userData);
     const textContent = generateBookingConfirmationText(bookingData, tourData, userData);
 
+    const bookingRef = bookingData?.booking_reference || bookingData?.id || 'PENDING';
     const result = await resendClient.emails.send({
       from: FROM_EMAIL,
       to: userData.email,
-      subject: `Booking Confirmed: ${tourData.title} - ${bookingData.booking_reference}`,
+      subject: `Booking Confirmed: ${tourData.title} - ${bookingRef}`,
       html: htmlContent,
       text: textContent,
       tags: [
         { name: 'category', value: 'booking_confirmation' },
-        { name: 'booking_ref', value: bookingData.booking_reference }
+        { name: 'booking_ref', value: bookingRef }
       ]
     });
 
@@ -97,6 +98,8 @@ async function sendBookingCancellation(bookingData, tourData, userData) {
   }
 
   try {
+    const bookingRef = bookingData?.booking_reference || bookingData?.id || 'PENDING';
+    const preferredDate = bookingData?.customer_contact?.preferred_date || bookingData?.tour_date;
     const htmlContent = `
 <!DOCTYPE html>
 <html>
@@ -116,9 +119,9 @@ async function sendBookingCancellation(bookingData, tourData, userData) {
   <div class="content">
     <p>Hi ${userData.name},</p>
     <p>Your booking has been cancelled as requested.</p>
-    <p><strong>Booking Reference:</strong> ${bookingData.booking_reference}</p>
+    <p><strong>Booking Reference:</strong> ${bookingRef}</p>
     <p><strong>Tour:</strong> ${tourData.title}</p>
-    <p><strong>Date:</strong> ${new Date(bookingData.tour_date).toLocaleDateString('en-GB')}</p>
+    <p><strong>Date:</strong> ${preferredDate ? new Date(preferredDate).toLocaleDateString('en-GB') : 'To be confirmed'}</p>
     <p>If you have any questions, please contact our support team.</p>
     <p>We hope to see you again soon!<br><strong>The Orbito Team</strong></p>
   </div>
@@ -132,7 +135,7 @@ async function sendBookingCancellation(bookingData, tourData, userData) {
     const result = await resendClient.emails.send({
       from: FROM_EMAIL,
       to: userData.email,
-      subject: `Booking Cancelled: ${bookingData.booking_reference}`,
+      subject: `Booking Cancelled: ${bookingRef}`,
       html: htmlContent,
       tags: [
         { name: 'category', value: 'booking_cancellation' }

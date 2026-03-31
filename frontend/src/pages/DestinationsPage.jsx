@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=1200&auto=format&fit=crop';
+
 const DestinationsPage = () => {
     const navigate = useNavigate();
 
@@ -87,6 +89,10 @@ const DestinationsPage = () => {
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
                                     alt={dest.name} 
                                     src={dest.image} 
+                                    loading="lazy"
+                                    decoding="async"
+                                    referrerPolicy="no-referrer"
+                                    onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80"></div>
                                 <div className="absolute bottom-0 left-0 right-0 p-5">

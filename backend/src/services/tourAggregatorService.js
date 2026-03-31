@@ -138,10 +138,10 @@ class TourAggregatorService {
   static _sortTours(tours, sortBy = 'rating') {
     switch (sortBy) {
       case 'price_low':
-        return tours.sort((a, b) => a.price_adult - b.price_adult);
+        return tours.sort((a, b) => (a.price_amount ?? a.price_adult ?? 0) - (b.price_amount ?? b.price_adult ?? 0));
       
       case 'price_high':
-        return tours.sort((a, b) => b.price_adult - a.price_adult);
+        return tours.sort((a, b) => (b.price_amount ?? b.price_adult ?? 0) - (a.price_amount ?? a.price_adult ?? 0));
       
       case 'rating':
         return tours.sort((a, b) => b.rating - a.rating);

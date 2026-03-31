@@ -239,7 +239,7 @@ export default function OperatorDashboardPage() {
                   {bookings.length}
                 </div>
                 <p className="text-sm text-gray-500 mt-1">
-                  {bookings.filter(b => b.booking_status === 'confirmed').length} confirmed
+                  {bookings.filter(b => b.status === 'confirmed').length} confirmed
                 </p>
               </CardContent>
             </Card>
@@ -328,7 +328,7 @@ export default function OperatorDashboardPage() {
                               </span>
                               <span className="flex items-center gap-1">
                                 <DollarSign className="w-4 h-4" />
-                                £{tour.price_adult}
+                                £{tour.price_amount}
                               </span>
                               <span className="flex items-center gap-1">
                                 <Star className="w-4 h-4 text-yellow-500" />
@@ -399,7 +399,7 @@ export default function OperatorDashboardPage() {
                           {bookings.map((booking) => (
                             <tr key={booking.id} className="border-b hover:bg-gray-50">
                               <td className="py-3 px-4 text-sm font-medium">
-                                {booking.booking_reference}
+                                {booking.id}
                               </td>
                               <td className="py-3 px-4 text-sm">
                                 {booking.tour?.title || 'N/A'}
@@ -408,14 +408,14 @@ export default function OperatorDashboardPage() {
                                 {booking.customer_name}
                               </td>
                               <td className="py-3 px-4 text-sm">
-                                {format(new Date(booking.tour_date), 'MMM dd, yyyy')}
+                                {booking.customer_contact?.preferred_date ? format(new Date(booking.customer_contact.preferred_date), 'MMM dd, yyyy') : 'Date TBD'}
                               </td>
                               <td className="py-3 px-4 text-right text-sm font-medium">
                                 £{parseFloat(booking.total_amount).toFixed(2)}
                               </td>
                               <td className="py-3 px-4 text-center">
-                                <Badge className={getBookingStatusColor(booking.booking_status)}>
-                                  {booking.booking_status}
+                                <Badge className={getBookingStatusColor(booking.status)}>
+                                  {booking.status}
                                 </Badge>
                               </td>
                             </tr>
@@ -481,7 +481,7 @@ export default function OperatorDashboardPage() {
                               </div>
                             </div>
                             <div className="text-right">
-                              <p className="font-bold text-green-600">£{tour.price_adult}</p>
+                              <p className="font-bold text-green-600">£{tour.price_amount}</p>
                               <p className="text-sm text-gray-600">{tour.rating || 'N/A'} ⭐</p>
                             </div>
                           </div>

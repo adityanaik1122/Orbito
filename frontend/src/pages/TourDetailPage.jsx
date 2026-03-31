@@ -58,9 +58,8 @@ const TourDetailPage = () => {
 
   const calculateTotal = () => {
     if (!tour) return 0;
-    const adultTotal = (tour.price_adult || 0) * bookingData.numAdults;
-    const childTotal = (tour.price_child || 0) * bookingData.numChildren;
-    return adultTotal + childTotal;
+    const totalPeople = (bookingData.numAdults || 0) + (bookingData.numChildren || 0);
+    return (tour.price_amount || 0) * Math.max(totalPeople, 1);
   };
 
   const handleBooking = async () => {
@@ -94,21 +93,24 @@ const TourDetailPage = () => {
 
     setBooking(true);
     try {
+      const totalPeople = (bookingData.numAdults || 0) + (bookingData.numChildren || 0);
       const response = await apiService.createTourBooking({
         tourId: tour.id || tour.external_id,
-        tourDate: format(bookingData.date, 'yyyy-MM-dd'),
-        numAdults: bookingData.numAdults,
-        numChildren: bookingData.numChildren,
-        customerName: bookingData.customerName,
-        customerEmail: bookingData.customerEmail,
-        customerPhone: bookingData.customerPhone,
-        specialRequirements: bookingData.specialRequirements,
-        totalAmount: calculateTotal()
+        numPeople: Math.max(totalPeople, 1),
+        totalAmount: calculateTotal(),
+        currency: tour.price_currency || 'USD',
+        customerContact: {
+          name: bookingData.customerName,
+          email: bookingData.customerEmail,
+          phone: bookingData.customerPhone,
+          preferred_date: bookingData.date ? bookingData.date.toISOString().split('T')[0] : null
+        },
+        specialRequests: bookingData.specialRequirements
       });
 
       toast({
         title: 'Booking Created! 🎉',
-        description: `Booking reference: ${response.booking.booking_reference}`
+        description: `Booking ID: ${response.booking.id}`
       });
 
       navigate('/bookings');
@@ -165,11 +167,15 @@ const TourDetailPage = () => {
             src={imageUrl}
             alt={tour.title}
             className="w-full h-full object-cover"
+            loading="lazy"
+            decoding="async"
+            referrerPolicy="no-referrer"
+            onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1200&q=80'; }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-          {tour.provider && (
+          {tour.source && (
             <Badge className="absolute top-6 left-6 bg-white/90 backdrop-blur-sm text-[#0B3D91] border-0 shadow-lg text-sm px-4 py-2">
-              {tour.provider === 'premium-tours' ? '⭐ Premium Tours' : tour.provider}
+              {tour.source === 'premium-tours' ? '⭐ Premium Tours' : tour.source}
             </Badge>
           )}
           {/* Tour Title Overlay */}
@@ -186,12 +192,12 @@ const TourDetailPage = () => {
                 )}
                 <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
                   <MapPin className="w-4 h-4" />
-                  <span className="font-medium">{tour.city || tour.destination}</span>
+                  <span className="font-medium">{tour.city || tour.destination_city}</span>
                 </div>
-                {tour.duration && (
+                {tour.duration_minutes && (
                   <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
                     <Clock className="w-4 h-4" />
-                    <span className="font-medium">{tour.duration}</span>
+                    <span className="font-medium">{Math.round(tour.duration_minutes / 60)} hrs</span>
                   </div>
                 )}
               </div>
@@ -263,7 +269,7 @@ const TourDetailPage = () => {
                 <div className="mb-4">
                   <div className="text-sm text-gray-500">{t('tourdetail_from')}</div>
                   <div className="text-3xl font-bold text-primary">
-                    {formatMoney(tour.price_adult, tour.currency || 'GBP')}
+                    {formatMoney(tour.price_amount, tour.price_currency || 'USD')}
                   </div>
                   <div className="text-sm text-gray-500">{t('tourdetail_per_adult')}</div>
                 </div>
@@ -285,12 +291,12 @@ const TourDetailPage = () => {
                       <PopoverContent className="w-auto p-0">
                         <Calendar
                           mode="single"
-                          selected={bookingData.date}
-                          onSelect={(date) => setBookingData({...bookingData, date})}
-                          disabled={(date) => date < new Date()}
-                        />
-                      </PopoverContent>
-                    </Popover>
+                        selected={bookingData.date}
+                        onSelect={(date) => setBookingData({...bookingData, date})}
+                        disabled={(date) => date < new Date()}
+                      />
+                    </PopoverContent>
+                  </Popover>
                   </div>
 
                   {/* Participants */}
@@ -359,8 +365,8 @@ const TourDetailPage = () => {
                     <div className="flex justify-between items-center mb-4">
                       <span className="font-semibold">{t('tourdetail_total')}</span>
                       <span className="text-2xl font-bold text-primary">
-                        {formatMoney(calculateTotal(), tour.currency || 'GBP')}
-                      </span>
+                    {formatMoney(calculateTotal(), tour.price_currency || 'USD')}
+                  </span>
                     </div>
 
                     <Button

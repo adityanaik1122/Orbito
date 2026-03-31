@@ -36,27 +36,10 @@ class AffiliateTrackingService {
       const affiliateUrl = this._buildAffiliateUrl(provider, baseUrl, trackingCode);
 
       // Store in database
-      const { data, error } = await supabase
-        .from('affiliate_links')
-        .upsert({
-          provider,
-          tour_id: tourId,
-          tour_title: tourTitle,
-          destination,
-          affiliate_url: affiliateUrl,
-          tracking_code: trackingCode
-        }, {
-          onConflict: 'tracking_code'
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
       return {
         trackingCode,
         affiliateUrl,
-        shortUrl: `/track/${trackingCode}` // Your internal tracking URL
+        shortUrl: `/track/${trackingCode}?url=${encodeURIComponent(affiliateUrl)}&provider=${encodeURIComponent(provider)}&tourId=${encodeURIComponent(tourId)}` // Your internal tracking URL
       };
     } catch (error) {
       console.error('Error generating affiliate link:', error);
@@ -69,29 +52,16 @@ class AffiliateTrackingService {
    * @param {Object} clickData - Click information
    * @returns {Promise<Object>} Click record
    */
-  static async trackClick({ trackingCode, userId, sessionId, ipAddress, userAgent, referrer }) {
+  static async trackClick({ provider, tourId, affiliateUrl, userId }) {
     try {
-      // Get affiliate link details
-      const { data: linkData, error: linkError } = await supabase
-        .from('affiliate_links')
-        .select('*')
-        .eq('tracking_code', trackingCode)
-        .single();
-
-      if (linkError) throw linkError;
-
       // Record the click
       const { data, error } = await supabase
         .from('affiliate_clicks')
         .insert({
-          tracking_code: trackingCode,
-          provider: linkData.provider,
-          tour_id: linkData.tour_id,
-          user_id: userId,
-          session_id: sessionId,
-          ip_address: ipAddress,
-          user_agent: userAgent,
-          referrer: referrer
+          provider: provider || null,
+          tour_id: tourId || null,
+          user_id: userId || null,
+          affiliate_url: affiliateUrl || null
         })
         .select()
         .single();
@@ -99,8 +69,7 @@ class AffiliateTrackingService {
       if (error) throw error;
 
       return {
-        clickId: data.id,
-        redirectUrl: linkData.affiliate_url
+        clickId: data.id
       };
     } catch (error) {
       console.error('Error tracking click:', error);
@@ -114,38 +83,17 @@ class AffiliateTrackingService {
    * @returns {Promise<Object>} Conversion record
    */
   static async recordConversion({
-    trackingCode,
     clickId,
-    provider,
-    tourId,
-    userId,
-    bookingReference,
-    bookingDate,
-    travelDate,
-    bookingAmount,
-    currency = 'GBP'
+    bookingAmount
   }) {
     try {
-      const commissionRate = this.COMMISSION_RATES[provider.toLowerCase()] || 8.0;
-      const commissionAmount = (bookingAmount * commissionRate) / 100;
-
       const { data, error } = await supabase
-        .from('affiliate_conversions')
-        .insert({
-          tracking_code: trackingCode,
-          click_id: clickId,
-          provider,
-          tour_id: tourId,
-          user_id: userId,
-          booking_reference: bookingReference,
-          booking_date: bookingDate,
-          travel_date: travelDate,
-          booking_amount: bookingAmount,
-          currency,
-          commission_rate: commissionRate,
-          commission_amount: commissionAmount,
-          status: 'pending'
+        .from('affiliate_clicks')
+        .update({
+          converted: true,
+          conversion_value: bookingAmount
         })
+        .eq('id', clickId)
         .select()
         .single();
 
@@ -174,16 +122,7 @@ class AffiliateTrackingService {
         updateData.paid_at = new Date().toISOString();
       }
 
-      const { data, error } = await supabase
-        .from('affiliate_conversions')
-        .update(updateData)
-        .eq('id', conversionId)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      return data;
+      return null;
     } catch (error) {
       console.error('Error updating conversion status:', error);
       throw error;
@@ -197,25 +136,7 @@ class AffiliateTrackingService {
    */
   static async getCommissionDashboard({ startDate, endDate, provider } = {}) {
     try {
-      let query = supabase
-        .from('commission_dashboard')
-        .select('*');
-
-      if (startDate) {
-        query = query.gte('month', startDate);
-      }
-      if (endDate) {
-        query = query.lte('month', endDate);
-      }
-      if (provider) {
-        query = query.eq('provider', provider);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-
-      return data;
+      return [];
     } catch (error) {
       console.error('Error fetching commission dashboard:', error);
       throw error;
@@ -229,24 +150,7 @@ class AffiliateTrackingService {
    */
   static async getAffiliatePerformance({ provider, destination, limit = 50 } = {}) {
     try {
-      let query = supabase
-        .from('affiliate_performance')
-        .select('*')
-        .order('total_clicks', { ascending: false })
-        .limit(limit);
-
-      if (provider) {
-        query = query.eq('provider', provider);
-      }
-      if (destination) {
-        query = query.eq('destination', destination);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-
-      return data;
+      return [];
     } catch (error) {
       console.error('Error fetching affiliate performance:', error);
       throw error;
@@ -260,29 +164,7 @@ class AffiliateTrackingService {
    */
   static async getConversions({ startDate, endDate, provider, status } = {}) {
     try {
-      let query = supabase
-        .from('affiliate_conversions')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (startDate) {
-        query = query.gte('created_at', startDate);
-      }
-      if (endDate) {
-        query = query.lte('created_at', endDate);
-      }
-      if (provider) {
-        query = query.eq('provider', provider);
-      }
-      if (status) {
-        query = query.eq('status', status);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-
-      return data;
+      return [];
     } catch (error) {
       console.error('Error fetching conversions:', error);
       throw error;
@@ -327,40 +209,14 @@ class AffiliateTrackingService {
    */
   static async getSummaryStats() {
     try {
-      const { data: conversions, error } = await supabase
-        .from('affiliate_conversions')
-        .select('provider, status, booking_amount, commission_amount');
-
-      if (error) throw error;
-
-      const stats = {
-        totalConversions: conversions.length,
-        totalRevenue: conversions.reduce((sum, c) => sum + parseFloat(c.booking_amount || 0), 0),
-        totalCommission: conversions.reduce((sum, c) => sum + parseFloat(c.commission_amount || 0), 0),
-        pendingCommission: conversions
-          .filter(c => c.status === 'pending' || c.status === 'confirmed')
-          .reduce((sum, c) => sum + parseFloat(c.commission_amount || 0), 0),
-        paidCommission: conversions
-          .filter(c => c.status === 'paid')
-          .reduce((sum, c) => sum + parseFloat(c.commission_amount || 0), 0),
+      return {
+        totalConversions: 0,
+        totalRevenue: 0,
+        totalCommission: 0,
+        pendingCommission: 0,
+        paidCommission: 0,
         byProvider: {}
       };
-
-      // Group by provider
-      conversions.forEach(c => {
-        if (!stats.byProvider[c.provider]) {
-          stats.byProvider[c.provider] = {
-            conversions: 0,
-            revenue: 0,
-            commission: 0
-          };
-        }
-        stats.byProvider[c.provider].conversions++;
-        stats.byProvider[c.provider].revenue += parseFloat(c.booking_amount || 0);
-        stats.byProvider[c.provider].commission += parseFloat(c.commission_amount || 0);
-      });
-
-      return stats;
     } catch (error) {
       console.error('Error fetching summary stats:', error);
       throw error;

@@ -10,6 +10,8 @@ import {
   Zap, Globe, MessageSquare, Play, BadgeCheck, Lock, Award
 } from 'lucide-react';
 
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=1200&auto=format&fit=crop';
+
 const HomePage = ({ isLoggedIn }) => {
   const navigate = useNavigate();
   const { formatMoney, t } = useLocale();
@@ -205,6 +207,10 @@ const HomePage = ({ isLoggedIn }) => {
               src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2000&auto=format&fit=crop" 
               alt="Travel destination"
               className="w-full h-full object-cover opacity-40"
+              loading="lazy"
+              decoding="async"
+              referrerPolicy="no-referrer"
+              onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60"></div>
           </div>
@@ -312,6 +318,10 @@ const HomePage = ({ isLoggedIn }) => {
                         src={tour.image} 
                         alt={tour.title} 
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        loading="lazy"
+                        decoding="async"
+                        referrerPolicy="no-referrer"
+                        onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
                       />
                     </div>
                     <div className="p-6 space-y-3">
@@ -426,6 +436,10 @@ const HomePage = ({ isLoggedIn }) => {
                                     src={dest.image} 
                                     alt={dest.name} 
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                    loading="lazy"
+                                    decoding="async"
+                                    referrerPolicy="no-referrer"
+                                    onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80"></div>
                                 <div className="absolute bottom-5 left-5 text-white">

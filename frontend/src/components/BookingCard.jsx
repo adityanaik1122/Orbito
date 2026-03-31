@@ -21,7 +21,7 @@ import { useState } from 'react';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 const API_URL = `${API_BASE_URL}/octo/bookings`;
 
-export default function BookingCard({ productId, availabilityId, price }) {
+export default function BookingCard({ tourId, availabilityId, price }) {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState(null); // 'success', 'error', or null
 
@@ -36,12 +36,16 @@ export default function BookingCard({ productId, availabilityId, price }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          productId: productId,
+          tourId: tourId,
           availabilityId: availabilityId,
-          localDate: "2026-02-05", // Hardcoded for test, make dynamic later
-          units: 2, // Booking 2 tickets
-          total_price_amount: price * 2,
-          status: 'PENDING'
+          units: 2,
+          totalAmount: price * 2,
+          currency: 'USD',
+          customerContact: {
+            name: 'Demo User',
+            email: 'demo@orbito.com'
+          },
+          specialRequests: 'Demo booking'
         }),
       });
 
@@ -49,7 +53,7 @@ export default function BookingCard({ productId, availabilityId, price }) {
 
       if (response.ok) {
         setStatus('success');
-        alert(`Booking Confirmed! ID: ${data.uuid}`);
+        alert(`Booking Confirmed! ID: ${data.id || data.booking?.id}`);
       } else {
         setStatus('error');
         alert(`Error: ${data.message || 'Booking failed'}`);

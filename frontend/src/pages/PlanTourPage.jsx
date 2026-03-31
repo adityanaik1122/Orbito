@@ -42,6 +42,7 @@ const PlanTourPage = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [itinerary, setItinerary] = useState([]);
   const [aiPrompt, setAiPrompt] = useState('');
+  const [tripStyle, setTripStyle] = useState('balanced');
   const [isSaving, setIsSaving] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [isPrintViewOpen, setIsPrintViewOpen] = useState(false);
@@ -83,8 +84,57 @@ const PlanTourPage = () => {
     return isValid(date) ? date : null;
   };
 
+  const buildPrefilledItinerary = (prefill) => {
+    if (!prefill?.days || !prefill.days.length) return [];
+    const start = new Date();
+    start.setDate(start.getDate() + 7);
+    return prefill.days.map((day, dayIndex) => {
+      const date = addDays(start, dayIndex);
+      const dateStr = format(date, 'yyyy-MM-dd');
+      return {
+        id: `prefill-day-${dayIndex + 1}`,
+        date: dateStr,
+        items: (day.items || []).map((item, itemIndex) => ({
+          id: `prefill-${dayIndex}-${itemIndex}`,
+          type: 'custom',
+          name: item.name || 'Activity',
+          location: prefill.city || prefill.destination || '',
+          time: item.time || '',
+          estTime: item.duration || '',
+          cost: '',
+          notes: item.note || ''
+        }))
+      };
+    });
+  };
+
   // Handle Location State (Pre-select destination and natural language query)
   useEffect(() => {
+    if (location.state?.prefillItinerary) {
+      const prefill = location.state.prefillItinerary;
+      const prefillStart = new Date();
+      prefillStart.setDate(prefillStart.getDate() + 7);
+      const prefillEnd = addDays(prefillStart, Math.max((prefill.days?.length || 1) - 1, 0));
+
+      setTripDetails(prev => ({
+        ...prev,
+        title: prefill.title || prev.title,
+        destination: prefill.city || prefill.destination || prev.destination,
+        startDate: prefillStart,
+        endDate: prefillEnd
+      }));
+      if (prefill.styles && prefill.styles.length) {
+        setTripStyle(prefill.styles[0]);
+      }
+
+      const built = buildPrefilledItinerary(prefill);
+      if (built.length) {
+        setItinerary(built);
+      }
+
+      return;
+    }
+
     if (location.state?.destination) {
       setTripDetails(prev => ({
         ...prev,
@@ -617,11 +667,15 @@ const PlanTourPage = () => {
         description: "This may take 10-20 seconds...",
       });
 
+      const styleHint = tripStyle && tripStyle !== 'balanced' ? `Trip style: ${tripStyle}.` : '';
+      const combinedPreferences = [styleHint, trimmedPrompt].filter(Boolean).join(' ').trim();
+
       const response = await apiService.generateItinerary({
         destination: destination,
         startDate: startDate,
         endDate: endDate,
-        preferences: trimmedPrompt,
+        preferences: combinedPreferences,
+        style: tripStyle,
         variants
       });
 
@@ -1146,6 +1200,21 @@ const PlanTourPage = () => {
                                     value={tripDetails.title}
                                     onChange={(e) => setTripDetails({...tripDetails, title: e.target.value})}
                                 />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Trip Style</Label>
+                                <Select value={tripStyle} onValueChange={setTripStyle}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Choose a style" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="balanced">Balanced</SelectItem>
+                                        <SelectItem value="budget">Budget</SelectItem>
+                                        <SelectItem value="luxury">Luxury</SelectItem>
+                                        <SelectItem value="foodie">Foodie</SelectItem>
+                                        <SelectItem value="adventure">Adventure</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
                             <div className="space-y-2">
                                 <Label>Start Date</Label>

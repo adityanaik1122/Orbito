@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Calendar, Clock, ArrowRight } from 'lucide-react';
 
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=1200&auto=format&fit=crop';
+
 const BlogPage = () => {
     const featuredPost = {
         title: 'The Future of AI-Powered Travel Planning',
@@ -98,6 +100,10 @@ const BlogPage = () => {
                                 src={featuredPost.image}
                                 alt={featuredPost.title}
                                 className="w-full h-64 md:h-full object-cover"
+                                loading="lazy"
+                                decoding="async"
+                                referrerPolicy="no-referrer"
+                                onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
                             />
                             <div className="p-8 flex flex-col justify-center">
                                 <span className="text-sm font-medium text-[#0B3D91] mb-2">{featuredPost.category}</span>
@@ -140,6 +146,10 @@ const BlogPage = () => {
                                 src={post.image}
                                 alt={post.title}
                                 className="w-full h-48 object-cover"
+                                loading="lazy"
+                                decoding="async"
+                                referrerPolicy="no-referrer"
+                                onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
                             />
                             <div className="p-6">
                                 <span className="text-xs font-medium text-[#0B3D91] bg-[#0B3D91]/10 px-2 py-1 rounded">

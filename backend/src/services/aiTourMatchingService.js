@@ -91,11 +91,11 @@ class AITourMatchingService {
     if (!tours.length) return 'No pre-booked tours available.';
 
     const summary = tours.slice(0, 20).map(t => ({
-      id: t.external_id,
+      id: t.external_id || t.id,
       name: t.title,
       category: t.category,
-      price: `${t.currency || '£'}${t.price_adult}`,
-      duration: t.duration,
+      price: `${t.price_currency || t.currency || '£'}${t.price_amount ?? t.price_adult ?? 0}`,
+      duration: t.duration_minutes ? `${Math.round(t.duration_minutes / 60)}h` : t.duration,
       rating: t.rating,
       highlights: t.highlights?.slice(0, 2) || []
     }));
@@ -193,7 +193,7 @@ Return ONLY valid JSON in this exact format:
    */
   static async _matchToursToActivities(itinerary, availableTours) {
     const tourMap = new Map(
-      availableTours.map(t => [t.external_id, t])
+      availableTours.map(t => [t.external_id || t.id, t])
     );
 
     // Enrich each day's activities
@@ -207,15 +207,15 @@ Return ONLY valid JSON in this exact format:
             ...item,
             bookable: true,
             tour: {
-              id: tour.external_id,
+              id: tour.external_id || tour.id,
               title: tour.title,
-              provider: tour.provider || 'premium-tours',
-              price: tour.price_adult,
-              currency: tour.currency || 'GBP',
+              provider: tour.source || tour.provider || 'premium-tours',
+              price: tour.price_amount ?? tour.price_adult ?? 0,
+              currency: tour.price_currency || tour.currency || 'GBP',
               rating: tour.rating,
               reviewCount: tour.review_count,
               image: tour.main_image,
-              duration: tour.duration,
+              duration: tour.duration_minutes ? `${Math.round(tour.duration_minutes / 60)}h` : tour.duration,
               instantConfirmation: tour.instant_confirmation,
               cancellationPolicy: tour.cancellation_policy,
               highlights: tour.highlights?.slice(0, 3),
@@ -232,11 +232,11 @@ Return ONLY valid JSON in this exact format:
               ...item,
               bookable: true,
               suggestedTour: {
-                id: matchedTour.external_id,
+                id: matchedTour.external_id || matchedTour.id,
                 title: matchedTour.title,
-                provider: matchedTour.provider || 'premium-tours',
-                price: matchedTour.price_adult,
-                currency: matchedTour.currency || 'GBP',
+                provider: matchedTour.source || matchedTour.provider || 'premium-tours',
+                price: matchedTour.price_amount ?? matchedTour.price_adult ?? 0,
+                currency: matchedTour.price_currency || matchedTour.currency || 'GBP',
                 rating: matchedTour.rating,
                 image: matchedTour.main_image,
                 bookingUrl: this._generateBookingUrl(matchedTour)
@@ -340,7 +340,7 @@ Return ONLY valid JSON in this exact format:
    * Generate booking URL for a tour
    */
   static _generateBookingUrl(tour) {
-    const provider = tour.provider || 'premium-tours';
+    const provider = tour.source || tour.provider || 'premium-tours';
     
     switch (provider) {
       case 'viator':
@@ -349,7 +349,7 @@ Return ONLY valid JSON in this exact format:
         return `https://www.getyourguide.com/activity/${tour.external_id}`;
       default:
         // Internal booking
-        return `/tours/${tour.slug || tour.external_id}`;
+        return `/tours/${tour.id || tour.external_id}`;
     }
   }
 

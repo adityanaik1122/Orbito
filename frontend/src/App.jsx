@@ -54,11 +54,7 @@ function App() {
               <Layout><MyAccountPage /></Layout>
             </RequireAuth>
           } />
-          <Route path="/itinerary/:id" element={
-            <RequireAuth>
-              <Layout><ItineraryDetailPage /></Layout>
-            </RequireAuth>
-          } />
+          <Route path="/itinerary/:id" element={<Layout><ItineraryDetailPage /></Layout>} />
           <Route path="/itinerary/share/:shareId" element={<ShareableItineraryPage />} />
           
           <Route path="/destinations" element={<Layout><DestinationsPage /></Layout>} />

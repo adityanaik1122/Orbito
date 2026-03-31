@@ -1,5 +1,6 @@
 const { getTours: getToursFromDB, getTourById: getTourByIdFromDB, createBooking: createBookingInDB, getUserBookings: getUserBookingsFromDB, getBookingById: getBookingByIdFromDB } = require('../models/tourModel');
 const PremiumToursService = require('../services/premiumToursService');
+const logger = require('../utils/logger');
 
 /**
  * Get all tours
@@ -34,9 +35,19 @@ async function getTours(req, res) {
     if (error || !data || data.length === 0) {
       logger.info('No tours in database, fetching from Premium Tours service...');
       const apiTours = await PremiumToursService.getTours(filters);
+      const normalizedTours = apiTours.map((tour) => ({
+        ...tour,
+        price_amount: tour.price_amount ?? tour.price_adult ?? 0,
+        price_currency: tour.price_currency ?? tour.currency ?? 'USD',
+        duration_minutes: tour.duration_minutes ?? (tour.duration_hours ? Math.round(tour.duration_hours * 60) : null),
+        city: tour.city || tour.destination_city || tour.destination,
+        country_code: tour.country_code || tour.country,
+        is_active: tour.is_active ?? tour.is_available ?? true,
+        source: tour.source || tour.provider || 'premium-tours'
+      }));
       
       // Apply client-side filtering for Premium Tours data
-      let filteredTours = apiTours;
+      let filteredTours = normalizedTours;
       
       // Filter by categories
       if (filters.categories) {
@@ -53,7 +64,7 @@ async function getTours(req, res) {
         const durationsArray = filters.durations.split(',').filter(Boolean);
         if (durationsArray.length > 0) {
           filteredTours = filteredTours.filter(tour => {
-            const hours = tour.duration_hours || 0;
+            const hours = tour.duration_minutes ? tour.duration_minutes / 60 : (tour.duration_hours || 0);
             return durationsArray.some(duration => {
               if (duration === 'half-day') return hours < 4;
               if (duration === 'full-day') return hours >= 4 && hours <= 8;
@@ -67,12 +78,12 @@ async function getTours(req, res) {
       // Filter by price range
       if (filters.minPrice) {
         filteredTours = filteredTours.filter(tour => 
-          tour.price_adult >= parseFloat(filters.minPrice)
+          tour.price_amount >= parseFloat(filters.minPrice)
         );
       }
       if (filters.maxPrice) {
         filteredTours = filteredTours.filter(tour => 
-          tour.price_adult <= parseFloat(filters.maxPrice)
+          tour.price_amount <= parseFloat(filters.maxPrice)
         );
       }
       
@@ -81,9 +92,9 @@ async function getTours(req, res) {
         filteredTours.sort((a, b) => {
           switch (filters.sortBy) {
             case 'price_low':
-              return a.price_adult - b.price_adult;
+              return a.price_amount - b.price_amount;
             case 'price_high':
-              return b.price_adult - a.price_adult;
+              return b.price_amount - a.price_amount;
             case 'rating':
               return (b.rating || 0) - (a.rating || 0);
             case 'popular':
@@ -126,7 +137,17 @@ async function getTourDetail(req, res) {
     if (error || !data) {
       logger.info(`Tour ${identifier} not in database, fetching from Premium Tours service...`);
       try {
-        data = await PremiumToursService.getTourById(identifier);
+        const raw = await PremiumToursService.getTourById(identifier);
+        data = {
+          ...raw,
+          price_amount: raw.price_amount ?? raw.price_adult ?? 0,
+          price_currency: raw.price_currency ?? raw.currency ?? 'USD',
+          duration_minutes: raw.duration_minutes ?? (raw.duration_hours ? Math.round(raw.duration_hours * 60) : null),
+          city: raw.city || raw.destination_city || raw.destination,
+          country_code: raw.country_code || raw.country,
+          is_active: raw.is_active ?? raw.is_available ?? true,
+          source: raw.source || raw.provider || 'premium-tours'
+        };
       } catch (serviceError) {
         return res.status(404).json({ error: 'Tour not found' });
       }
@@ -144,40 +165,24 @@ async function getTourDetail(req, res) {
  */
 async function createBooking(req, res) {
   try {
-    const { tourId, tourDate, tourTime, numAdults, numChildren, numInfants, customerName, customerEmail, customerPhone, specialRequirements, accessibilityNeeds, dietaryRequirements, totalAmount } = req.body;
+    const { tourId, numPeople, totalAmount, currency, customerContact, specialRequests } = req.body;
     
     const userId = req.user.id;
 
     // Validate required fields
-    if (!tourId || !tourDate || !customerName || !customerEmail || !totalAmount) {
+    if (!tourId || !totalAmount || !customerContact?.name || !customerContact?.email) {
       return res.status(400).json({ error: 'Missing required booking information' });
-    }
-
-    // Check availability (if using Premium Tours API)
-    if (tourTime) {
-      const availability = await PremiumToursService.checkAvailability(tourId, tourDate, tourTime);
-      if (!availability.available) {
-        return res.status(400).json({ error: 'Tour is not available at this time' });
-      }
     }
 
     const bookingData = {
       user_id: userId,
       tour_id: tourId,
-      tour_date: tourDate,
-      tour_time: tourTime,
-      num_adults: numAdults || 1,
-      num_children: numChildren || 0,
-      num_infants: numInfants || 0,
-      customer_name: customerName,
-      customer_email: customerEmail,
-      customer_phone: customerPhone,
+      num_people: numPeople || 1,
       total_amount: totalAmount,
-      special_requirements: specialRequirements,
-      accessibility_needs: accessibilityNeeds,
-      dietary_requirements: dietaryRequirements,
-      payment_status: 'pending',
-      booking_status: 'pending'
+      currency: currency || 'USD',
+      customer_contact: customerContact,
+      special_requests: specialRequests,
+      status: 'pending'
     };
 
     // Create booking in our database
@@ -261,7 +266,7 @@ async function cancelBooking(req, res) {
       return res.status(404).json({ error: 'Booking not found' });
     }
 
-    if (booking.booking_status === 'cancelled') {
+    if (booking.status === 'cancelled') {
       return res.status(400).json({ error: 'Booking is already cancelled' });
     }
 
@@ -270,7 +275,7 @@ async function cancelBooking(req, res) {
 
     // Update booking status
     const { updateBookingStatus } = require('../models/tourModel');
-const logger = require('../utils/logger');
+    const logger = require('../utils/logger');
     const { data, error } = await updateBookingStatus(id, 'cancelled', {
       cancelled_at: new Date().toISOString(),
       cancellation_reason: cancellationReason
