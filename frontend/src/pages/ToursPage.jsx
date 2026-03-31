@@ -59,6 +59,17 @@ const ToursPage = () => {
   }, []);
 
   useEffect(() => {
+    const widgetSrc = 'https://www.viator.com/orion/partner/widget.js';
+    const existing = document.querySelector(`script[src="${widgetSrc}"]`);
+    if (!existing) {
+      const script = document.createElement('script');
+      script.src = widgetSrc;
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, []);
+
+  useEffect(() => {
     const timer = setTimeout(() => {
       fetchTours(filters, true);
     }, 300);
@@ -293,6 +304,15 @@ const ToursPage = () => {
                   ))}
                 </div>
               )}
+
+              {/* Viator Widget */}
+              <div className="bg-white rounded-lg shadow p-6 mt-10">
+                <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
+                  <h3 className="text-lg font-bold text-gray-900">More experiences from Viator</h3>
+                  <span className="text-xs text-gray-500">Affiliate partner content</span>
+                </div>
+                <div data-vi-partner-id="P00281964" data-vi-widget-ref="W-e50d8b20-0e81-4083-a036-aad28f2f0562"></div>
+              </div>
             </div>
           </div>
         </div>
