@@ -45,7 +45,9 @@ const AuthPage = () => {
     try {
       const { error } = await signIn(formData.email, formData.password);
       
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
       // Determine role and redirect accordingly
       let target = from;
@@ -112,15 +114,19 @@ const AuthPage = () => {
       if (error) throw error;
 
       if (data?.user?.id) {
-        await supabase
-          .from('profiles')
-          .upsert({
-            id: data.user.id,
-            country: formData.country || country || null,
-            locale: locale || null,
-            currency: currency || null,
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'id' });
+        try {
+          await supabase
+            .from('profiles')
+            .upsert({
+              id: data.user.id,
+              country: formData.country || country || null,
+              locale: locale || null,
+              currency: currency || null,
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'id' });
+        } catch (profileError) {
+          console.error('Profile upsert failed:', profileError);
+        }
       }
 
       if (data?.session) {
@@ -260,6 +266,7 @@ const AuthPage = () => {
                         Forgot your password?
                     </Button>
                   </div>
+
                 </form>
               </TabsContent>
               
