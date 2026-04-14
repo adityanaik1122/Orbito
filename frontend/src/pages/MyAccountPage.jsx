@@ -36,6 +36,18 @@ const MyAccountPage = () => {
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
+  const getItineraryDestination = (item) => {
+    return item.destination || item.destination_city || item.destinationCity || item.city || 'No destination';
+  };
+
+  const getItineraryActivityCount = (item) => {
+    if (Array.isArray(item.activities) && item.activities.length) return item.activities.length;
+    if (Array.isArray(item.days) && item.days.length) {
+      return item.days.reduce((sum, day) => sum + (Array.isArray(day.items) ? day.items.length : 0), 0);
+    }
+    return 0;
+  };
+
   // Redirect if not logged in
   useEffect(() => {
     if (!authLoading && !user) {
@@ -309,7 +321,7 @@ const MyAccountPage = () => {
                           <h3 className="text-lg font-bold text-[#0B3D91] mb-2">{item.title || 'Untitled Trip'}</h3>
                           <p className="text-gray-600 mb-3 flex items-center gap-2">
                             <MapPin className="w-4 h-4" />
-                            {item.destination || 'No destination'}
+                            {getItineraryDestination(item)}
                           </p>
                           {item.startDate && item.endDate && (
                             <p className="text-sm text-gray-500 mb-4 flex items-center gap-2">
@@ -318,7 +330,7 @@ const MyAccountPage = () => {
                             </p>
                           )}
                           <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                            <span className="text-sm text-gray-600">{item.activities?.length || 0} {t('account_activities_label')}</span>
+                            <span className="text-sm text-gray-600">{getItineraryActivityCount(item)} {t('account_activities_label')}</span>
                             <div className="flex gap-2">
                               <Button
                                 variant="ghost"

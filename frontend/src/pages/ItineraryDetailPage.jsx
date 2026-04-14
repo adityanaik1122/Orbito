@@ -7,16 +7,119 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Share2, Edit, Calendar, MapPin, Clock, Sparkles } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { getItineraryById, FALLBACK_IMAGE } from '@/data/itineraries';
+import { supabase } from '@/lib/customSupabaseClient';
+
+const CITY_IMAGES = {
+  'London': 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?q=80&w=1600&auto=format&fit=crop',
+  'Paris': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=1600&auto=format&fit=crop',
+  'Amsterdam': 'https://images.unsplash.com/photo-1534351590666-13e3e96b5017?q=80&w=1600&auto=format&fit=crop',
+  'New York': 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?q=80&w=1600&auto=format&fit=crop',
+  'Tokyo': 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1600&auto=format&fit=crop',
+  'Dubai': 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=1600&auto=format&fit=crop',
+  'Rome': 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=1600&auto=format&fit=crop',
+  'Barcelona': 'https://images.unsplash.com/photo-1583422409516-2895a77efded?q=80&w=1600&auto=format&fit=crop',
+  'Bangkok': 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?q=80&w=1600&auto=format&fit=crop',
+  'Bali': 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1600&auto=format&fit=crop',
+  'Singapore': 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?q=80&w=1600&auto=format&fit=crop',
+  'Sydney': 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?q=80&w=1600&auto=format&fit=crop',
+  'Cape Town': 'https://images.unsplash.com/photo-1580060839134-75a5edca2e99?q=80&w=1600&auto=format&fit=crop',
+  'Istanbul': 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?q=80&w=1600&auto=format&fit=crop',
+};
+
+const normalizeDbItinerary = (dbItinerary) => {
+  const city = dbItinerary.destination_city || dbItinerary.destination || dbItinerary.city || 'Unknown city';
+  const country = dbItinerary.destination_country || dbItinerary.country || '';
+  const start = dbItinerary.start_date ? new Date(dbItinerary.start_date) : null;
+  const end = dbItinerary.end_date ? new Date(dbItinerary.end_date) : null;
+  const dayCount = start && end ? Math.max(Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1, 1) : (dbItinerary.days?.length || 1);
+  const duration = `${dayCount} ${dayCount === 1 ? 'Day' : 'Days'}`;
+  const rawDays = Array.isArray(dbItinerary.days) ? dbItinerary.days : [];
+  const days = rawDays.length ? rawDays.map((day, index) => ({
+    day: day.day || index + 1,
+    title: day.title || `Day ${day.day || index + 1}`,
+    theme: day.theme || 'Custom plan',
+    items: (day.items || []).map((item) => ({
+      time: item.time || '',
+      name: item.name || item.title || 'Planned activity',
+      note: item.note || item.notes || item.description || '',
+      duration: item.duration || item.estTime || ''
+    }))
+  })) : Array.from({ length: dayCount }, (_, index) => ({
+    day: index + 1,
+    title: `Day ${index + 1}`,
+    theme: 'Custom plan',
+    items: []
+  }));
+
+  return {
+    id: dbItinerary.id,
+    title: dbItinerary.title || 'Untitled Trip',
+    city,
+    country,
+    duration,
+    rating: 4.8,
+    reviews: 120,
+    price: 'Free',
+    tags: ['Custom'],
+    styles: dbItinerary.styles || [],
+    heroImage: dbItinerary.hero_image_url || CITY_IMAGES[city] || FALLBACK_IMAGE,
+    summary: dbItinerary.summary || 'A personalized itinerary you can refine in the planner.',
+    highlights: dbItinerary.highlights || [],
+    days
+  };
+};
 
 const ItineraryDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [itinerary, setItinerary] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const found = getItineraryById(id);
-    setItinerary(found || null);
+    let isMounted = true;
+
+    const loadItinerary = async () => {
+      setIsLoading(true);
+      const found = getItineraryById(id);
+      if (found) {
+        if (isMounted) {
+          setItinerary(found);
+          setIsLoading(false);
+        }
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('itineraries')
+          .select('*')
+          .eq('id', id)
+          .single();
+        if (error) {
+          if (isMounted) {
+            setItinerary(null);
+            setIsLoading(false);
+          }
+          return;
+        }
+        if (isMounted) {
+          setItinerary(normalizeDbItinerary(data));
+          setIsLoading(false);
+        }
+      } catch {
+        if (isMounted) {
+          setItinerary(null);
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadItinerary();
+
+    return () => {
+      isMounted = false;
+    };
   }, [id]);
 
   const handleShare = () => {
@@ -25,6 +128,14 @@ const ItineraryDetailPage = () => {
       description: "Share this trip with your friends."
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 pt-24 text-center">
+        <p className="text-gray-600">Loading itinerary...</p>
+      </div>
+    );
+  }
 
   if (!itinerary) {
     return (
@@ -41,7 +152,7 @@ const ItineraryDetailPage = () => {
     <>
       <Helmet>
         <title>{itinerary.title || 'Itinerary'} - AI Itinerary Creator</title>
-        <meta name="description" content={`View your ${itinerary.destination} travel itinerary with interactive map and detailed schedule.`} />
+        <meta name="description" content={`View your ${itinerary.city} travel itinerary with interactive map and detailed schedule.`} />
       </Helmet>
       
       <div className="container mx-auto px-4 py-12">

@@ -9,9 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Calendar as CalendarIcon, MapPin, Plus, Sparkles, ArrowLeft, Save, Share2, Clock, DollarSign, Map as MapIcon, Filter, Trash2, GripVertical, Coffee, Loader2, Link2, Printer, Edit } from 'lucide-react';
+import { Calendar as CalendarIcon, MapPin, Plus, Sparkles, ArrowLeft, Save, Share2, Clock, DollarSign, Trash2, GripVertical, Coffee, Loader2, Link2, Printer, Edit } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 import { Reorder, motion } from 'framer-motion';
@@ -48,12 +47,9 @@ const PlanTourPage = () => {
   const [isPrintViewOpen, setIsPrintViewOpen] = useState(false);
   const [isAiLoading, setIsAiLoading] = useState(false);
   
-  // -- Add Activity Modal State --
-  const [isAddActivityOpen, setIsAddActivityOpen] = useState(false);
-  const [selectedDayIndex, setSelectedDayIndex] = useState(null);
-  const [activitySearch, setActivitySearch] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  // -- Quick Add State --
   const [quickAddValues, setQuickAddValues] = useState({});
+  const [quickAddErrors, setQuickAddErrors] = useState({});
   const quickAddRefs = useRef({});
   
   // -- Edit Activity Modal State --
@@ -448,6 +444,12 @@ const PlanTourPage = () => {
   // -- Handlers --
   const handleQuickAddChange = (dayIndex, value) => {
     setQuickAddValues(prev => ({ ...prev, [dayIndex]: value }));
+    setQuickAddErrors(prev => {
+      if (!prev[dayIndex]) return prev;
+      const next = { ...prev };
+      delete next[dayIndex];
+      return next;
+    });
   };
 
   useEffect(() => {
@@ -460,9 +462,18 @@ const PlanTourPage = () => {
     }
   }, [itinerary.length]);
 
+  const isValidQuickAdd = (value) => {
+    if (!value) return false;
+    if (value.length < 2) return false;
+    return /[a-z0-9]/i.test(value);
+  };
+
   const addQuickActivity = (dayIndex) => {
     const value = (quickAddValues[dayIndex] || '').trim();
-    if (!value) return;
+    if (!isValidQuickAdd(value)) {
+      setQuickAddErrors(prev => ({ ...prev, [dayIndex]: 'Enter a short activity name to add.' }));
+      return;
+    }
 
     const newItem = {
       id: Date.now() + Math.random(),
@@ -486,6 +497,12 @@ const PlanTourPage = () => {
     });
 
     setQuickAddValues(prev => ({ ...prev, [dayIndex]: '' }));
+    setQuickAddErrors(prev => {
+      if (!prev[dayIndex]) return prev;
+      const next = { ...prev };
+      delete next[dayIndex];
+      return next;
+    });
 
     // Auto-advance to next day quick add
     const nextDayIndex = dayIndex + 1 < itinerary.length ? dayIndex + 1 : 0;
@@ -853,14 +870,30 @@ const PlanTourPage = () => {
   };
 
   const openAddActivity = (dayIndex) => {
-    setSelectedDayIndex(dayIndex);
-    setIsAddActivityOpen(true);
-    setActivitySearch('');
-    setSelectedCategory('All');
+    const dayEl = document.getElementById(`day-${dayIndex + 1}`);
+    if (dayEl) {
+      dayEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    const input = quickAddRefs.current[dayIndex];
+    if (input) {
+      input.focus();
+      if (typeof input.select === 'function') {
+        input.select();
+      }
+    }
+    setHighlightDayIndex(dayIndex);
+    setTimeout(() => setHighlightDayIndex(null), 700);
   };
 
-  const addActivityToDay = (attraction, dayIndex = selectedDayIndex) => {
-    if (dayIndex === null) return;
+  const scrollToSuggestions = () => {
+    const el = document.getElementById('planner-suggestions');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const addActivityToDay = (attraction, dayIndex) => {
+    if (dayIndex === null || dayIndex === undefined) return;
 
     const newItem = {
       id: Date.now(),
@@ -888,29 +921,6 @@ const PlanTourPage = () => {
     });
   };
 
-  const addCustomActivity = () => {
-     if (selectedDayIndex === null) return;
-      const newItem = {
-      id: Date.now(),
-      type: 'custom',
-      name: activitySearch || 'New Activity',
-      location: tripDetails.destination,
-      estTime: '1 hour',
-      cost: 'Varies',
-      time: '12:00',
-      notes: ''
-    };
-    
-    setItinerary(prev => {
-      const newItinerary = [...prev];
-      newItinerary[selectedDayIndex].items.push(newItem);
-      return newItinerary;
-    });
-    
-    setIsAddActivityOpen(false);
-    toast({ title: "Custom Activity Added" });
-  };
-  
   const addBreak = (dayIndex) => {
       const newItem = {
           id: Date.now(),
@@ -1063,15 +1073,6 @@ const PlanTourPage = () => {
     }
   };
 
-  // Filter attractions for the modal
-  const filteredAttractions = attractions.filter(a => {
-    const matchesCity = a.location === tripDetails.destination;
-    const matchesSearch = a.title.toLowerCase().includes(activitySearch.toLowerCase()) || 
-                          a.tags.some(t => t.toLowerCase().includes(activitySearch.toLowerCase()));
-    const matchesCategory = selectedCategory === 'All' || a.tags.some(t => t === selectedCategory);
-    return matchesCity && matchesSearch && matchesCategory;
-  });
-
   const startDateValue = getSafeDate(tripDetails.startDate);
   const endDateValue = getSafeDate(tripDetails.endDate);
 
@@ -1176,7 +1177,7 @@ const PlanTourPage = () => {
                 <div className="lg:col-span-7 space-y-6">
                     
                     {/* Trip Details Section */}
-                    <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                    <div id="planner-suggestions" className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
                         <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
                             <span className="w-6 h-6 rounded-full bg-blue-100 text-[#0B3D91] flex items-center justify-center text-xs">1</span>
                             Trip Details
@@ -1395,6 +1396,9 @@ const PlanTourPage = () => {
                                                 {t('planner_add_button')}
                                             </Button>
                                         </div>
+                                        {quickAddErrors[dayIndex] && (
+                                          <p className="text-xs text-amber-600 -mt-2 mb-3">{quickAddErrors[dayIndex]}</p>
+                                        )}
 
                                         {/* Drop Zone Indicator */}
                                         {dropTargetDay === dayIndex && (draggedAttraction || draggedActivity) && (
@@ -1432,7 +1436,7 @@ const PlanTourPage = () => {
                                             {day.items.length === 0 ? (
                                                  <div className="p-4 rounded-lg bg-gray-50 border border-dashed border-gray-200 text-center">
                                                     <p className="text-xs text-gray-400 italic">No activities planned for this day.</p>
-                                                    <Button variant="link" size="sm" onClick={() => openAddActivity(dayIndex)} className="text-[#0B3D91] h-auto p-0 text-xs">Browse attractions</Button>
+                                                    <Button variant="link" size="sm" onClick={scrollToSuggestions} className="text-[#0B3D91] h-auto p-0 text-xs">Browse attractions</Button>
                                                  </div>
                                             ) : (
                                                 day.items.map((item) => (
@@ -1452,13 +1456,12 @@ const PlanTourPage = () => {
                                                         openEditActivity(item, dayIndex);
                                                       }}
                                                       whileDrag={{ 
-                                                        scale: 1.05, 
-                                                        opacity: 0.9, 
+                                                        scale: 1.02, 
+                                                        opacity: 0.98, 
                                                         zIndex: 100,
-                                                        boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-                                                        rotate: 2
+                                                        boxShadow: "0 12px 18px -8px rgba(15, 23, 42, 0.18)"
                                                       }}
-                                                      transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                                                      transition={{ type: "spring", stiffness: 500, damping: 35 }}
                                                     >
                                                         {/* Reorder Grip Handle */}
                                                         <div className="flex-shrink-0 pt-1 touch-none cursor-grab active:cursor-grabbing">
@@ -1650,7 +1653,7 @@ const PlanTourPage = () => {
                     </div>
 
                     {/* Suggestions Section - Draggable */}
-                    <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                    <div id="planner-suggestions" className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="font-bold text-gray-900">Recommended for You</h3>
                             <Button size="sm" variant="ghost" onClick={handleAiSuggest} className="text-[#0B3D91] hover:bg-blue-50 text-xs">
@@ -1705,94 +1708,6 @@ const PlanTourPage = () => {
             </div>
         </div>
 
-        {/* Add Activity Dialog */}
-        <Dialog open={isAddActivityOpen} onOpenChange={setIsAddActivityOpen}>
-            <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col p-0 gap-0">
-                <DialogHeader className="p-6 pb-2 border-b border-gray-100">
-                    <DialogTitle>Add Activity to Day {selectedDayIndex !== null ? selectedDayIndex + 1 : ''}</DialogTitle>
-                    <div className="flex flex-col sm:flex-row gap-4 mt-4">
-                        <div className="relative flex-1">
-                            <Filter className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
-                            <Input 
-                                placeholder="Search attractions..." 
-                                className="pl-9" 
-                                value={activitySearch}
-                                onChange={(e) => setActivitySearch(e.target.value)}
-                            />
-                        </div>
-                        <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide">
-                           <Button 
-                                variant={selectedCategory === 'All' ? 'default' : 'outline'} 
-                                size="sm" 
-                                onClick={() => setSelectedCategory('All')}
-                                className={selectedCategory === 'All' ? 'bg-[#0B3D91]' : ''}
-                            >
-                                All
-                           </Button>
-                           {['Landmark', 'Museum', 'History', 'Food'].map(cat => (
-                               <Button 
-                                    key={cat}
-                                    variant={selectedCategory === cat ? 'default' : 'outline'} 
-                                    size="sm" 
-                                    onClick={() => setSelectedCategory(cat)}
-                                    className={selectedCategory === cat ? 'bg-[#0B3D91]' : ''}
-                               >
-                                    {cat}
-                               </Button>
-                           ))}
-                        </div>
-                    </div>
-                </DialogHeader>
-                
-                <div className="flex-1 overflow-y-auto bg-gray-50 p-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div 
-                            className="bg-white p-4 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-center cursor-pointer hover:border-[#0B3D91] hover:bg-blue-50 transition-all min-h-[200px]"
-                            onClick={addCustomActivity}
-                        >
-                            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-[#0B3D91] mb-3">
-                                <Plus className="w-6 h-6" />
-                            </div>
-                            <h4 className="font-bold text-gray-900">Custom Activity</h4>
-                            <p className="text-sm text-gray-500 mt-1">Add your own restaurant, reservation, or unique stop.</p>
-                        </div>
-
-                        {filteredAttractions.map(attraction => (
-                            <div key={attraction.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition-all flex flex-col">
-                                <div className="h-32 bg-gray-200 relative">
-                                    <img src={attraction.image} alt={attraction.title} className="w-full h-full object-cover" />
-                                    <div className="absolute top-2 right-2 bg-white/90 px-2 py-0.5 rounded text-xs font-bold text-gray-800">
-                                        {attraction.rating} ★
-                                    </div>
-                                </div>
-                                <div className="p-4 flex-1 flex flex-col">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <h4 className="font-bold text-gray-900 text-sm line-clamp-2">{attraction.title}</h4>
-                                    </div>
-                                    <p className="text-xs text-gray-500 mb-3 line-clamp-2">{attraction.description}</p>
-                                    
-                                    <div className="mt-auto space-y-2">
-                                        <div className="flex items-center gap-2 text-xs text-gray-600">
-                                            <Clock className="w-3 h-3" /> {attraction.estTime}
-                                        </div>
-                                        <div className="flex items-center gap-2 text-xs text-gray-600">
-                                            <DollarSign className="w-3 h-3" /> {attraction.price}
-                                        </div>
-                                        <Button 
-                                            className="w-full mt-3 bg-[#0B3D91] hover:bg-[#092C6B] text-white h-8 text-xs"
-                                            onClick={() => addActivityToDay(attraction)}
-                                        >
-                                            Add to Itinerary
-                                        </Button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </DialogContent>
-        </Dialog>
-
         {/* Print View Modal */}
         <ItineraryPrintView 
           isOpen={isPrintViewOpen}
@@ -1806,3 +1721,4 @@ const PlanTourPage = () => {
 };
 
 export default PlanTourPage;
+
