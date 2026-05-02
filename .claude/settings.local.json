@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\Adi\\\\Documents\\\\GitHub\\\\Orbito\" -Force)",
+      "Bash(npm install *)",
+      "Bash(node -e \"require\\('./src/config/stripe'\\); require\\('./src/controllers/paymentController'\\); require\\('./src/routes/paymentRoutes'\\); console.log\\('Backend payment modules load OK'\\)\")"
+    ]
+  }
+}

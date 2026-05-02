@@ -8,6 +8,8 @@ const fxRoutes = require('./fxRoutes');
 const analyticsRoutes = require('./analyticsRoutes');
 const affiliateRoutes = require('./affiliateRoutes');
 const operatorRoutes = require('./operatorRoutes');
+const paymentRoutes = require('./paymentRoutes');
+const adminRoutes = require('./adminRoutes');
 const { octoRoutes } = require('../octo-api');
 
 function registerRoutes(app) {
@@ -21,6 +23,8 @@ function registerRoutes(app) {
   app.use('/api/analytics', analyticsRoutes);
   app.use('/api/affiliate', affiliateRoutes);
   app.use('/api/operator', operatorRoutes);
+  app.use('/api/payments', paymentRoutes);
+  app.use('/api/admin', adminRoutes);
   app.use('/api/octo', octoRoutes);
 }
 

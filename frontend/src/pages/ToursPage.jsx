@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Search, SlidersHorizontal } from 'lucide-react';
+import { Loader2, Search, SlidersHorizontal, Sparkles } from 'lucide-react';
 import TourCard from '@/components/TourCard';
 import FilterSidebar from '@/components/FilterSidebar';
 import { apiService } from '@/services/api';
@@ -31,6 +31,25 @@ const ToursPage = () => {
   });
   const [showFilters, setShowFilters] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState('all');
+
+  const TourSkeleton = () => (
+    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm animate-pulse">
+      <div className="h-48 bg-gray-200" />
+      <div className="p-5 space-y-3">
+        <div className="h-4 bg-gray-200 rounded w-3/4" />
+        <div className="h-3 bg-gray-200 rounded w-1/2" />
+        <div className="h-3 bg-gray-200 rounded w-full" />
+        <div className="h-3 bg-gray-200 rounded w-2/3" />
+        <div className="flex items-center justify-between pt-4">
+          <div className="space-y-2">
+            <div className="h-3 bg-gray-200 rounded w-16" />
+            <div className="h-6 bg-gray-200 rounded w-20" />
+          </div>
+          <div className="h-8 bg-gray-200 rounded w-24" />
+        </div>
+      </div>
+    </div>
+  );
 
   const categories = [
     'All',
@@ -138,6 +157,16 @@ const ToursPage = () => {
     fetchTours(newFilters);
   };
 
+  const toggleCategory = (category) => {
+    const normalized = category === 'All' ? [] : [category];
+    const next = {
+      ...filters,
+      categories: normalized,
+    };
+    setFilters(next);
+    fetchTours(next, true);
+  };
+
   return (
     <>
       <Helmet>
@@ -157,7 +186,7 @@ const ToursPage = () => {
             </p>
 
             {/* Search Bar */}
-            <div className="max-w-2xl bg-white rounded-lg p-2 flex gap-2">
+            <div className="max-w-2xl bg-white rounded-lg p-2 flex gap-2 shadow-lg shadow-blue-900/10">
               <div className="flex-1 flex items-center gap-2 px-3">
                 <Search className="w-5 h-5 text-gray-400" />
                 <Input
@@ -174,6 +203,35 @@ const ToursPage = () => {
               >
                 {t('tours_search_button')}
               </Button>
+            </div>
+
+            <div className="flex flex-wrap gap-3 mt-5">
+              {['All', 'Adventure', 'Cultural', 'Food', 'Sightseeing'].map((category) => (
+                <Button
+                  key={category}
+                  size="sm"
+                  variant={filters.categories?.[0] === category || (category === 'All' && (!filters.categories || filters.categories.length === 0)) ? 'default' : 'outline'}
+                  onClick={() => toggleCategory(category)}
+                  className={category === 'All' ? 'bg-white/15 text-white border-white/20 hover:bg-white/25' : 'border-white/20 text-white hover:bg-white/15'}
+                >
+                  {category}
+                </Button>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap gap-4 mt-6 text-sm text-blue-100">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4" />
+                Curated experiences
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-300" />
+                Instant booking on partner sites
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-amber-300" />
+                Transparent pricing
+              </div>
             </div>
           </div>
         </div>
@@ -235,7 +293,7 @@ const ToursPage = () => {
               </div>
 
               {/* Sort and View Options */}
-              <div className="bg-white rounded-lg shadow p-4 mb-6">
+              <div className="bg-white rounded-lg shadow p-4 mb-6 space-y-3">
                 <div className="flex items-center justify-between flex-wrap gap-4">
                   <div className="flex items-center gap-3">
                     <span className="text-gray-600">
@@ -245,11 +303,6 @@ const ToursPage = () => {
                       <span className="text-xs text-gray-400 flex items-center gap-2">
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
                         Updating…
-                      </span>
-                    )}
-                    {filters.destination && (
-                      <span className="bg-primary text-white px-3 py-1 rounded-full text-sm font-medium">
-                        📍 {filters.destination}
                       </span>
                     )}
                   </div>
@@ -273,6 +326,33 @@ const ToursPage = () => {
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="flex flex-wrap gap-2 text-xs">
+                  {filters.destination && (
+                    <span className="bg-primary/10 text-primary px-2 py-1 rounded-full font-semibold">
+                      Destination: {filters.destination}
+                    </span>
+                  )}
+                  {filters.country && (
+                    <span className="bg-slate-100 text-slate-700 px-2 py-1 rounded-full font-semibold">
+                      Country: {filters.country}
+                    </span>
+                  )}
+                  {(filters.categories || []).map((cat) => (
+                    <span key={cat} className="bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-semibold">
+                      {cat}
+                    </span>
+                  ))}
+                  {(filters.durations || []).map((dur) => (
+                    <span key={dur} className="bg-amber-100 text-amber-700 px-2 py-1 rounded-full font-semibold">
+                      {dur}
+                    </span>
+                  ))}
+                  {(filters.priceRange?.[0] > 0 || filters.priceRange?.[1] < 500) && (
+                    <span className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full font-semibold">
+                      Price: {filters.priceRange[0]} - {filters.priceRange[1]}
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Results */}
@@ -282,8 +362,10 @@ const ToursPage = () => {
                 </div>
               )}
               {loading ? (
-                <div className="flex items-center justify-center py-20">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {Array.from({ length: 6 }).map((_, idx) => (
+                    <TourSkeleton key={`tour-skeleton-${idx}`} />
+                  ))}
                 </div>
               ) : tours.length === 0 ? (
                 <div className="text-center py-20">

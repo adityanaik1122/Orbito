@@ -16,6 +16,33 @@ const TourCard = ({ tour }) => {
 
   // Simple image URL with fallback
   const imageUrl = tour.main_image || tour.image || tour.images?.[0] || 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400&q=80';
+  const ratingValue = typeof tour.rating === 'number' ? tour.rating : parseFloat(tour.rating || 0);
+  const reviewCount = tour.review_count || tour.reviews || 0;
+  const priceAmount = typeof tour.price_amount === 'number' ? tour.price_amount : parseFloat(tour.price_amount || 0);
+
+  let manualBadges = tour.badge_overrides || tour.badges || {};
+  if (typeof manualBadges === 'string') {
+    try {
+      manualBadges = JSON.parse(manualBadges);
+    } catch {
+      manualBadges = {};
+    }
+  }
+
+  const badges = [];
+  const featuredFlag = manualBadges.featured ?? tour.featured;
+  const topRatedFlag = manualBadges.top_rated ?? (ratingValue >= 4.7 && reviewCount >= 50);
+  const bestSellerFlag = manualBadges.best_seller ?? (reviewCount >= 500);
+  const freeCancelFlag = manualBadges.free_cancellation ?? tour.free_cancellation;
+  const instantFlag = manualBadges.instant_confirmation ?? tour.instant_confirmation;
+  const greatValueFlag = manualBadges.great_value ?? (priceAmount > 0 && priceAmount <= 40);
+
+  if (featuredFlag) badges.push({ label: 'Featured', tone: 'bg-amber-500 text-white' });
+  if (topRatedFlag) badges.push({ label: 'Top rated', tone: 'bg-emerald-500 text-white' });
+  if (bestSellerFlag) badges.push({ label: 'Best seller', tone: 'bg-indigo-500 text-white' });
+  if (freeCancelFlag) badges.push({ label: 'Free cancellation', tone: 'bg-blue-500 text-white' });
+  if (instantFlag) badges.push({ label: 'Instant confirm', tone: 'bg-slate-900 text-white' });
+  if (greatValueFlag) badges.push({ label: 'Great value', tone: 'bg-green-600 text-white' });
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={handleViewDetails}>
@@ -31,30 +58,25 @@ const TourCard = ({ tour }) => {
           onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400&q=80'; }}
         />
         
-        {/* Provider Badge */}
-        {tour.source && (
-          <div className="absolute top-2 left-2">
-            <Badge className="bg-blue-500 text-white">
+        <div className="absolute top-2 left-2 flex flex-wrap gap-2">
+          {tour.source && (
+            <Badge className="bg-blue-600 text-white">
               {tour.source === 'premium-tours' ? 'Premium Tours' : tour.source}
             </Badge>
-          </div>
-        )}
-
-        {/* Featured Badge */}
-        {tour.featured && (
-          <div className="absolute top-2 right-2">
-            <Badge className="bg-yellow-500 text-black">
-              ⭐ Featured
+          )}
+          {badges.slice(0, 2).map((badge) => (
+            <Badge key={badge.label} className={badge.tone}>
+              {badge.label}
             </Badge>
-          </div>
-        )}
+          ))}
+        </div>
 
         {/* Rating */}
-        {tour.rating > 0 && (
+        {ratingValue > 0 && (
           <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded flex items-center gap-1">
             <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-            <span className="text-sm font-semibold">{tour.rating.toFixed(1)}</span>
-            <span className="text-xs text-gray-300">({tour.review_count})</span>
+            <span className="text-sm font-semibold">{ratingValue.toFixed(1)}</span>
+            {reviewCount ? <span className="text-xs text-gray-300">({reviewCount})</span> : null}
           </div>
         )}
       </div>
@@ -93,6 +115,16 @@ const TourCard = ({ tour }) => {
           )}
         </div>
 
+        {badges.length > 2 && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {badges.slice(2).map((badge) => (
+              <span key={badge.label} className="px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide rounded-full bg-gray-100 text-gray-600">
+                {badge.label}
+              </span>
+            ))}
+          </div>
+        )}
+
         {/* Highlights */}
         {tour.highlights && tour.highlights.length > 0 && (
           <div className="mt-3">
@@ -126,3 +158,4 @@ const TourCard = ({ tour }) => {
 };
 
 export default TourCard;
+

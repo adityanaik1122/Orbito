@@ -244,6 +244,135 @@ export const apiService = {
     }
   },
 
+  // ── Operator ──────────────────────────────────────────────────────────────
+  applyAsOperator: async (applicationData) => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/operator/apply`, { method: 'POST', headers, body: JSON.stringify(applicationData) });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Failed to submit application'); }
+    return res.json();
+  },
+
+  getApplicationStatus: async () => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/operator/application-status`, { headers });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Failed to fetch application status'); }
+    return res.json();
+  },
+
+  getOperatorTours: async () => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/operator/tours`, { headers });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Failed to fetch tours'); }
+    return res.json();
+  },
+
+  createOperatorTour: async (tourData) => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/operator/tours`, { method: 'POST', headers, body: JSON.stringify(tourData) });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Failed to create tour'); }
+    return res.json();
+  },
+
+  updateOperatorTour: async (tourId, tourData) => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/operator/tours/${tourId}`, { method: 'PUT', headers, body: JSON.stringify(tourData) });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Failed to update tour'); }
+    return res.json();
+  },
+
+  deleteOperatorTour: async (tourId) => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/operator/tours/${tourId}`, { method: 'DELETE', headers });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Failed to delete tour'); }
+    return res.json();
+  },
+
+  getOperatorBookings: async () => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/operator/bookings`, { headers });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Failed to fetch bookings'); }
+    return res.json();
+  },
+
+  getOperatorEarnings: async () => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/operator/earnings`, { headers });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Failed to fetch earnings'); }
+    return res.json();
+  },
+
+  getOperatorStats: async () => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/operator/stats`, { headers });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Failed to fetch stats'); }
+    return res.json();
+  },
+
+  // ── Admin ─────────────────────────────────────────────────────────────────
+  getAdminApplications: async () => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/admin/applications`, { headers });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Failed to fetch applications'); }
+    return res.json();
+  },
+
+  approveApplication: async (id) => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/admin/applications/${id}/approve`, { method: 'POST', headers });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Failed to approve'); }
+    return res.json();
+  },
+
+  rejectApplication: async (id, reason) => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/admin/applications/${id}/reject`, { method: 'POST', headers, body: JSON.stringify({ reason }) });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Failed to reject'); }
+    return res.json();
+  },
+
+  getAdminPendingTours: async () => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/admin/pending-tours`, { headers });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Failed to fetch pending tours'); }
+    return res.json();
+  },
+
+  approveTour: async (tourId) => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/admin/tours/${tourId}/approve`, { method: 'POST', headers });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Failed to approve tour'); }
+    return res.json();
+  },
+
+  rejectTour: async (tourId) => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/admin/tours/${tourId}/reject`, { method: 'POST', headers });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Failed to reject tour'); }
+    return res.json();
+  },
+
+  // ── Payments ──────────────────────────────────────────────────────────────
+  createPaymentIntent: async (bookingId) => {
+    try {
+      const headers = await getAuthHeaders();
+      const response = await fetch(`${API_BASE_URL}/payments/create-intent`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ bookingId })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to set up payment');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('API Error:', error);
+      throw error;
+    }
+  },
+
   cancelBooking: async (bookingId, reason) => {
     try {
       const headers = await getAuthHeaders();

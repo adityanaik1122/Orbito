@@ -1,13 +1,97 @@
-/**
- * Operator Controller
- * Handles tour operator dashboard endpoints
- */
-
 const { supabase } = require('../config/supabase');
+const logger = require('../utils/logger');
 
-/**
- * Get operator's tours
- */
+const PLATFORM_FEE_RATE = 0.15; // Orbito keeps 15%, operator earns 85%
+
+// ── Operator Application ──────────────────────────────────────────────────────
+
+async function applyAsOperator(req, res) {
+  try {
+    const userId = req.user.id;
+    const {
+      company_name,
+      contact_name,
+      contact_email,
+      contact_phone,
+      website,
+      tour_types,
+      operating_locations,
+      years_in_business,
+      description,
+    } = req.body;
+
+    if (!company_name || !contact_name || !contact_email) {
+      return res.status(400).json({ error: 'company_name, contact_name and contact_email are required' });
+    }
+
+    // Check for existing application
+    const { data: existing } = await supabase
+      .from('operator_applications')
+      .select('id, status')
+      .eq('user_id', userId)
+      .single();
+
+    if (existing?.status === 'pending') {
+      return res.status(409).json({ error: 'You already have a pending application' });
+    }
+    if (existing?.status === 'approved') {
+      return res.status(409).json({ error: 'Your application has already been approved' });
+    }
+
+    const { data, error } = await supabase
+      .from('operator_applications')
+      .insert({
+        user_id: userId,
+        company_name,
+        contact_name,
+        contact_email,
+        contact_phone,
+        website,
+        tour_types,
+        operating_locations,
+        years_in_business: years_in_business ? parseInt(years_in_business) : null,
+        description,
+        status: 'pending',
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    logger.success(`Operator application submitted by user ${userId}`);
+    res.json({ success: true, application: data, message: "Application submitted! We'll review it within 48 hours." });
+  } catch (err) {
+    logger.error('applyAsOperator error:', err);
+    res.status(500).json({ error: 'Failed to submit application' });
+  }
+}
+
+async function getApplicationStatus(req, res) {
+  try {
+    const userId = req.user.id;
+
+    const { data, error } = await supabase
+      .from('operator_applications')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error && error.code === 'PGRST116') {
+      return res.json({ success: true, application: null });
+    }
+    if (error) throw error;
+
+    res.json({ success: true, application: data });
+  } catch (err) {
+    logger.error('getApplicationStatus error:', err);
+    res.status(500).json({ error: 'Failed to fetch application status' });
+  }
+}
+
+// ── Tours ─────────────────────────────────────────────────────────────────────
+
 async function getOperatorTours(req, res) {
   try {
     const operatorId = req.user.id;
@@ -15,288 +99,236 @@ async function getOperatorTours(req, res) {
     const { data, error } = await supabase
       .from('tours')
       .select('*')
-      .eq('supplier_id', operatorId)
+      .eq('operator_id', operatorId)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-
-    res.json({ success: true, tours: data });
-  } catch (error) {
-    console.error('Error fetching operator tours:', error);
+    res.json({ success: true, tours: data || [] });
+  } catch (err) {
+    logger.error('getOperatorTours error:', err);
     res.status(500).json({ error: 'Failed to fetch tours' });
   }
 }
 
-/**
- * Get operator's bookings
- */
+async function createTour(req, res) {
+  try {
+    const operatorId = req.user.id;
+    const {
+      title, description, destination, city, country,
+      category, duration_hours, price_adult, price_child,
+      currency, meeting_point, highlights, price_includes,
+      price_excludes, cancellation_policy, start_times,
+      max_group_size, available_days, main_image,
+    } = req.body;
+
+    if (!title || !destination || !price_adult) {
+      return res.status(400).json({ error: 'title, destination and price_adult are required' });
+    }
+
+    const slug = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}`;
+
+    const { data, error } = await supabase
+      .from('tours')
+      .insert({
+        operator_id: operatorId,
+        title,
+        slug,
+        description,
+        destination,
+        city: city || destination,
+        country,
+        category,
+        duration_hours: duration_hours ? parseFloat(duration_hours) : null,
+        duration_minutes: duration_hours ? Math.round(parseFloat(duration_hours) * 60) : null,
+        price_adult: parseFloat(price_adult),
+        price_child: price_child ? parseFloat(price_child) : null,
+        currency: currency || 'GBP',
+        meeting_point,
+        highlights: Array.isArray(highlights) ? highlights : [],
+        price_includes: Array.isArray(price_includes) ? price_includes : [],
+        price_excludes: Array.isArray(price_excludes) ? price_excludes : [],
+        cancellation_policy,
+        start_times: Array.isArray(start_times) ? start_times : [],
+        max_group_size: max_group_size ? parseInt(max_group_size) : null,
+        available_days: Array.isArray(available_days) ? available_days : [],
+        main_image: main_image || null,
+        listing_status: 'pending_review',
+        is_active: false, // goes live only after admin approval
+        source: 'operator',
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    logger.success(`Operator ${operatorId} created tour: ${data.id}`);
+    res.json({ success: true, tour: data, message: 'Tour submitted for review. It will go live once approved.' });
+  } catch (err) {
+    logger.error('createTour error:', err);
+    res.status(500).json({ error: err.message || 'Failed to create tour' });
+  }
+}
+
+async function updateTour(req, res) {
+  try {
+    const { tourId } = req.params;
+    const operatorId = req.user.id;
+
+    const { data: existing, error: checkErr } = await supabase
+      .from('tours')
+      .select('operator_id, listing_status')
+      .eq('id', tourId)
+      .single();
+
+    if (checkErr || !existing) return res.status(404).json({ error: 'Tour not found' });
+    if (existing.operator_id !== operatorId) return res.status(403).json({ error: 'Unauthorized' });
+
+    // If a live tour is edited, put it back into review
+    const updatePayload = { ...req.body };
+    if (existing.listing_status === 'live') {
+      updatePayload.listing_status = 'pending_review';
+      updatePayload.is_active = false;
+    }
+
+    const { data, error } = await supabase
+      .from('tours')
+      .update(updatePayload)
+      .eq('id', tourId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json({ success: true, tour: data });
+  } catch (err) {
+    logger.error('updateTour error:', err);
+    res.status(500).json({ error: 'Failed to update tour' });
+  }
+}
+
+async function deleteTour(req, res) {
+  try {
+    const { tourId } = req.params;
+    const operatorId = req.user.id;
+
+    const { data: existing, error: checkErr } = await supabase
+      .from('tours')
+      .select('operator_id')
+      .eq('id', tourId)
+      .single();
+
+    if (checkErr || !existing) return res.status(404).json({ error: 'Tour not found' });
+    if (existing.operator_id !== operatorId) return res.status(403).json({ error: 'Unauthorized' });
+
+    const { error } = await supabase.from('tours').delete().eq('id', tourId);
+    if (error) throw error;
+
+    res.json({ success: true, message: 'Tour deleted' });
+  } catch (err) {
+    logger.error('deleteTour error:', err);
+    res.status(500).json({ error: 'Failed to delete tour' });
+  }
+}
+
+// ── Bookings ──────────────────────────────────────────────────────────────────
+
 async function getOperatorBookings(req, res) {
   try {
     const operatorId = req.user.id;
 
     const { data, error } = await supabase
       .from('bookings')
-      .select(`
-        *,
-        tours!inner (
-          id,
-          title,
-          supplier_id
-        )
-      `)
-      .eq('tours.supplier_id', operatorId)
+      .select(`*, tours!inner(id, title, operator_id)`)
+      .eq('tours.operator_id', operatorId)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-
-    res.json({ success: true, bookings: data });
-  } catch (error) {
-    console.error('Error fetching operator bookings:', error);
+    res.json({ success: true, bookings: data || [] });
+  } catch (err) {
+    logger.error('getOperatorBookings error:', err);
     res.status(500).json({ error: 'Failed to fetch bookings' });
   }
 }
 
-/**
- * Get operator statistics
- */
+// ── Earnings ──────────────────────────────────────────────────────────────────
+
+async function getOperatorEarnings(req, res) {
+  try {
+    const operatorId = req.user.id;
+
+    const { data: earnings, error } = await supabase
+      .from('operator_earnings')
+      .select('*')
+      .eq('operator_id', operatorId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    const rows = earnings || [];
+    const totalEarned = rows.reduce((sum, r) => sum + Number(r.operator_payout || 0), 0);
+    const pendingPayout = rows
+      .filter((r) => r.booking_status === 'confirmed')
+      .reduce((sum, r) => sum + Number(r.operator_payout || 0), 0);
+
+    res.json({
+      success: true,
+      earnings: rows,
+      summary: {
+        totalEarned,
+        pendingPayout,
+        paidOut: totalEarned - pendingPayout,
+        platformFeeRate: PLATFORM_FEE_RATE,
+      },
+    });
+  } catch (err) {
+    logger.error('getOperatorEarnings error:', err);
+    res.status(500).json({ error: 'Failed to fetch earnings' });
+  }
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+
 async function getOperatorStats(req, res) {
   try {
     const operatorId = req.user.id;
 
-    // Get tours
-    const { data: tours, error: toursError } = await supabase
+    const { data: tours } = await supabase
       .from('tours')
-      .select('*')
-      .eq('supplier_id', operatorId);
+      .select('id, is_available, listing_status')
+      .eq('operator_id', operatorId);
 
-    if (toursError) throw toursError;
+    const { data: earnings } = await supabase
+      .from('operator_earnings')
+      .select('operator_payout, booking_status')
+      .eq('operator_id', operatorId);
 
-    // Get bookings
-    const { data: bookings, error: bookingsError } = await supabase
-      .from('bookings')
-      .select(`
-        *,
-        tours!inner (supplier_id)
-      `)
-      .eq('tours.supplier_id', operatorId);
-
-    if (bookingsError) throw bookingsError;
-
-    // Calculate stats
-    const totalRevenue = bookings
-      .filter(b => b.status === 'confirmed' || b.status === 'completed')
-      .reduce((sum, b) => sum + parseFloat(b.total_amount || 0), 0);
-
-    const avgBookingValue = bookings.length > 0
-      ? totalRevenue / bookings.length
-      : 0;
+    const rows = earnings || [];
+    const totalRevenue = rows.reduce((sum, r) => sum + Number(r.operator_payout || 0), 0);
+    const totalBookings = rows.length;
+    const avgBookingValue = totalBookings > 0 ? totalRevenue / totalBookings : 0;
 
     res.json({
       success: true,
       totalRevenue,
-      avgBookingValue
+      totalBookings,
+      avgBookingValue,
+      totalTours: (tours || []).length,
+      liveTours: (tours || []).filter((t) => t.listing_status === 'live').length,
+      pendingTours: (tours || []).filter((t) => t.listing_status === 'pending_review').length,
     });
-  } catch (error) {
-    console.error('Error fetching operator stats:', error);
-    res.status(500).json({ error: 'Failed to fetch statistics' });
-  }
-}
-
-/**
- * Create new tour
- */
-async function createTour(req, res) {
-  try {
-    const operatorId = req.user.id;
-    const tourData = {
-      ...req.body,
-      supplier_id: operatorId,
-      is_active: true
-    };
-
-    const { data, error } = await supabase
-      .from('tours')
-      .insert([tourData])
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    res.json({ success: true, tour: data });
-  } catch (error) {
-    console.error('Error creating tour:', error);
-    res.status(500).json({ error: 'Failed to create tour' });
-  }
-}
-
-/**
- * Update tour
- */
-async function updateTour(req, res) {
-  try {
-    const { tourId } = req.params;
-    const operatorId = req.user.id;
-
-    // Verify ownership
-    const { data: tour, error: checkError } = await supabase
-      .from('tours')
-      .select('supplier_id')
-      .eq('id', tourId)
-      .single();
-
-    if (checkError) throw checkError;
-
-    if (tour.supplier_id !== operatorId) {
-      return res.status(403).json({ error: 'Unauthorized' });
-    }
-
-    // Update tour
-    const { data, error } = await supabase
-      .from('tours')
-      .update(req.body)
-      .eq('id', tourId)
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    res.json({ success: true, tour: data });
-  } catch (error) {
-    console.error('Error updating tour:', error);
-    res.status(500).json({ error: 'Failed to update tour' });
-  }
-}
-
-/**
- * Delete tour
- */
-async function deleteTour(req, res) {
-  try {
-    const { tourId } = req.params;
-    const operatorId = req.user.id;
-
-    // Verify ownership
-    const { data: tour, error: checkError } = await supabase
-      .from('tours')
-      .select('supplier_id')
-      .eq('id', tourId)
-      .single();
-
-    if (checkError) throw checkError;
-
-    if (tour.supplier_id !== operatorId) {
-      return res.status(403).json({ error: 'Unauthorized' });
-    }
-
-    // Delete tour
-    const { error } = await supabase
-      .from('tours')
-      .delete()
-      .eq('id', tourId);
-
-    if (error) throw error;
-
-    res.json({ success: true, message: 'Tour deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting tour:', error);
-    res.status(500).json({ error: 'Failed to delete tour' });
-  }
-}
-
-/**
- * Update tour availability
- */
-async function updateTourAvailability(req, res) {
-  try {
-    const { tourId } = req.params;
-    const { availabilityId, remaining, capacity, start_time } = req.body;
-    const operatorId = req.user.id;
-
-    // Verify ownership
-    const { data: tour, error: checkError } = await supabase
-      .from('tours')
-      .select('supplier_id')
-      .eq('id', tourId)
-      .single();
-
-    if (checkError) throw checkError;
-
-    if (tour.supplier_id !== operatorId) {
-      return res.status(403).json({ error: 'Unauthorized' });
-    }
-
-    // Update or insert availability
-    const payload = { tour_id: tourId };
-    if (start_time) payload.start_time = start_time;
-    if (capacity !== undefined) payload.capacity = capacity;
-    if (remaining !== undefined) payload.remaining = remaining;
-
-    let query = supabase.from('tour_availability');
-    let data, error;
-    if (availabilityId) {
-      ({ data, error } = await query.update(payload).eq('id', availabilityId).select().single());
-    } else {
-      ({ data, error } = await query.insert(payload).select().single());
-    }
-
-    if (error) throw error;
-
-    res.json({ success: true, tour: data });
-  } catch (error) {
-    console.error('Error updating tour availability:', error);
-    res.status(500).json({ error: 'Failed to update availability' });
-  }
-}
-
-/**
- * Update booking status
- */
-async function updateBookingStatus(req, res) {
-  try {
-    const { bookingId } = req.params;
-    const { status } = req.body;
-    const operatorId = req.user.id;
-
-    // Verify ownership through tour
-    const { data: booking, error: checkError } = await supabase
-      .from('bookings')
-      .select(`
-        *,
-        tours!inner (supplier_id)
-      `)
-      .eq('id', bookingId)
-      .single();
-
-    if (checkError) throw checkError;
-
-    if (booking.tours.supplier_id !== operatorId) {
-      return res.status(403).json({ error: 'Unauthorized' });
-    }
-
-    // Update booking status
-    const { data, error } = await supabase
-      .from('bookings')
-      .update({ status })
-      .eq('id', bookingId)
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    res.json({ success: true, booking: data });
-  } catch (error) {
-    console.error('Error updating booking status:', error);
-    res.status(500).json({ error: 'Failed to update booking status' });
+  } catch (err) {
+    logger.error('getOperatorStats error:', err);
+    res.status(500).json({ error: 'Failed to fetch stats' });
   }
 }
 
 module.exports = {
+  applyAsOperator,
+  getApplicationStatus,
   getOperatorTours,
-  getOperatorBookings,
-  getOperatorStats,
   createTour,
   updateTour,
   deleteTour,
-  updateTourAvailability,
-  updateBookingStatus
+  getOperatorBookings,
+  getOperatorEarnings,
+  getOperatorStats,
 };

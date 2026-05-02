@@ -1,5 +1,6 @@
 const { getTours: getToursFromDB, getTourById: getTourByIdFromDB, createBooking: createBookingInDB, getUserBookings: getUserBookingsFromDB, getBookingById: getBookingByIdFromDB } = require('../models/tourModel');
 const PremiumToursService = require('../services/premiumToursService');
+const { sendBookingCancellation } = require('../services/emailService');
 const logger = require('../utils/logger');
 
 /**
@@ -285,9 +286,18 @@ async function cancelBooking(req, res) {
       throw error;
     }
 
+    const cancelledBooking = data[0];
+
+    // Fire-and-forget cancellation email
+    sendBookingCancellation(
+      cancelledBooking,
+      { title: 'Your tour' },
+      { name: cancelledBooking.customer_name, email: cancelledBooking.customer_email }
+    ).catch((err) => logger.error('Failed to send cancellation email:', err));
+
     res.json({
       success: true,
-      booking: data[0],
+      booking: cancelledBooking,
       message: 'Booking cancelled successfully'
     });
   } catch (error) {

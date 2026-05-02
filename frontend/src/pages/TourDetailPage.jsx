@@ -94,11 +94,13 @@ const TourDetailPage = () => {
     setBooking(true);
     try {
       const totalPeople = (bookingData.numAdults || 0) + (bookingData.numChildren || 0);
-      const response = await apiService.createTourBooking({
+
+      // Step 1: create a pending booking
+      const bookingResponse = await apiService.createTourBooking({
         tourId: tour.id || tour.external_id,
         numPeople: Math.max(totalPeople, 1),
         totalAmount: calculateTotal(),
-        currency: tour.price_currency || 'USD',
+        currency: tour.price_currency || tour.price_currency || 'GBP',
         customerContact: {
           name: bookingData.customerName,
           email: bookingData.customerEmail,
@@ -108,12 +110,19 @@ const TourDetailPage = () => {
         specialRequests: bookingData.specialRequirements
       });
 
-      toast({
-        title: 'Booking Created! 🎉',
-        description: `Booking ID: ${response.booking.id}`
-      });
+      const createdBooking = bookingResponse.booking;
 
-      navigate('/bookings');
+      // Step 2: create Stripe PaymentIntent
+      const paymentResponse = await apiService.createPaymentIntent(createdBooking.id);
+
+      // Step 3: go to checkout page with all context
+      navigate('/checkout', {
+        state: {
+          clientSecret: paymentResponse.clientSecret,
+          booking: createdBooking,
+          tour,
+        }
+      });
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -377,10 +386,10 @@ const TourDetailPage = () => {
                       {booking ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Booking...
+                          Preparing checkout…
                         </>
                       ) : (
-                        t('tourdetail_book_now')
+                        'Proceed to Payment'
                       )}
                     </Button>
                   </div>

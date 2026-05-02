@@ -32,6 +32,8 @@ import TermsOfServicePage from '@/pages/TermsOfServicePage';
 import RefundPolicyPage from '@/pages/RefundPolicyPage';
 import SupplierTermsPage from '@/pages/SupplierTermsPage';
 import WhyAIPage from '@/pages/WhyAIPage';
+import CheckoutPage from '@/pages/CheckoutPage';
+import OperatorApplyPage from '@/pages/OperatorApplyPage';
 import RequireRole from '@/components/RequireRole';
 import RequireAuth from '@/components/RequireAuth';
 import { AuthProvider } from '@/contexts/SupabaseAuthContext';
@@ -69,6 +71,11 @@ function App() {
               <Layout><BookingsPage /></Layout>
             </RequireAuth>
           } />
+          <Route path="/checkout" element={
+            <RequireAuth>
+              <CheckoutPage />
+            </RequireAuth>
+          } />
           
           <Route path="/resources" element={<Layout><ResourcesPage /></Layout>} />
           <Route path="/resources/:id" element={<Layout><ResourceDetailPage /></Layout>} />
@@ -88,6 +95,7 @@ function App() {
           <Route path="/supplier-terms" element={<Layout><SupplierTermsPage /></Layout>} />
 
           {/* Operator & Admin dashboards */}
+          <Route path="/operator/apply" element={<Layout><OperatorApplyPage /></Layout>} />
           <Route
             path="/operator/dashboard"
             element={
