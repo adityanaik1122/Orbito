@@ -76,6 +76,36 @@ export const apiService = {
     }
   },
 
+  // Generate AI Itinerary with real bookable tours matched to activities
+  generateItineraryWithTours: async (tripData) => {
+    try {
+      const headers = await getAuthHeaders();
+      const response = await fetch(`${API_BASE_URL}/generate-with-tours`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          destination: tripData.destination,
+          startDate: tripData.startDate,
+          endDate: tripData.endDate,
+          preferences: tripData.preferences || '',
+          budget: tripData.budget || ''
+        }),
+      });
+
+      if (!response.ok) {
+        let errorBody = {};
+        try { errorBody = await response.json(); } catch { }
+        if (response.status === 401) throw new Error('Please log in to generate itineraries');
+        throw new Error(errorBody.error || `Failed to generate itinerary (status ${response.status})`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('API Error:', error);
+      throw error;
+    }
+  },
+
   // Save Itinerary
   saveItinerary: async (itineraryData) => {
     try {

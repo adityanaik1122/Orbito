@@ -687,14 +687,27 @@ const PlanTourPage = () => {
       const styleHint = tripStyle && tripStyle !== 'balanced' ? `Trip style: ${tripStyle}.` : '';
       const combinedPreferences = [styleHint, trimmedPrompt].filter(Boolean).join(' ').trim();
 
-      const response = await apiService.generateItinerary({
-        destination: destination,
-        startDate: startDate,
-        endDate: endDate,
-        preferences: combinedPreferences,
-        style: tripStyle,
-        variants
-      });
+      // Try tour-matched generation first; fall back to legacy if it errors
+      let response;
+      let usedTourMatching = false;
+      try {
+        response = await apiService.generateItineraryWithTours({
+          destination,
+          startDate,
+          endDate,
+          preferences: combinedPreferences,
+        });
+        usedTourMatching = true;
+      } catch {
+        response = await apiService.generateItinerary({
+          destination,
+          startDate,
+          endDate,
+          preferences: combinedPreferences,
+          style: tripStyle,
+          variants
+        });
+      }
 
       if (response.success) {
         const pickedItinerary = response.itinerary || response.itineraries?.[0];
@@ -704,13 +717,12 @@ const PlanTourPage = () => {
             date: day.date,
             items: day.items.map(item => ({
               id: Date.now() + Math.random(),
-              ...item
+              ...item  // preserves tour / suggestedTour from matching service
             }))
           }));
 
           setItinerary(generatedDays);
-          
-          // Always update destination from AI response to ensure it's properly formatted
+
           if (pickedItinerary.destination) {
             setTripDetails(prev => ({
               ...prev,
@@ -718,12 +730,15 @@ const PlanTourPage = () => {
               title: `${pickedItinerary.destination} Adventure`
             }));
           }
-          
+
+          const bookableCount = response.meta?.bookableTours || 0;
           toast({
             title: response.meta?.fallback ? "Draft itinerary ready" : "Itinerary Generated! 🎉",
             description: response.meta?.fallback
               ? "AI provider unavailable, showing a draft itinerary you can edit."
-              : `Created ${generatedDays.length}-day plan for ${pickedItinerary.destination || destination}`,
+              : usedTourMatching && bookableCount > 0
+                ? `Created ${generatedDays.length}-day plan — ${bookableCount} bookable experience${bookableCount !== 1 ? 's' : ''} matched!`
+                : `Created ${generatedDays.length}-day plan for ${pickedItinerary.destination || destination}`,
           });
         }
       }
@@ -1620,6 +1635,20 @@ const PlanTourPage = () => {
                                                                           </p>
                                                                         )}
                                                                         {item.openingHours && <p className="text-xs text-gray-400 mt-1">Open: {item.openingHours}</p>}
+                                                                        {(item.tour || item.suggestedTour) && (() => {
+                                                                          const t = item.tour || item.suggestedTour;
+                                                                          return (
+                                                                            <a
+                                                                              href={t.bookingUrl}
+                                                                              target={t.bookingUrl?.startsWith('/') ? '_self' : '_blank'}
+                                                                              rel="noreferrer"
+                                                                              onClick={(e) => e.stopPropagation()}
+                                                                              className="inline-flex items-center gap-1 mt-2 px-2.5 py-1 rounded-full bg-green-50 text-green-700 border border-green-200 text-xs font-semibold hover:bg-green-100 transition-colors"
+                                                                            >
+                                                                              🎟 Book from {t.currency === 'GBP' ? '£' : t.currency === 'EUR' ? '€' : '$'}{t.price}
+                                                                            </a>
+                                                                          );
+                                                                        })()}
                                                                     </>
                                                                 )}
                                                             </div>
