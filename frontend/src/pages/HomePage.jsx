@@ -4,8 +4,8 @@ import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet';
 import { Button } from '@/components/ui/button';
 import { useLocale } from '@/contexts/LocaleContext';
-import { 
-  Sparkles, MapPin, ArrowRight, TrendingUp, Star, Calendar, Heart, 
+import {
+  Sparkles, MapPin, ArrowRight, TrendingUp, Calendar, Heart,
   Users, Clock, Shield, ChevronRight, CheckCircle2, CreditCard,
   Zap, Globe, MessageSquare, Play, BadgeCheck, Lock, Award
 } from 'lucide-react';
@@ -14,7 +14,7 @@ const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d
 
 const HomePage = ({ isLoggedIn }) => {
   const navigate = useNavigate();
-  const { formatMoney, t } = useLocale();
+  const { t } = useLocale();
   const [naturalQuery, setNaturalQuery] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [trendingDestinations, setTrendingDestinations] = useState([]);
@@ -82,54 +82,6 @@ const HomePage = ({ isLoggedIn }) => {
       navigate('/plan');
     }
   };
-
-  // Bookable tours with real pricing
-  const bookableTours = [
-    { 
-      id: 'PT-001', 
-      title: 'London Eye Fast Track + Thames Cruise', 
-      location: 'London, UK',
-      price: 52, 
-      rating: 4.9, 
-      reviews: 12543, 
-      image: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?q=80&w=600',
-      badge: 'Best Seller',
-      instantConfirmation: true
-    },
-    { 
-      id: 'PT-004', 
-      title: 'Harry Potter Studio Tour with Transport', 
-      location: 'London, UK',
-      price: 95, 
-      rating: 4.9, 
-      reviews: 24567, 
-      image: 'https://images.unsplash.com/photo-1551269901-5c5e14c25df7?q=80&w=600',
-      badge: 'Top Rated',
-      instantConfirmation: true
-    },
-    { 
-      id: 'PT-008', 
-      title: 'Paris Day Trip with Eiffel Tower Lunch', 
-      location: 'Paris, France',
-      price: 375, 
-      rating: 4.9, 
-      reviews: 12891, 
-      image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=600',
-      badge: 'Premium',
-      instantConfirmation: true
-    },
-    { 
-      id: 'PT-006', 
-      title: 'Stonehenge, Bath & Cotswolds Day Trip', 
-      location: 'Wiltshire, UK',
-      price: 95, 
-      rating: 4.9, 
-      reviews: 8234, 
-      image: 'https://images.unsplash.com/photo-1599833975787-5d9f111d0e7a?q=80&w=600',
-      badge: 'Includes Lunch',
-      instantConfirmation: true
-    },
-  ];
 
   // Social proof stats
   const stats = [
@@ -286,71 +238,27 @@ const HomePage = ({ isLoggedIn }) => {
           </div>
         </section>
 
-        {/* FEATURED TOURS - Premium Grid */}
-        <section className="py-12 sm:py-16 md:py-24 lg:py-32 bg-gray-50">
-          <div className="container mx-auto px-6 lg:px-12">
+        {/* BROWSE TOURS CTA */}
+        <section className="py-16 bg-gray-50">
+          <div className="container mx-auto px-6 lg:px-12 text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              className="text-center mb-20"
+              transition={{ duration: 0.6 }}
             >
-              <h2 className="text-5xl md:text-6xl font-light text-gray-900 mb-6 tracking-tight">
-                Curated experiences
+              <h2 className="text-4xl md:text-5xl font-light text-gray-900 mb-4 tracking-tight">
+                Thousands of experiences worldwide
               </h2>
-              <p className="text-xl text-gray-500 font-light">
-                Handpicked tours from verified providers
+              <p className="text-xl text-gray-500 font-light mb-10">
+                Browse curated tours and activities from Viator's global network
               </p>
-            </motion.div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
-              {bookableTours.map((tour, index) => (
-                <motion.div
-                  key={tour.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="group cursor-pointer"
-                  onClick={() => navigate(`/tours/${tour.id}`)}
-                >
-                  <div className="bg-white rounded-3xl overflow-hidden hover:shadow-2xl transition-all duration-500">
-                    <div className="relative h-64 overflow-hidden">
-                      <img 
-                        src={tour.image} 
-                        alt={tour.title} 
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                        loading="lazy"
-                        decoding="async"
-                        referrerPolicy="no-referrer"
-                        onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
-                      />
-                    </div>
-                    <div className="p-6 space-y-3">
-                      <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">{tour.location}</p>
-                      <h3 className="font-medium text-gray-900 line-clamp-2 leading-snug">{tour.title}</h3>
-                      <div className="flex items-center justify-between pt-2">
-                        <div className="flex items-center gap-1 text-sm text-gray-500">
-                          <Star className="w-4 h-4 fill-gray-900 text-gray-900" />
-                          <span className="font-medium text-gray-900">{tour.rating}</span>
-                        </div>
-                        <p className="text-lg font-medium text-gray-900">
-                          {formatMoney(tour.price, 'GBP')}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-
-            <div className="text-center mt-16">
-              <Button 
+              <Button
                 onClick={() => navigate('/tours')}
-                variant="outline"
-                className="px-8 py-3 border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white rounded-full font-medium transition-all duration-300"
+                className="px-10 py-4 bg-[#0B3D91] text-white hover:bg-[#092C6B] rounded-full font-medium text-lg transition-all duration-300"
               >
                 {t('home_cta_explore_tours')}
               </Button>
-            </div>
+            </motion.div>
           </div>
         </section>
 

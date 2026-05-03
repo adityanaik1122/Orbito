@@ -1,11 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { MapPin, Star, Sparkles, ArrowRight, ChevronRight } from 'lucide-react';
-import TourCard from '@/components/TourCard';
-import { apiService } from '@/services/api';
-import { useToast } from '@/components/ui/use-toast';
+import { MapPin, Sparkles, ChevronRight } from 'lucide-react';
 
 // ── Destination config ────────────────────────────────────────────────────────
 const DESTINATIONS = {
@@ -104,7 +101,7 @@ const DESTINATIONS = {
     country: 'Singapore',
     flag: '🇸🇬',
     image: 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?q=80&w=1600&auto=format&fit=crop',
-    description: 'A futuristic garden city — Marina Bay Sands, Sentosa Island, and hawker centres serving the world\'s finest street food.',
+    description: "A futuristic garden city — Marina Bay Sands, Sentosa Island, and hawker centres serving the world's finest street food.",
     highlights: ['Marina Bay Sands', 'Gardens by the Bay', 'Sentosa Island', 'Hawker Centres'],
     nearby: ['bangkok', 'tokyo', 'bali'],
   },
@@ -119,52 +116,36 @@ const DESTINATIONS = {
   },
 };
 
-const CATEGORIES = ['All', 'Sightseeing', 'Cultural', 'Adventure', 'Historical Sites', 'Food & Drink', 'Entertainment'];
+const VIATOR_WIDGET_SRC = 'https://www.viator.com/orion/partner/widget.js';
 
 // ── Component ─────────────────────────────────────────────────────────────────
 const DestinationPage = () => {
   const { city } = useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const citySlug = city?.toLowerCase();
   const dest = DESTINATIONS[citySlug];
 
-  const [tours, setTours] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState('All');
-  const [totalTours, setTotalTours] = useState(0);
-
   useEffect(() => {
     if (!dest) {
-      navigate(`/tours?destination=${city}`, { replace: true });
+      navigate(`/tours`, { replace: true });
       return;
     }
-    fetchTours('All');
+
+    // Force re-initialization on every mount (SPA navigation fix)
+    const existing = document.querySelector(`script[src="${VIATOR_WIDGET_SRC}"]`);
+    if (existing) existing.remove();
+
+    const script = document.createElement('script');
+    script.src = VIATOR_WIDGET_SRC;
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      const s = document.querySelector(`script[src="${VIATOR_WIDGET_SRC}"]`);
+      if (s) s.remove();
+    };
   }, [city]);
-
-  const fetchTours = async (category) => {
-    setLoading(true);
-    try {
-      const res = await apiService.getTours({
-        destination: dest.name,
-        categories: category === 'All' ? '' : category,
-        sortBy: 'rating',
-      });
-      const list = res.tours || [];
-      setTours(list);
-      if (category === 'All') setTotalTours(list.length);
-    } catch {
-      toast({ variant: 'destructive', title: 'Failed to load tours' });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCategoryClick = (cat) => {
-    setActiveCategory(cat);
-    fetchTours(cat);
-  };
 
   if (!dest) return null;
 
@@ -178,12 +159,12 @@ const DestinationPage = () => {
         <title>Things to Do in {dest.name} | Tours & Experiences | Orbito</title>
         <meta
           name="description"
-          content={`Book the best tours and experiences in ${dest.name}. ${dest.description} Browse ${totalTours}+ curated activities.`}
+          content={`Book the best tours and experiences in ${dest.name}. ${dest.description} Discover curated activities powered by Viator.`}
         />
         <meta property="og:title" content={`Things to Do in ${dest.name} | Orbito`} />
         <meta property="og:description" content={dest.description} />
         <meta property="og:image" content={dest.image} />
-        <link rel="canonical" href={`https://orbito.travel/destinations/${citySlug}`} />
+        <link rel="canonical" href={`https://orbitotrip.com/destinations/${citySlug}`} />
       </Helmet>
 
       {/* ── Hero ── */}
@@ -210,12 +191,6 @@ const DestinationPage = () => {
             <p className="text-white/85 text-lg max-w-2xl mb-5 leading-relaxed">{dest.description}</p>
 
             <div className="flex flex-wrap items-center gap-3">
-              {totalTours > 0 && (
-                <div className="bg-white/15 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2">
-                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  {totalTours} curated experience{totalTours !== 1 ? 's' : ''}
-                </div>
-              )}
               <div className="bg-white/15 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
                 {dest.country}
@@ -230,83 +205,23 @@ const DestinationPage = () => {
         </div>
       </div>
 
-      {/* ── Category tabs ── */}
-      <div className="bg-white border-b sticky top-0 z-20 shadow-sm">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center gap-2 overflow-x-auto py-3 scrollbar-hide">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => handleCategoryClick(cat)}
-                className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
-                  activeCategory === cat
-                    ? 'bg-[#0B3D91] text-white shadow-md'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
       <div className="bg-gray-50 min-h-screen">
         <div className="container mx-auto px-4 py-10 space-y-14">
 
-          {/* ── Tours grid ── */}
+          {/* ── Viator Widget ── */}
           <section>
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-5">
               <h2 className="text-2xl font-bold text-gray-900">
-                {activeCategory === 'All' ? `Top experiences in ${dest.name}` : `${activeCategory} in ${dest.name}`}
+                Top experiences in {dest.name}
               </h2>
-              <Link
-                to={`/tours?destination=${dest.name}`}
-                className="text-sm font-semibold text-[#0B3D91] hover:underline flex items-center gap-1"
-              >
-                See all <ArrowRight className="w-4 h-4" />
-              </Link>
+              <span className="text-xs text-gray-400">Affiliate partner content · Viator</span>
             </div>
-
-            {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm animate-pulse">
-                    <div className="h-48 bg-gray-200" />
-                    <div className="p-5 space-y-3">
-                      <div className="h-4 bg-gray-200 rounded w-3/4" />
-                      <div className="h-3 bg-gray-200 rounded w-1/2" />
-                      <div className="h-3 bg-gray-200 rounded w-full" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : tours.length === 0 ? (
-              <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
-                <p className="text-gray-500 font-medium mb-4">No {activeCategory !== 'All' ? activeCategory.toLowerCase() : ''} experiences found yet for {dest.name}.</p>
-                <Button variant="outline" onClick={() => handleCategoryClick('All')}>Show all categories</Button>
-              </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {tours.slice(0, 12).map((tour) => (
-                    <TourCard key={tour.external_id || tour.id} tour={tour} />
-                  ))}
-                </div>
-                {tours.length > 12 && (
-                  <div className="text-center mt-8">
-                    <Button
-                      variant="outline"
-                      onClick={() => navigate(`/tours?destination=${dest.name}`)}
-                      className="border-[#0B3D91] text-[#0B3D91] hover:bg-blue-50 px-8"
-                    >
-                      View all {tours.length} experiences in {dest.name}
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </div>
-                )}
-              </>
-            )}
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <div
+                data-vi-partner-id="P00281964"
+                data-vi-widget-ref="W-e50d8b20-0e81-4083-a036-aad28f2f0562"
+              />
+            </div>
           </section>
 
           {/* ── AI Itinerary CTA ── */}
@@ -318,7 +233,7 @@ const DestinationPage = () => {
               </div>
               <h3 className="text-2xl md:text-3xl font-bold mb-2">Plan your {dest.name} trip with AI</h3>
               <p className="text-blue-100 max-w-lg">
-                Get a personalised day-by-day itinerary with bookable tours matched to every activity — in under 30 seconds.
+                Get a personalised day-by-day itinerary with activities matched to every day — in under 30 seconds.
               </p>
             </div>
             <Button
@@ -335,15 +250,13 @@ const DestinationPage = () => {
             <h2 className="text-2xl font-bold text-gray-900 mb-5">Top attractions in {dest.name}</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {dest.highlights.map((highlight) => (
-                <button
+                <div
                   key={highlight}
-                  onClick={() => navigate(`/tours?destination=${highlight}`)}
-                  className="bg-white rounded-xl border border-gray-200 p-4 text-left hover:border-[#0B3D91] hover:shadow-md transition-all group"
+                  className="bg-white rounded-xl border border-gray-200 p-4 text-left"
                 >
-                  <MapPin className="w-5 h-5 text-[#0B3D91] mb-2 group-hover:scale-110 transition-transform" />
+                  <MapPin className="w-5 h-5 text-[#0B3D91] mb-2" />
                   <p className="font-semibold text-sm text-gray-900">{highlight}</p>
-                  <p className="text-xs text-gray-400 mt-1">Browse tours →</p>
-                </button>
+                </div>
               ))}
             </div>
           </section>

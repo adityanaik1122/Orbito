@@ -1635,20 +1635,6 @@ const PlanTourPage = () => {
                                                                           </p>
                                                                         )}
                                                                         {item.openingHours && <p className="text-xs text-gray-400 mt-1">Open: {item.openingHours}</p>}
-                                                                        {(item.tour || item.suggestedTour) && (() => {
-                                                                          const t = item.tour || item.suggestedTour;
-                                                                          return (
-                                                                            <a
-                                                                              href={t.bookingUrl}
-                                                                              target={t.bookingUrl?.startsWith('/') ? '_self' : '_blank'}
-                                                                              rel="noreferrer"
-                                                                              onClick={(e) => e.stopPropagation()}
-                                                                              className="inline-flex items-center gap-1 mt-2 px-2.5 py-1 rounded-full bg-green-50 text-green-700 border border-green-200 text-xs font-semibold hover:bg-green-100 transition-colors"
-                                                                            >
-                                                                              🎟 Book from {t.currency === 'GBP' ? '£' : t.currency === 'EUR' ? '€' : '$'}{t.price}
-                                                                            </a>
-                                                                          );
-                                                                        })()}
                                                                     </>
                                                                 )}
                                                             </div>

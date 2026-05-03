@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import MapView from '@/components/MapView';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Share2, Edit, Calendar, MapPin, Clock, Sparkles, Star, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Share2, Edit, Calendar, MapPin, Clock, Sparkles } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { getItineraryById, FALLBACK_IMAGE } from '@/data/itineraries';
 import { supabase } from '@/lib/customSupabaseClient';
@@ -252,72 +252,26 @@ const ItineraryDetailPage = () => {
                         </div>
                       </div>
                       <div className="space-y-3">
-                        {day.items.map((item, index) => {
-                          const bookableTour = item.tour || item.suggestedTour;
-                          return (
-                            <div key={`${day.day}-${index}`} className="bg-gray-50 rounded-xl overflow-hidden">
-                              <div className="flex items-start gap-4 p-4">
-                                <div className="text-sm font-semibold text-[#0B3D91] w-14 flex-shrink-0 pt-0.5">
-                                  {item.time}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 flex-wrap">
-                                    <span className="font-semibold text-gray-900">{item.name}</span>
-                                    {item.duration && (
-                                      <span className="text-xs text-gray-500 flex items-center gap-1">
-                                        <Clock className="w-3 h-3" /> {item.duration}
-                                      </span>
-                                    )}
-                                    {bookableTour && (
-                                      <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
-                                        Bookable
-                                      </span>
-                                    )}
-                                  </div>
-                                  {item.note && <p className="text-sm text-gray-600 mt-1">{item.note}</p>}
-                                </div>
+                        {day.items.map((item, index) => (
+                          <div key={`${day.day}-${index}`} className="bg-gray-50 rounded-xl overflow-hidden">
+                            <div className="flex items-start gap-4 p-4">
+                              <div className="text-sm font-semibold text-[#0B3D91] w-14 flex-shrink-0 pt-0.5">
+                                {item.time}
                               </div>
-                              {bookableTour && (
-                                <div className="mx-4 mb-4 bg-white rounded-xl border border-green-100 overflow-hidden flex gap-3 shadow-sm">
-                                  {bookableTour.image && (
-                                    <img
-                                      src={bookableTour.image}
-                                      alt={bookableTour.title}
-                                      className="w-24 h-24 object-cover flex-shrink-0"
-                                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                                    />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="font-semibold text-gray-900">{item.name}</span>
+                                  {item.duration && (
+                                    <span className="text-xs text-gray-500 flex items-center gap-1">
+                                      <Clock className="w-3 h-3" /> {item.duration}
+                                    </span>
                                   )}
-                                  <div className="flex-1 p-3 min-w-0">
-                                    <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">
-                                      {item.tour ? 'Matched tour' : 'Suggested tour'}
-                                    </p>
-                                    <p className="font-semibold text-sm text-gray-900 truncate">{bookableTour.title}</p>
-                                    <div className="flex items-center gap-3 mt-1">
-                                      {bookableTour.rating && (
-                                        <span className="flex items-center gap-1 text-xs text-yellow-600 font-medium">
-                                          <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                                          {bookableTour.rating.toFixed(1)}
-                                        </span>
-                                      )}
-                                      <span className="text-xs font-bold text-gray-900">
-                                        from {bookableTour.currency === 'GBP' ? '£' : bookableTour.currency === 'EUR' ? '€' : '$'}{bookableTour.price}
-                                      </span>
-                                    </div>
-                                    <a
-                                      href={bookableTour.bookingUrl}
-                                      target={bookableTour.bookingUrl?.startsWith('/') ? '_self' : '_blank'}
-                                      rel="noreferrer"
-                                      className="inline-flex items-center gap-1 mt-2 px-3 py-1.5 rounded-lg bg-[#0B3D91] text-white text-xs font-semibold hover:bg-[#092C6B] transition-colors"
-                                    >
-                                      Book Now
-                                      {!bookableTour.bookingUrl?.startsWith('/') && <ExternalLink className="w-3 h-3" />}
-                                    </a>
-                                  </div>
                                 </div>
-                              )}
+                                {item.note && <p className="text-sm text-gray-600 mt-1">{item.note}</p>}
+                              </div>
                             </div>
-                          );
-                        })}
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ))}
@@ -327,62 +281,20 @@ const ItineraryDetailPage = () => {
 
             <div className="lg:col-span-1">
               <MapView destination={itinerary.city} activities={[]} />
-              {(() => {
-                const bookableItems = itinerary.days.flatMap(d => d.items).filter(i => i.tour || i.suggestedTour);
-                const totalPrice = bookableItems.reduce((sum, i) => {
-                  const t = i.tour || i.suggestedTour;
-                  return sum + (t?.price || 0);
-                }, 0);
-                return bookableItems.length > 0 ? (
-                  <div className="bg-white rounded-2xl border border-green-200 p-6 shadow-sm mt-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1 flex items-center gap-2">
-                      🎟 Bookable Experiences
-                    </h3>
-                    <p className="text-sm text-gray-500 mb-4">{bookableItems.length} tour{bookableItems.length !== 1 ? 's' : ''} matched to your itinerary</p>
-                    <div className="space-y-2 mb-4">
-                      {bookableItems.map((item, i) => {
-                        const t = item.tour || item.suggestedTour;
-                        return (
-                          <div key={i} className="flex justify-between items-center text-sm">
-                            <span className="text-gray-700 truncate pr-2 flex-1">{t.title}</span>
-                            <span className="font-semibold text-gray-900 whitespace-nowrap">
-                              {t.currency === 'GBP' ? '£' : t.currency === 'EUR' ? '€' : '$'}{t.price}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    {totalPrice > 0 && (
-                      <div className="flex justify-between items-center py-2 border-t border-gray-100 mb-4">
-                        <span className="font-semibold text-gray-900">Est. total</span>
-                        <span className="font-bold text-[#0B3D91]">£{totalPrice.toFixed(0)}</span>
-                      </div>
-                    )}
-                    <Button
-                      onClick={() => navigate('/tours', { state: { destination: itinerary.city } })}
-                      className="w-full bg-[#0B3D91] hover:bg-[#092C6B] text-white"
-                    >
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Browse All Tours
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm mt-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">AI itinerary notes</h3>
-                    <p className="text-sm text-gray-600">
-                      This plan is AI-generated based on popular routes, pacing, and neighborhood clusters.
-                      You can customize it further in the planner.
-                    </p>
-                    <Button
-                      onClick={() => navigate('/plan', { state: { destination: itinerary.city, prefillItinerary: itinerary } })}
-                      className="mt-4 w-full bg-[#0B3D91] hover:bg-[#092C6B] text-white"
-                    >
-                      <Edit className="w-4 h-4 mr-2" />
-                      Customize in Planner
-                    </Button>
-                  </div>
-                );
-              })()}
+              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm mt-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">AI itinerary notes</h3>
+                <p className="text-sm text-gray-600">
+                  This plan is AI-generated based on popular routes, pacing, and neighbourhood clusters.
+                  You can customize it further in the planner.
+                </p>
+                <Button
+                  onClick={() => navigate('/plan', { state: { destination: itinerary.city, prefillItinerary: itinerary } })}
+                  className="mt-4 w-full bg-[#0B3D91] hover:bg-[#092C6B] text-white"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Customize in Planner
+                </Button>
+              </div>
             </div>
           </div>
         </motion.div>
