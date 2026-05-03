@@ -2,7 +2,6 @@ import React from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { MapPin, Clock, Briefcase, ArrowRight } from 'lucide-react';
 
 const CareersPage = () => {
     const benefits = [
@@ -14,44 +13,11 @@ const CareersPage = () => {
         'Learning & development budget'
     ];
 
-    const openings = [
-        {
-            title: 'Senior Frontend Engineer',
-            department: 'Engineering',
-            location: 'Remote',
-            type: 'Full-time'
-        },
-        {
-            title: 'Backend Engineer',
-            department: 'Engineering',
-            location: 'Remote',
-            type: 'Full-time'
-        },
-        {
-            title: 'Product Designer',
-            department: 'Design',
-            location: 'Remote',
-            type: 'Full-time'
-        },
-        {
-            title: 'Machine Learning Engineer',
-            department: 'AI/ML',
-            location: 'Remote',
-            type: 'Full-time'
-        },
-        {
-            title: 'Content Marketing Manager',
-            department: 'Marketing',
-            location: 'Remote',
-            type: 'Full-time'
-        }
-    ];
-
     return (
         <>
             <Helmet>
                 <title>Careers - Orbito</title>
-                <meta name="description" content="Join the Orbito team and help revolutionize travel planning. View our open positions." />
+                <meta name="description" content="Join the Orbito team and help revolutionize travel planning." />
             </Helmet>
             <div className="container mx-auto px-4 py-20">
                 <motion.div
@@ -64,7 +30,7 @@ const CareersPage = () => {
                         Join Our Journey
                     </h1>
                     <p className="text-lg text-gray-600">
-                        Help us build the future of travel. We're looking for passionate people 
+                        Help us build the future of travel. We're looking for passionate people
                         who want to make exploring the world easier for everyone.
                     </p>
                 </motion.div>
@@ -86,57 +52,22 @@ const CareersPage = () => {
                     </div>
                 </motion.div>
 
-                <div>
-                    <h2 className="text-3xl font-bold text-center text-[#0B3D91] mb-8">Open Positions</h2>
-                    <div className="max-w-3xl mx-auto space-y-4">
-                        {openings.map((job, index) => (
-                            <motion.div
-                                key={job.title}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.4, delay: index * 0.1 }}
-                                className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-shadow"
-                            >
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                    <div>
-                                        <h3 className="text-xl font-bold text-[#0B3D91]">{job.title}</h3>
-                                        <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-gray-500">
-                                            <span className="flex items-center gap-1">
-                                                <Briefcase className="w-4 h-4" />
-                                                {job.department}
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                                <MapPin className="w-4 h-4" />
-                                                {job.location}
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                                <Clock className="w-4 h-4" />
-                                                {job.type}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <Button className="bg-[#0B3D91] hover:bg-[#092C6B] text-white">
-                                        Apply Now
-                                        <ArrowRight className="w-4 h-4 ml-2" />
-                                    </Button>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                </div>
-
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ duration: 0.6, delay: 0.5 }}
-                    className="text-center mt-16 p-8 bg-gray-50 rounded-2xl"
+                    transition={{ duration: 0.6, delay: 0.3 }}
+                    className="text-center max-w-2xl mx-auto p-10 bg-gray-50 rounded-2xl border border-gray-100"
                 >
-                    <h3 className="text-xl font-bold text-[#0B3D91] mb-2">Don't see the right role?</h3>
-                    <p className="text-gray-600 mb-4">
-                        We're always looking for talented people. Send us your resume and we'll keep you in mind.
+                    <h2 className="text-2xl font-bold text-[#0B3D91] mb-3">No open positions right now</h2>
+                    <p className="text-gray-600 mb-6">
+                        We're not actively hiring at the moment, but we're always happy to hear from talented people.
+                        Send us your details and we'll reach out when something opens up.
                     </p>
-                    <Button variant="outline" className="border-[#0B3D91] text-[#0B3D91] hover:bg-[#0B3D91] hover:text-white">
-                        Send General Application
+                    <Button
+                        className="bg-[#0B3D91] hover:bg-[#092C6B] text-white"
+                        onClick={() => window.location.href = 'mailto:hello@orbitotrip.com?subject=General Application'}
+                    >
+                        Get in Touch
                     </Button>
                 </motion.div>
             </div>
