@@ -11,6 +11,7 @@ const operatorRoutes = require('./operatorRoutes');
 const paymentRoutes = require('./paymentRoutes');
 const adminRoutes = require('./adminRoutes');
 const reviewRoutes = require('./reviewRoutes');
+const jobRoutes = require('./jobRoutes');
 const { octoRoutes } = require('../octo-api');
 
 function registerRoutes(app) {
@@ -27,6 +28,7 @@ function registerRoutes(app) {
   app.use('/api/payments', paymentRoutes);
   app.use('/api/admin', adminRoutes);
   app.use('/api', reviewRoutes);
+  app.use('/api', jobRoutes);
   app.use('/api/octo', octoRoutes);
 }
 

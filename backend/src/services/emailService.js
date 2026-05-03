@@ -6,6 +6,7 @@
 const { resendClient } = require('../config/resend');
 const { generateBookingConfirmationHTML, generateBookingConfirmationText } = require('../templates/bookingConfirmationEmail');
 const { generateItineraryReminderHTML, generateItineraryReminderText } = require('../templates/itineraryReminderEmail');
+const { generateReviewRequestHTML, generateReviewRequestText } = require('../templates/reviewRequestEmail');
 const logger = require('../utils/logger');
 
 const FROM_EMAIL = process.env.FROM_EMAIL || 'Orbito <noreply@orbitotrip.com>';
@@ -259,10 +260,48 @@ async function sendNotification(to, subject, htmlContent, textContent = null) {
   }
 }
 
+/**
+ * Send post-tour review request email
+ */
+async function sendReviewRequest(bookingData, tourData) {
+  if (!resendClient) {
+    console.warn('Resend not configured - skipping email');
+    return { success: false, message: 'Email service not configured' };
+  }
+
+  try {
+    const to = bookingData.customer_email || bookingData?.customer_contact?.email;
+    if (!to) return { success: false, message: 'No customer email' };
+
+    const htmlContent = generateReviewRequestHTML(bookingData, tourData);
+    const textContent = generateReviewRequestText(bookingData, tourData);
+    const tourTitle = tourData?.title || bookingData?.tour_title || 'your recent tour';
+
+    const result = await resendClient.emails.send({
+      from: FROM_EMAIL,
+      to,
+      subject: `How was ${tourTitle}? Leave a quick review ⭐`,
+      html: htmlContent,
+      text: textContent,
+      tags: [
+        { name: 'category', value: 'review_request' },
+        { name: 'booking_id', value: String(bookingData.id) }
+      ]
+    });
+
+    logger.success('Review request email sent:', result.id);
+    return { success: true, emailId: result.id };
+  } catch (error) {
+    console.error('Error sending review request email:', error);
+    return { success: false, error: error.message };
+  }
+}
+
 module.exports = {
   sendBookingConfirmation,
   sendItineraryReminder,
   sendBookingCancellation,
   sendWelcomeEmail,
-  sendNotification
+  sendNotification,
+  sendReviewRequest
 };
