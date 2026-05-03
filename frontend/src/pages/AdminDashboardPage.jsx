@@ -25,6 +25,7 @@ import {
   XCircle,
   AlertCircle,
   Clock,
+  Newspaper,
 } from 'lucide-react';
 import { apiService } from '@/services/api';
 
@@ -34,6 +35,7 @@ const sections = [
   { id: 'operators', label: 'Tour Operators', icon: FileText },
   { id: 'clients', label: 'Clients', icon: Users },
   { id: 'bookings', label: 'Bookings', icon: CreditCard },
+  { id: 'blog', label: 'Blog', icon: Newspaper },
 ];
 
 const defaultBadgeOverrides = {
@@ -56,6 +58,125 @@ const parseBadgeOverrides = (tour) => {
     }
   }
   return { ...defaultBadgeOverrides, ...raw, featured: !!tour.featured, instant_confirmation: !!tour.instant_confirmation };
+};
+
+// ── Blog section (self-contained) ────────────────────────────────────────────
+const BLOG_SOURCES = [
+  'Nomadic Matt', 'The Points Guy', 'Atlas Obscura', 'Adventurous Kate',
+  'Travel + Leisure', 'Condé Nast Traveler', 'The Blonde Abroad', 'TravelAwaits',
+];
+
+const BlogSection = () => {
+  const { toast } = useToast();
+  const [fetching, setFetching] = useState(false);
+  const [stats, setStats] = useState(null);
+  const [lastResult, setLastResult] = useState(null);
+
+  useEffect(() => {
+    apiService.adminGetBlogStats()
+      .then((res) => setStats(res))
+      .catch(() => {});
+  }, []);
+
+  const handleFetch = async () => {
+    setFetching(true);
+    try {
+      const result = await apiService.adminFetchBlog();
+      setLastResult(result);
+      toast({
+        title: 'Blog updated',
+        description: `${result.inserted} new articles added, ${result.skipped} already existed.`,
+      });
+      // Refresh stats
+      const updated = await apiService.adminGetBlogStats();
+      setStats(updated);
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'Fetch failed', description: err.message });
+    } finally {
+      setFetching(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Stats + trigger */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Blog Management</CardTitle>
+          <Button onClick={handleFetch} disabled={fetching} className="bg-[#0B3D91] hover:bg-[#092C6B]">
+            {fetching
+              ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Fetching…</>
+              : <><RefreshCw className="w-4 h-4 mr-2" /> Fetch Latest Articles</>}
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <div className="bg-gray-50 rounded-xl p-4 text-center">
+              <p className="text-3xl font-bold text-[#0B3D91]">{stats?.total ?? '—'}</p>
+              <p className="text-sm text-gray-500 mt-1">Articles in database</p>
+            </div>
+            <div className="bg-gray-50 rounded-xl p-4 text-center">
+              <p className="text-3xl font-bold text-[#0B3D91]">{BLOG_SOURCES.length}</p>
+              <p className="text-sm text-gray-500 mt-1">Active sources</p>
+            </div>
+            <div className="bg-gray-50 rounded-xl p-4 text-center">
+              <p className="text-3xl font-bold text-emerald-600">{lastResult ? `+${lastResult.inserted}` : '—'}</p>
+              <p className="text-sm text-gray-500 mt-1">Added this run</p>
+            </div>
+          </div>
+
+          {lastResult && (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 text-sm text-emerald-800 mb-4">
+              Last run: <strong>{lastResult.inserted}</strong> new articles added · <strong>{lastResult.skipped}</strong> duplicates skipped · {lastResult.total_fetched} total fetched
+            </div>
+          )}
+
+          <div>
+            <p className="text-sm font-semibold text-gray-700 mb-3">Connected travel blog sources</p>
+            <div className="flex flex-wrap gap-2">
+              {BLOG_SOURCES.map((src) => (
+                <span key={src} className="bg-blue-50 text-[#0B3D91] text-xs font-semibold px-3 py-1.5 rounded-full border border-blue-100">
+                  {src}
+                </span>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>How the scheduler works</CardTitle></CardHeader>
+        <CardContent className="space-y-3 text-sm text-gray-600">
+          <p>The <strong>Fetch Latest Articles</strong> button above pulls fresh posts from all 8 travel blogs right now. For fully automatic daily updates, set up one of these free schedulers:</p>
+          <div className="space-y-2">
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="font-semibold text-gray-800 mb-1">Option 1 — cron-job.org (easiest, free)</p>
+              <ol className="list-decimal list-inside space-y-1 text-gray-600">
+                <li>Go to <span className="font-mono text-xs bg-white px-1 py-0.5 rounded border">cron-job.org</span> → create free account</li>
+                <li>New cronjob → URL: <span className="font-mono text-xs bg-white px-1 py-0.5 rounded border">POST https://your-backend.com/api/jobs/fetch-blog</span></li>
+                <li>Add header: <span className="font-mono text-xs bg-white px-1 py-0.5 rounded border">x-cron-secret: YOUR_CRON_SECRET</span></li>
+                <li>Schedule: daily at 7:00 AM</li>
+              </ol>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="font-semibold text-gray-800 mb-1">Option 2 — GitHub Actions (free, in your repo)</p>
+              <p className="text-gray-600 text-xs font-mono bg-white p-2 rounded border whitespace-pre">{`on:
+  schedule:
+    - cron: '0 7 * * *'
+jobs:
+  fetch-blog:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -X POST https://your-backend.com/api/jobs/fetch-blog \\
+            -H "x-cron-secret: \${{ secrets.CRON_SECRET }}"`}</p>
+            </div>
+          </div>
+          <p className="text-xs text-gray-400">Set <span className="font-mono">CRON_SECRET</span> in your backend environment variables to protect the endpoint.</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
 };
 
 const AdminDashboardPage = () => {
@@ -961,6 +1082,10 @@ const AdminDashboardPage = () => {
                     </div>
                   </CardContent>
                 </Card>
+              )}
+
+              {activeSection === 'blog' && (
+                <BlogSection />
               )}
             </main>
           </div>

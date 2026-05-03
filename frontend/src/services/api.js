@@ -424,6 +424,35 @@ export const apiService = {
     return res.json();
   },
 
+  // ── Blog (admin) ─────────────────────────────────────────────────────────
+  adminFetchBlog: async () => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/admin/fetch-blog`, { method: 'POST', headers });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Failed to fetch blog'); }
+    return res.json();
+  },
+
+  adminGetBlogStats: async () => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/admin/blog-stats`, { headers });
+    if (!res.ok) throw new Error('Failed to load blog stats');
+    return res.json();
+  },
+
+  // ── Blog ──────────────────────────────────────────────────────────────────
+  getBlogPosts: async ({ page = 1, limit = 24, category = 'All' } = {}) => {
+    const params = new URLSearchParams({ page, limit, category });
+    const res = await fetch(`${API_BASE_URL}/blog?${params}`);
+    if (!res.ok) throw new Error('Failed to fetch blog posts');
+    return res.json();
+  },
+
+  getBlogCategories: async () => {
+    const res = await fetch(`${API_BASE_URL}/blog/categories`);
+    if (!res.ok) throw new Error('Failed to fetch categories');
+    return res.json();
+  },
+
   cancelBooking: async (bookingId, reason) => {
     try {
       const headers = await getAuthHeaders();
