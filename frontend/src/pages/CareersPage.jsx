@@ -65,7 +65,7 @@ const CareersPage = () => {
                     </p>
                     <Button
                         className="bg-[#0B3D91] hover:bg-[#092C6B] text-white"
-                        onClick={() => window.location.href = 'mailto:hello@orbitotrip.com?subject=General Application'}
+                        onClick={() => window.location.href = 'mailto:TeamOrbito@protonmail.com?subject=General Application'}
                     >
                         Get in Touch
                     </Button>
