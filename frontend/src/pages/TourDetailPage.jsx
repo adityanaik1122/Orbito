@@ -8,13 +8,14 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Calendar as CalendarIcon, Clock, MapPin, Star, Check, Loader2, ArrowLeft } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, MapPin, Star, Check, Loader2, ArrowLeft, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { apiService } from '@/services/api';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { useLocale } from '@/contexts/LocaleContext';
 import { formatDate } from '@/lib/locale';
+import ReviewModal from '@/components/ReviewModal';
 
 const TourDetailPage = () => {
   const { slug } = useParams();
@@ -26,7 +27,10 @@ const TourDetailPage = () => {
   const [tour, setTour] = useState(null);
   const [loading, setLoading] = useState(true);
   const [booking, setBooking] = useState(false);
-  
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+
   const [bookingData, setBookingData] = useState({
     date: undefined,
     numAdults: 1,
@@ -45,6 +49,7 @@ const TourDetailPage = () => {
     try {
       const response = await apiService.getTourDetail(slug);
       setTour(response.tour);
+      fetchReviews(response.tour?.id);
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -53,6 +58,19 @@ const TourDetailPage = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchReviews = async (tourId) => {
+    if (!tourId) return;
+    setReviewsLoading(true);
+    try {
+      const res = await apiService.getTourReviews(tourId);
+      setReviews(res.reviews || []);
+    } catch {
+      // non-critical — reviews silently fail
+    } finally {
+      setReviewsLoading(false);
     }
   };
 
@@ -270,6 +288,76 @@ const TourDetailPage = () => {
                   <p className="text-gray-700">{tour.cancellation_policy}</p>
                 </div>
               )}
+
+              {/* Reviews Section */}
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="flex items-center justify-between mb-5">
+                  <div>
+                    <h2 className="text-xl font-bold">Reviews</h2>
+                    {reviews.length > 0 && (
+                      <div className="flex items-center gap-2 mt-1">
+                        <div className="flex">
+                          {[1,2,3,4,5].map((s) => (
+                            <Star key={s} className={`w-4 h-4 ${s <= Math.round(reviews.reduce((a,r)=>a+r.rating,0)/reviews.length) ? 'fill-yellow-400 text-yellow-400' : 'fill-gray-100 text-gray-300'}`} />
+                          ))}
+                        </div>
+                        <span className="text-sm font-semibold text-gray-700">
+                          {(reviews.reduce((a,r)=>a+r.rating,0)/reviews.length).toFixed(1)}
+                        </span>
+                        <span className="text-sm text-gray-500">({reviews.length} review{reviews.length !== 1 ? 's' : ''})</span>
+                      </div>
+                    )}
+                  </div>
+                  {user && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowReviewModal(true)}
+                      className="text-[#0B3D91] border-blue-200 hover:bg-blue-50"
+                    >
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      Write a Review
+                    </Button>
+                  )}
+                </div>
+
+                {reviewsLoading ? (
+                  <div className="flex justify-center py-6">
+                    <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                  </div>
+                ) : reviews.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <MessageSquare className="w-10 h-10 mx-auto mb-2 text-gray-200" />
+                    <p className="font-medium">No reviews yet</p>
+                    <p className="text-sm mt-1">Be the first to share your experience!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-5">
+                    {reviews.map((review) => (
+                      <div key={review.id} className="border-b border-gray-100 pb-5 last:border-0 last:pb-0">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full bg-[#0B3D91] text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
+                              {(review.profiles?.full_name || 'A')[0].toUpperCase()}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-sm text-gray-900">{review.profiles?.full_name || 'Anonymous'}</p>
+                              <p className="text-xs text-gray-400">{new Date(review.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                            </div>
+                          </div>
+                          <div className="flex flex-shrink-0">
+                            {[1,2,3,4,5].map((s) => (
+                              <Star key={s} className={`w-4 h-4 ${s <= review.rating ? 'fill-yellow-400 text-yellow-400' : 'fill-gray-100 text-gray-300'}`} />
+                            ))}
+                          </div>
+                        </div>
+                        {review.title && <p className="font-semibold text-gray-900 mt-3">{review.title}</p>}
+                        <p className="text-gray-700 text-sm mt-1.5 leading-relaxed">{review.comment}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Booking Card */}
@@ -399,6 +487,14 @@ const TourDetailPage = () => {
           </div>
         </div>
       </div>
+
+      <ReviewModal
+        isOpen={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        tourId={tour?.id}
+        tourTitle={tour?.title}
+        onReviewSubmitted={() => fetchReviews(tour?.id)}
+      />
     </>
   );
 };

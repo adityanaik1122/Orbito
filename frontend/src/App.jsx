@@ -34,6 +34,7 @@ import SupplierTermsPage from '@/pages/SupplierTermsPage';
 import WhyAIPage from '@/pages/WhyAIPage';
 import CheckoutPage from '@/pages/CheckoutPage';
 import OperatorApplyPage from '@/pages/OperatorApplyPage';
+import DestinationPage from '@/pages/DestinationPage';
 import RequireRole from '@/components/RequireRole';
 import RequireAuth from '@/components/RequireAuth';
 import { AuthProvider } from '@/contexts/SupabaseAuthContext';
@@ -66,6 +67,7 @@ function App() {
           
           <Route path="/tours" element={<Layout><ToursPage /></Layout>} />
           <Route path="/tours/:slug" element={<Layout><TourDetailPage /></Layout>} />
+          <Route path="/destinations/:city" element={<Layout><DestinationPage /></Layout>} />
           <Route path="/bookings" element={
             <RequireAuth>
               <Layout><BookingsPage /></Layout>

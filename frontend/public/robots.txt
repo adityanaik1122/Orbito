@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+# Block auth and private routes
+Disallow: /login
+Disallow: /my-account
+Disallow: /bookings
+Disallow: /checkout
+Disallow: /operator/dashboard
+Disallow: /admin
+
+Sitemap: https://orbitotrip.com/sitemap.xml

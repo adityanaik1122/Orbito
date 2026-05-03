@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -10,6 +10,17 @@ import FilterSidebar from '@/components/FilterSidebar';
 import { apiService } from '@/services/api';
 import { useToast } from '@/components/ui/use-toast';
 import { useLocale } from '@/contexts/LocaleContext';
+
+const POPULAR_DESTINATIONS = [
+  { slug: 'london',    name: 'London',    flag: '🇬🇧', image: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?q=80&w=400&auto=format&fit=crop' },
+  { slug: 'paris',     name: 'Paris',     flag: '🇫🇷', image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=400&auto=format&fit=crop' },
+  { slug: 'dubai',     name: 'Dubai',     flag: '🇦🇪', image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=400&auto=format&fit=crop' },
+  { slug: 'barcelona', name: 'Barcelona', flag: '🇪🇸', image: 'https://images.unsplash.com/photo-1583422409516-2895a77efded?q=80&w=400&auto=format&fit=crop' },
+  { slug: 'rome',      name: 'Rome',      flag: '🇮🇹', image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=400&auto=format&fit=crop' },
+  { slug: 'amsterdam', name: 'Amsterdam', flag: '🇳🇱', image: 'https://images.unsplash.com/photo-1534351590666-13e3e96b5017?q=80&w=400&auto=format&fit=crop' },
+  { slug: 'tokyo',     name: 'Tokyo',     flag: '🇯🇵', image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=400&auto=format&fit=crop' },
+  { slug: 'bangkok',   name: 'Bangkok',   flag: '🇹🇭', image: 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?q=80&w=400&auto=format&fit=crop' },
+];
 
 const ToursPage = () => {
   const { toast } = useToast();
@@ -257,6 +268,35 @@ const ToursPage = () => {
             </div>
           </div>
         </div>
+
+        {/* Popular Destinations Strip */}
+        {!filters.destination && !filters.country && (
+          <div className="bg-gray-50 border-b py-6">
+            <div className="container mx-auto px-4">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Popular Destinations</p>
+              <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
+                {POPULAR_DESTINATIONS.map((dest) => (
+                  <Link
+                    key={dest.slug}
+                    to={`/destinations/${dest.slug}`}
+                    className="flex-shrink-0 relative w-28 h-20 rounded-xl overflow-hidden group"
+                  >
+                    <img
+                      src={dest.image}
+                      alt={dest.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <div className="absolute bottom-1.5 left-0 right-0 text-center">
+                      <span className="text-white text-xs font-bold drop-shadow">{dest.flag} {dest.name}</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Content */}
         <div className="container mx-auto px-4 py-8">

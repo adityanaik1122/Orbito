@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const { registerRoutes } = require('./routes');
 const { apiLimiter } = require('./middleware/rateLimiter');
+const { serveSitemap } = require('./controllers/sitemapController');
 const logger = require('./utils/logger');
 
 const app = express();
@@ -66,6 +67,9 @@ if (process.env.NODE_ENV !== 'production') {
     next();
   });
 }
+
+// Sitemap — served at root level so Google can find it
+app.get('/sitemap.xml', serveSitemap);
 
 registerRoutes(app);
 

@@ -403,6 +403,27 @@ export const apiService = {
     }
   },
 
+  // ── Reviews ──────────────────────────────────────────────────────────────
+  getTourReviews: async (tourId, page = 1) => {
+    const res = await fetch(`${API_BASE_URL}/tours/${tourId}/reviews?page=${page}&limit=20`);
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Failed to fetch reviews'); }
+    return res.json();
+  },
+
+  createReview: async (reviewData) => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/reviews`, { method: 'POST', headers, body: JSON.stringify(reviewData) });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Failed to submit review'); }
+    return res.json();
+  },
+
+  getMyReviews: async () => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/my-reviews`, { headers });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Failed to fetch reviews'); }
+    return res.json();
+  },
+
   cancelBooking: async (bookingId, reason) => {
     try {
       const headers = await getAuthHeaders();

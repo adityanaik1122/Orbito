@@ -4,12 +4,13 @@ import { Helmet } from 'react-helmet';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Calendar, MapPin, Users, Clock } from 'lucide-react';
+import { Loader2, Calendar, MapPin, Users, Star, MessageSquare } from 'lucide-react';
 import { apiService } from '@/services/api';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { formatDate } from '@/lib/locale';
 import { useLocale } from '@/contexts/LocaleContext';
+import ReviewModal from '@/components/ReviewModal';
 
 const BookingsPage = () => {
   const navigate = useNavigate();
@@ -18,11 +19,14 @@ const BookingsPage = () => {
   const { locale } = useLocale();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [myReviews, setMyReviews] = useState([]);
+  const [reviewTarget, setReviewTarget] = useState(null); // { bookingId, tourId, tourTitle }
 
   useEffect(() => {
     if (!authLoading) {
       if (user) {
         fetchBookings();
+        fetchMyReviews();
       } else {
         navigate('/login');
       }
@@ -43,6 +47,18 @@ const BookingsPage = () => {
       setLoading(false);
     }
   };
+
+  const fetchMyReviews = async () => {
+    try {
+      const res = await apiService.getMyReviews();
+      setMyReviews(res.reviews || []);
+    } catch {
+      // non-critical
+    }
+  };
+
+  const hasReview = (bookingId) => myReviews.some((r) => r.booking_id === bookingId);
+  const isReviewable = (status) => ['confirmed', 'completed', 'paid'].includes(status);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -143,19 +159,44 @@ const BookingsPage = () => {
                           </div>
                         </div>
 
-                        <div className="mt-4 pt-4 border-t flex items-center justify-between">
+                        <div className="mt-4 pt-4 border-t flex items-center justify-between flex-wrap gap-3">
                           <div>
                             <div className="text-sm text-gray-500">Total Amount</div>
                             <div className="text-2xl font-bold text-primary">
                               {booking.currency || 'USD'} {booking.total_amount?.toFixed(2) || '0.00'}
                             </div>
                           </div>
-                          <Button 
-                            variant="outline" 
-                            onClick={() => navigate(`/tours/${booking.tours?.id}`)}
-                          >
-                            View Tour
-                          </Button>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {isReviewable(booking.status) && (
+                              hasReview(booking.id) ? (
+                                <Badge className="bg-green-100 text-green-700 border-green-200 gap-1 px-3 py-1.5">
+                                  <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                                  Reviewed
+                                </Badge>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setReviewTarget({
+                                    bookingId: booking.id,
+                                    tourId: booking.tour_id || booking.tours?.id,
+                                    tourTitle: booking.tours?.title
+                                  })}
+                                  className="text-[#0B3D91] border-blue-200 hover:bg-blue-50"
+                                >
+                                  <MessageSquare className="w-4 h-4 mr-1.5" />
+                                  Leave a Review
+                                </Button>
+                              )
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => navigate(`/tours/${booking.tours?.slug || booking.tours?.id}`)}
+                            >
+                              View Tour
+                            </Button>
+                          </div>
                         </div>
                       </CardContent>
                     </div>
@@ -166,6 +207,18 @@ const BookingsPage = () => {
           )}
         </div>
       </div>
+
+      <ReviewModal
+        isOpen={!!reviewTarget}
+        onClose={() => setReviewTarget(null)}
+        tourId={reviewTarget?.tourId}
+        bookingId={reviewTarget?.bookingId}
+        tourTitle={reviewTarget?.tourTitle}
+        onReviewSubmitted={() => {
+          fetchMyReviews();
+          setReviewTarget(null);
+        }}
+      />
     </>
   );
 };
