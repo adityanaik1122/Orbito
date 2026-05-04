@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
@@ -15,9 +16,11 @@ import {
   Calendar,
   CheckCircle,
   CreditCard,
+  Eye,
   FileText,
   Loader2,
   MapPin,
+  PoundSterling,
   RefreshCw,
   Settings,
   ShoppingBag,
@@ -28,6 +31,13 @@ import {
   Newspaper,
 } from 'lucide-react';
 import { apiService } from '@/services/api';
+
+const STATUS_CONFIG = {
+  live: { label: 'Live', class: 'bg-green-100 text-green-800' },
+  pending_review: { label: 'Pending Review', class: 'bg-yellow-100 text-yellow-800' },
+  draft: { label: 'Draft', class: 'bg-gray-100 text-gray-700' },
+  rejected: { label: 'Rejected', class: 'bg-red-100 text-red-800' },
+};
 
 const sections = [
   { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -195,6 +205,8 @@ const AdminDashboardPage = () => {
   const [applications, setApplications] = useState([]);
   const [pendingAdminTours, setPendingAdminTours] = useState([]);
   const [actionLoading, setActionLoading] = useState(null);
+  const [selectedOperator, setSelectedOperator] = useState(null);
+  const [operatorDetail, setOperatorDetail] = useState({ tours: [], bookings: [], loading: false });
 
   const [tourSearch, setTourSearch] = useState('');
   const [filters, setFilters] = useState({
@@ -601,6 +613,40 @@ const AdminDashboardPage = () => {
     }
   };
 
+  const loadOperatorDetail = async (app) => {
+    setSelectedOperator(app);
+    setOperatorDetail({ tours: [], bookings: [], loading: true });
+    try {
+      const { data: opTours } = await supabase
+        .from('tours')
+        .select('*')
+        .eq('operator_id', app.user_id)
+        .order('created_at', { ascending: false });
+
+      const tourIds = (opTours || []).map((t) => t.id);
+      let opBookings = [];
+      if (tourIds.length > 0) {
+        const { data: bkgs } = await supabase
+          .from('bookings')
+          .select('*')
+          .in('tour_id', tourIds)
+          .order('created_at', { ascending: false });
+        opBookings = bkgs || [];
+      }
+
+      const totalRevenue = opBookings.reduce((sum, b) => sum + Number(b.total_amount || 0), 0);
+      setOperatorDetail({
+        tours: opTours || [],
+        bookings: opBookings,
+        totalRevenue,
+        operatorEarnings: totalRevenue * 0.85,
+        loading: false,
+      });
+    } catch {
+      setOperatorDetail({ tours: [], bookings: [], loading: false });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -976,36 +1022,58 @@ const AdminDashboardPage = () => {
 
                   {/* Active Operators table */}
                   <Card>
-                    <CardHeader><CardTitle>Active Operators</CardTitle></CardHeader>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        Active Operators
+                        <Badge className="bg-green-100 text-green-800 ml-2">
+                          {applications.filter((a) => a.status === 'approved').length} active
+                        </Badge>
+                      </CardTitle>
+                    </CardHeader>
                     <CardContent>
                       <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                           <thead className="text-xs text-gray-500 border-b">
                             <tr>
-                              <th className="text-left py-2">Operator</th>
+                              <th className="text-left py-2">Company</th>
+                              <th className="text-left py-2">Contact</th>
                               <th className="text-left py-2">Email</th>
-                              <th className="text-left py-2">Tours</th>
-                              <th className="text-left py-2">Bookings</th>
-                              <th className="text-left py-2">Status</th>
+                              <th className="text-left py-2">Tour Types</th>
+                              <th className="text-left py-2">Approved</th>
+                              <th className="text-left py-2">Actions</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y">
-                            {operatorStats.map((operator) => (
-                              <tr key={operator.id}>
-                                <td className="py-3 font-semibold text-gray-900">{operator.name}</td>
-                                <td className="py-3 text-gray-500">{operator.contact_email || operator.email || '-'}</td>
-                                <td className="py-3">{operator.toursCount}</td>
-                                <td className="py-3">{operator.bookingsCount}</td>
+                            {applications.filter((a) => a.status === 'approved').map((app) => (
+                              <tr key={app.id}>
+                                <td className="py-3 font-semibold text-gray-900">{app.company_name}</td>
+                                <td className="py-3">{app.contact_name}</td>
+                                <td className="py-3 text-gray-500">{app.contact_email}</td>
                                 <td className="py-3">
-                                  <Badge className={operator.is_active ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}>
-                                    {operator.is_active ? 'Active' : 'Inactive'}
-                                  </Badge>
+                                  <div className="flex gap-1 flex-wrap">
+                                    {(app.tour_types || []).slice(0, 2).map((t) => (
+                                      <Badge key={t} className="text-xs bg-blue-50 text-blue-700 border-blue-100">{t}</Badge>
+                                    ))}
+                                    {(app.tour_types || []).length > 2 && (
+                                      <Badge className="text-xs bg-gray-100 text-gray-600">+{app.tour_types.length - 2}</Badge>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="py-3 text-gray-500 text-xs">
+                                  {app.reviewed_at ? format(new Date(app.reviewed_at), 'dd MMM yyyy') : '-'}
+                                </td>
+                                <td className="py-3">
+                                  <Button size="sm" variant="outline" onClick={() => loadOperatorDetail(app)}>
+                                    <Eye className="w-3.5 h-3.5 mr-1" /> View
+                                  </Button>
                                 </td>
                               </tr>
                             ))}
                           </tbody>
                         </table>
-                        {operatorStats.length === 0 && <p className="text-sm text-gray-500 py-6">No operators yet.</p>}
+                        {applications.filter((a) => a.status === 'approved').length === 0 && (
+                          <p className="text-sm text-gray-500 py-6">No approved operators yet.</p>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -1091,6 +1159,159 @@ const AdminDashboardPage = () => {
           </div>
         </div>
       </div>
+
+      {/* ── Operator Detail Dialog ── */}
+      <Dialog open={!!selectedOperator} onOpenChange={(open) => !open && setSelectedOperator(null)}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl">{selectedOperator?.company_name}</DialogTitle>
+          </DialogHeader>
+
+          {operatorDetail.loading ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-[#0B3D91]" />
+            </div>
+          ) : selectedOperator && (
+            <div className="space-y-6 pt-2">
+
+              {/* Company info grid */}
+              <div className="grid grid-cols-2 gap-3 bg-gray-50 rounded-xl p-4 text-sm">
+                <div>
+                  <p className="text-xs text-gray-400 mb-0.5">Contact Person</p>
+                  <p className="font-medium text-gray-900">{selectedOperator.contact_name}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400 mb-0.5">Email</p>
+                  <p className="font-medium text-gray-900">{selectedOperator.contact_email}</p>
+                </div>
+                {selectedOperator.contact_phone && (
+                  <div>
+                    <p className="text-xs text-gray-400 mb-0.5">Phone</p>
+                    <p className="font-medium text-gray-900">{selectedOperator.contact_phone}</p>
+                  </div>
+                )}
+                {selectedOperator.website && (
+                  <div>
+                    <p className="text-xs text-gray-400 mb-0.5">Website</p>
+                    <a href={selectedOperator.website} target="_blank" rel="noopener noreferrer" className="font-medium text-blue-600 hover:underline">{selectedOperator.website}</a>
+                  </div>
+                )}
+                {selectedOperator.years_in_business && (
+                  <div>
+                    <p className="text-xs text-gray-400 mb-0.5">Years in Business</p>
+                    <p className="font-medium text-gray-900">{selectedOperator.years_in_business}</p>
+                  </div>
+                )}
+                {selectedOperator.operating_locations?.length > 0 && (
+                  <div className="col-span-2">
+                    <p className="text-xs text-gray-400 mb-0.5">Operating Locations</p>
+                    <p className="font-medium text-gray-900">{selectedOperator.operating_locations.join(', ')}</p>
+                  </div>
+                )}
+                {selectedOperator.tour_types?.length > 0 && (
+                  <div className="col-span-2">
+                    <p className="text-xs text-gray-400 mb-1">Tour Types</p>
+                    <div className="flex flex-wrap gap-1">
+                      {selectedOperator.tour_types.map((t) => (
+                        <Badge key={t} className="text-xs bg-white border">{t}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {selectedOperator.description && (
+                  <div className="col-span-2">
+                    <p className="text-xs text-gray-400 mb-0.5">About</p>
+                    <p className="text-gray-700">{selectedOperator.description}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Stats row */}
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-blue-50 rounded-xl p-4 text-center">
+                  <p className="text-2xl font-bold text-[#0B3D91]">{operatorDetail.tours.length}</p>
+                  <p className="text-xs text-gray-500 mt-1">Tours Listed</p>
+                </div>
+                <div className="bg-green-50 rounded-xl p-4 text-center">
+                  <p className="text-2xl font-bold text-green-700">{operatorDetail.bookings.length}</p>
+                  <p className="text-xs text-gray-500 mt-1">Total Bookings</p>
+                </div>
+                <div className="bg-yellow-50 rounded-xl p-4 text-center">
+                  <p className="text-2xl font-bold text-yellow-700">£{(operatorDetail.operatorEarnings || 0).toFixed(2)}</p>
+                  <p className="text-xs text-gray-500 mt-1">Operator Earnings (85%)</p>
+                </div>
+              </div>
+
+              {/* Tours */}
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-3">Tours ({operatorDetail.tours.length})</h3>
+                {operatorDetail.tours.length === 0 ? (
+                  <p className="text-sm text-gray-400 py-4 text-center border rounded-lg">No tours submitted yet.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {operatorDetail.tours.map((tour) => {
+                      const sc = STATUS_CONFIG[tour.listing_status] || STATUS_CONFIG.draft;
+                      return (
+                        <div key={tour.id} className="flex items-center justify-between p-3 border rounded-lg text-sm hover:bg-gray-50">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-gray-900 truncate">{tour.title}</p>
+                            <p className="text-xs text-gray-500 flex items-center gap-2 mt-0.5">
+                              <MapPin className="w-3 h-3" />{tour.destination || tour.city}
+                              <PoundSterling className="w-3 h-3 ml-1" />{tour.price_adult}
+                              {tour.duration_hours && <><Clock className="w-3 h-3 ml-1" />{tour.duration_hours}h</>}
+                            </p>
+                          </div>
+                          <Badge className={`ml-3 shrink-0 ${sc.class}`}>{sc.label}</Badge>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Recent bookings */}
+              {operatorDetail.bookings.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-3">
+                    Recent Bookings ({operatorDetail.bookings.length})
+                    <span className="text-sm font-normal text-gray-500 ml-2">· Total revenue: £{(operatorDetail.totalRevenue || 0).toFixed(2)}</span>
+                  </h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead className="text-xs text-gray-500 border-b">
+                        <tr>
+                          <th className="text-left py-2">Tour</th>
+                          <th className="text-left py-2">Customer</th>
+                          <th className="text-left py-2">Tour Date</th>
+                          <th className="text-right py-2">Amount</th>
+                          <th className="text-left py-2">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        {operatorDetail.bookings.slice(0, 10).map((b) => (
+                          <tr key={b.id} className="hover:bg-gray-50">
+                            <td className="py-2 pr-3 max-w-[160px] truncate">{b.tour_title || '—'}</td>
+                            <td className="py-2 pr-3 text-gray-500">{b.customer_name || b.customer_email || '—'}</td>
+                            <td className="py-2 pr-3 text-gray-500 text-xs">{b.tour_date ? format(new Date(b.tour_date), 'dd MMM yyyy') : '—'}</td>
+                            <td className="py-2 pr-3 text-right font-medium">£{parseFloat(b.total_amount || 0).toFixed(2)}</td>
+                            <td className="py-2">
+                              <Badge className={
+                                b.booking_status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                                b.booking_status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                                'bg-yellow-100 text-yellow-800'
+                              }>{b.booking_status}</Badge>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

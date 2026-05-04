@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { supabase } from '@/lib/customSupabaseClient';
 import { apiService } from '@/services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -55,6 +56,7 @@ export default function OperatorDashboardPage() {
   const [tourForm, setTourForm] = useState(EMPTY_FORM);
   const [savingTour, setSavingTour] = useState(false);
   const [availableDays, setAvailableDays] = useState([]);
+  const [imageUploading, setImageUploading] = useState(false);
 
   useEffect(() => { loadAll(); }, []);
 
@@ -82,6 +84,24 @@ export default function OperatorDashboardPage() {
   };
 
   // ── Tour form helpers ───────────────────────────────────────────────────────
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageUploading(true);
+    try {
+      const ext = file.name.split('.').pop() || 'jpg';
+      const fileName = `operator-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from('tour-images').upload(fileName, file, { upsert: true });
+      if (error) throw error;
+      const { data } = supabase.storage.from('tour-images').getPublicUrl(fileName);
+      setTourForm((f) => ({ ...f, main_image: data.publicUrl }));
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'Upload failed', description: err.message });
+    } finally {
+      setImageUploading(false);
+    }
+  };
+
   const openCreate = () => {
     setEditingTour(null);
     setTourForm(EMPTY_FORM);
@@ -500,8 +520,23 @@ export default function OperatorDashboardPage() {
               <Input value={tourForm.cancellation_policy} onChange={setField('cancellation_policy')} />
             </div>
             <div>
-              <Label>Main Image URL</Label>
-              <Input value={tourForm.main_image} onChange={setField('main_image')} placeholder="https://…" />
+              <Label>Tour Photo</Label>
+              <div className="space-y-2 mt-1">
+                <label className="flex items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-[#0B3D91] transition-colors bg-gray-50">
+                  <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                  {imageUploading ? (
+                    <span className="flex items-center gap-2 text-sm text-gray-500">
+                      <Loader2 className="w-4 h-4 animate-spin" /> Uploading…
+                    </span>
+                  ) : (
+                    <span className="text-sm text-gray-500">Click to upload a photo</span>
+                  )}
+                </label>
+                {tourForm.main_image && !imageUploading && (
+                  <img src={tourForm.main_image} alt="Preview" className="h-36 w-full rounded-lg object-cover border" />
+                )}
+                <Input value={tourForm.main_image} onChange={setField('main_image')} placeholder="Or paste an image URL…" className="text-xs text-gray-500" />
+              </div>
             </div>
 
             <div className="flex gap-3 pt-2">

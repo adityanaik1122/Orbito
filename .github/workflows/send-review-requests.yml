@@ -1,0 +1,31 @@
+name: Send Review Request Emails
+
+on:
+  schedule:
+    # Every day at 9:00 AM UTC (after tours from yesterday have ended)
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+
+jobs:
+  send-reviews:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Send review request emails to yesterday's tour guests
+        run: |
+          response=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            -X POST "${{ secrets.BACKEND_URL }}/api/jobs/review-requests" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json")
+
+          echo "HTTP status: $response"
+          echo "Response body:"
+          cat /tmp/response.json
+
+          if [ "$response" != "200" ]; then
+            echo "❌ Job failed with status $response"
+            exit 1
+          fi
+
+          echo "✅ Review requests sent"
