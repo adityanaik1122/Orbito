@@ -22,14 +22,21 @@ export const AuthProvider = ({ children }) => {
           .from('profiles')
           .select('*')
           .eq('id', session.user.id)
-          .single();
-  
-        if (!error) {
+          .maybeSingle();
+
+        if (data) {
           setProfile(data);
         } else {
-          // It's normal to have no profile immediately after signup until the trigger finishes
-          console.log('Profile loading...'); 
-          setProfile(null);
+          // No profile row yet — create a minimal one so queries don't 406
+          const { data: created } = await supabase
+            .from('profiles')
+            .upsert({
+              id: session.user.id,
+              updated_at: new Date().toISOString(),
+            }, { onConflict: 'id' })
+            .select()
+            .maybeSingle();
+          setProfile(created ?? null);
         }
       } catch (err) {
         console.error('Unexpected error loading profile:', err);

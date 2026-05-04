@@ -59,12 +59,12 @@ export const LocaleProvider = ({ children }) => {
           setProfileLoaded(true);
           return;
         }
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from('profiles')
           .select('locale, currency, country')
           .eq('id', session.user.id)
-          .single();
-        if (error) {
+          .maybeSingle();
+        if (!data) {
           setProfileLoaded(true);
           return;
         }

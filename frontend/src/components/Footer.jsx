@@ -47,6 +47,15 @@ const Footer = () => {
               <li><Link to="/about" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_about')}</Link></li>
               <li><Link to="/careers" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_careers')}</Link></li>
               <li><Link to="/blog" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_blog')}</Link></li>
+              <li>
+                <Link
+                  to="/operator/apply"
+                  className="text-[#0B3D91] font-semibold hover:text-[#092C6B] flex items-center gap-1.5 group"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#0B3D91] group-hover:bg-[#092C6B] flex-shrink-0" />
+                  {t('footer_list_business')}
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -68,7 +77,7 @@ const Footer = () => {
               <li><Link to="/destinations" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_destinations')}</Link></li>
               <li><Link to="/itineraries" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_itineraries')}</Link></li>
               <li><Link to="/resources" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_guides')}</Link></li>
-              <li><Link to="/resources" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_articles')}</Link></li>
+              <li><Link to="/blog" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_articles')}</Link></li>
             </ul>
           </div>
         </div>

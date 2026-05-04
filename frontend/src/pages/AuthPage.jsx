@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet';
@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
-import { ArrowLeft, Mail, Lock, User, Loader2, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Mail, Lock, User, Loader2, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { supabase } from '@/lib/customSupabaseClient';
 import { useLocale } from '@/contexts/LocaleContext';
@@ -26,12 +26,26 @@ const AuthPage = () => {
   
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [view, setView] = useState('auth'); // 'auth' | 'forgot' | 'reset-password'
+  const [newPassword, setNewPassword] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     country: ''
   });
+
+  // Detect Supabase recovery token in URL hash
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.includes('type=recovery')) {
+      setView('reset-password');
+    }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') setView('reset-password');
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
@@ -148,6 +162,98 @@ const AuthPage = () => {
     }
   };
 
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    if (!formData.email) {
+      toast({ variant: 'destructive', title: 'Enter your email first', description: 'Type your email in the field above, then click Forgot Password.' });
+      return;
+    }
+    setIsLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
+      redirectTo: `${window.location.origin}/login`,
+    });
+    setIsLoading(false);
+    if (error) {
+      toast({ variant: 'destructive', title: 'Error', description: error.message });
+    } else {
+      setView('forgot');
+    }
+  };
+
+  const handleSetNewPassword = async (e) => {
+    e.preventDefault();
+    if (newPassword.length < 6) {
+      toast({ variant: 'destructive', title: 'Too short', description: 'Password must be at least 6 characters.' });
+      return;
+    }
+    setIsLoading(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setIsLoading(false);
+    if (error) {
+      toast({ variant: 'destructive', title: 'Error', description: error.message });
+    } else {
+      toast({ title: 'Password updated!', description: 'You can now log in with your new password.' });
+      setView('auth');
+      setNewPassword('');
+      navigate('/login');
+    }
+  };
+
+  if (view === 'forgot') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="bg-white py-10 px-8 shadow sm:rounded-lg border border-gray-100 text-center">
+            <CheckCircle className="w-14 h-14 text-green-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Check your email</h2>
+            <p className="text-gray-500 mb-6">We sent a password reset link to <strong>{formData.email}</strong>. Click the link in the email to set a new password.</p>
+            <Button variant="outline" onClick={() => setView('auth')} className="w-full">Back to Login</Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (view === 'reset-password') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="text-center mb-6">
+            <h2 className="text-3xl font-extrabold text-[#0B3D91]">ORBITO</h2>
+            <h2 className="mt-2 text-2xl font-bold text-gray-900">Set new password</h2>
+          </div>
+          <div className="bg-white py-8 px-8 shadow sm:rounded-lg border border-gray-100">
+            <form onSubmit={handleSetNewPassword} className="space-y-6">
+              <div>
+                <Label htmlFor="new-password">New Password</Label>
+                <div className="mt-1 relative rounded-md shadow-sm">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <Input
+                    id="new-password"
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    className="pl-10 pr-10"
+                    placeholder="Enter new password (min 6 chars)"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
+                  <button type="button" className="absolute inset-y-0 right-0 pr-3 flex items-center" onClick={() => setShowPassword(!showPassword)}>
+                    {showPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
+                  </button>
+                </div>
+              </div>
+              <Button type="submit" className="w-full bg-[#0B3D91] hover:bg-[#092C6B] text-white" disabled={isLoading}>
+                {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Updating...</> : 'Update Password'}
+              </Button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <Helmet>
@@ -262,8 +368,8 @@ const AuthPage = () => {
                   </Button>
                   
                   <div className="text-center">
-                    <Button variant="link" className="text-sm text-[#0B3D91] hover:underline p-0 h-auto">
-                        Forgot your password?
+                    <Button variant="link" className="text-sm text-[#0B3D91] hover:underline p-0 h-auto" onClick={handleForgotPassword} disabled={isLoading}>
+                      Forgot your password?
                     </Button>
                   </div>
 
