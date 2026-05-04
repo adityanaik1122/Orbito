@@ -33,8 +33,13 @@ const PressPage = () => {
     return (
         <>
             <Helmet>
-                <title>Press - Orbito</title>
-                <meta name="description" content="Orbito press releases, media kit, and company news." />
+                <title>Press & Media | Orbito</title>
+                <meta name="description" content="Orbito press releases, media kit, company news, and coverage in TechCrunch, Forbes, Wired and more." />
+                <link rel="canonical" href="https://orbitotrip.com/press" />
+                <meta property="og:type" content="website" />
+                <meta property="og:title" content="Press & Media | Orbito" />
+                <meta property="og:description" content="Press releases, media kit, and company news from Orbito." />
+                <meta property="og:url" content="https://orbitotrip.com/press" />
             </Helmet>
             <div className="container mx-auto px-4 py-20">
                 <motion.div

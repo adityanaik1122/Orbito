@@ -40,8 +40,15 @@ const AttractionDetailPage = () => {
     return (
         <>
             <Helmet>
-                <title>{attraction.title} - Orbito</title>
-                <meta name="description" content={attraction.description} />
+                <title>{attraction.title} | Things To Do | Orbito</title>
+                <meta name="description" content={(attraction.description || '').slice(0, 160)} />
+                <link rel="canonical" href={`https://orbitotrip.com/attractions/${attraction.id}`} />
+                <meta property="og:type" content="website" />
+                <meta property="og:title" content={`${attraction.title} | Orbito`} />
+                <meta property="og:description" content={(attraction.description || '').slice(0, 160)} />
+                <meta property="og:url" content={`https://orbitotrip.com/attractions/${attraction.id}`} />
+                {attraction.image && <meta property="og:image" content={attraction.image} />}
+                <meta name="twitter:card" content="summary_large_image" />
             </Helmet>
 
             <div className="container mx-auto px-4 lg:px-6 py-12">

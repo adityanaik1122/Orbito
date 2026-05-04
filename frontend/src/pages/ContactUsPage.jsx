@@ -48,8 +48,13 @@ const ContactUsPage = () => {
     return (
         <>
             <Helmet>
-                <title>Contact Us - Orbito</title>
-                <meta name="description" content="Get in touch with the Orbito team. We're here to help with any questions." />
+                <title>Contact Us | Orbito</title>
+                <meta name="description" content="Get in touch with the Orbito team. We're here to help with your travel planning questions 24/7." />
+                <link rel="canonical" href="https://orbitotrip.com/contact" />
+                <meta property="og:type" content="website" />
+                <meta property="og:title" content="Contact Orbito" />
+                <meta property="og:description" content="Reach our team by email, phone, or live chat. We reply within 24 hours." />
+                <meta property="og:url" content="https://orbitotrip.com/contact" />
             </Helmet>
             <div className="container mx-auto px-4 py-20">
                 <motion.div

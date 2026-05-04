@@ -16,8 +16,13 @@ const CareersPage = () => {
     return (
         <>
             <Helmet>
-                <title>Careers - Orbito</title>
-                <meta name="description" content="Join the Orbito team and help revolutionize travel planning." />
+                <title>Careers | Orbito</title>
+                <meta name="description" content="Join the Orbito team. We're building the future of AI-powered travel planning. Remote-first, competitive pay, and an annual travel stipend." />
+                <link rel="canonical" href="https://orbitotrip.com/careers" />
+                <meta property="og:type" content="website" />
+                <meta property="og:title" content="Careers at Orbito" />
+                <meta property="og:description" content="Help us build the future of travel planning. Remote-first, competitive pay, and an annual travel stipend." />
+                <meta property="og:url" content="https://orbitotrip.com/careers" />
             </Helmet>
             <div className="container mx-auto px-4 py-20">
                 <motion.div

@@ -161,10 +161,23 @@ const DestinationPage = () => {
           name="description"
           content={`Book the best tours and experiences in ${dest.name}. ${dest.description} Discover curated activities powered by Viator.`}
         />
+        <meta property="og:type" content="website" />
         <meta property="og:title" content={`Things to Do in ${dest.name} | Orbito`} />
         <meta property="og:description" content={dest.description} />
         <meta property="og:image" content={dest.image} />
+        <meta property="og:url" content={`https://orbitotrip.com/destinations/${citySlug}`} />
         <link rel="canonical" href={`https://orbitotrip.com/destinations/${citySlug}`} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "TouristDestination",
+          "name": dest.name,
+          "description": dest.description,
+          "image": dest.image,
+          "url": `https://orbitotrip.com/destinations/${citySlug}`,
+          "touristType": ["Cultural", "Adventure", "Family"],
+          "containedInPlace": { "@type": "Country", "name": dest.country }
+        })}</script>
       </Helmet>
 
       {/* ── Hero ── */}

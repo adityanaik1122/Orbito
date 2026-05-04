@@ -114,8 +114,9 @@ Address: 123 Travel Street, Suite 100, San Francisco, CA 94102`
     return (
         <>
             <Helmet>
-                <title>Terms of Service - Orbito</title>
-                <meta name="description" content="Read Orbito's Terms of Service to understand the rules and guidelines for using our platform." />
+                <title>Terms of Service | Orbito</title>
+                <meta name="description" content="Read Orbito's Terms of Service to understand the rules and guidelines for using our travel planning platform." />
+                <link rel="canonical" href="https://orbitotrip.com/terms" />
             </Helmet>
             <div className="container mx-auto px-4 py-20">
                 <motion.div

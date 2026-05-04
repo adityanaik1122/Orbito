@@ -52,6 +52,13 @@ const ToursPage = () => {
       <Helmet>
         <title>Tours & Activities | Orbito</title>
         <meta name="description" content="Browse and book amazing tours and activities worldwide. Discover experiences in London, Paris, Tokyo, Dubai and more." />
+        <link rel="canonical" href="https://orbitotrip.com/tours" />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Tours & Activities | Orbito" />
+        <meta property="og:description" content="Browse and book amazing tours and activities worldwide. Discover experiences in London, Paris, Tokyo, Dubai and more." />
+        <meta property="og:url" content="https://orbitotrip.com/tours" />
+        <meta property="og:image" content="https://orbitotrip.com/og-image.jpg" />
+        <meta name="twitter:card" content="summary_large_image" />
       </Helmet>
 
       <div className="min-h-screen bg-gray-50">

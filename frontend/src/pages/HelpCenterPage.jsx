@@ -50,8 +50,22 @@ const HelpCenterPage = () => {
     return (
         <>
             <Helmet>
-                <title>Help Center - Orbito</title>
-                <meta name="description" content="Get help with Orbito. Browse FAQs, guides, and contact our support team." />
+                <title>Help Center | Orbito</title>
+                <meta name="description" content="Get help with Orbito. Browse FAQs, planning guides, and contact our support team. We reply within 24 hours." />
+                <link rel="canonical" href="https://orbitotrip.com/help" />
+                <meta property="og:type" content="website" />
+                <meta property="og:title" content="Help Center | Orbito" />
+                <meta property="og:description" content="Find answers to common questions about trip planning, bookings, and your Orbito account." />
+                <meta property="og:url" content="https://orbitotrip.com/help" />
+                <script type="application/ld+json">{JSON.stringify({
+                  "@context": "https://schema.org",
+                  "@type": "FAQPage",
+                  "mainEntity": [
+                    { "@type": "Question", "name": "How does Orbito create personalized itineraries?", "acceptedAnswer": { "@type": "Answer", "text": "Orbito uses advanced AI to analyze your preferences, travel style, budget, and interests to create customized day-by-day itineraries." } },
+                    { "@type": "Question", "name": "Can I edit my itinerary after it's generated?", "acceptedAnswer": { "@type": "Answer", "text": "Yes — you can fully customize any AI-generated itinerary. Add, remove, or rearrange activities and add your own notes." } },
+                    { "@type": "Question", "name": "What's included in the free plan?", "acceptedAnswer": { "@type": "Answer", "text": "The free plan includes 2 AI-generated itineraries per month, standard AI suggestions, shareable itineraries, and save up to 3 itineraries." } }
+                  ]
+                })}</script>
             </Helmet>
             <div className="container mx-auto px-4 py-20">
                 <motion.div

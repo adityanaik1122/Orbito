@@ -39,7 +39,9 @@ No‑show bookings are generally not refundable.`
   return (
     <>
       <Helmet>
-        <title>Refund Policy - Orbito</title>
+        <title>Refund & Cancellation Policy | Orbito</title>
+        <meta name="description" content="Orbito's refund and cancellation policy for tour bookings. Free cancellation available on many tours." />
+        <link rel="canonical" href="https://orbitotrip.com/refunds" />
       </Helmet>
       <div className="min-h-screen bg-white py-12">
         <div className="container mx-auto px-4 lg:px-8 max-w-4xl">

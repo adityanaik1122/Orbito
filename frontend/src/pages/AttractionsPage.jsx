@@ -66,7 +66,15 @@ const AttractionsPage = () => {
     return (
         <>
             <Helmet>
-                <title>Popular Attractions - Orbito</title>
+                <title>Popular Attractions & Things To Do | Orbito</title>
+                <meta name="description" content="Discover the best attractions, landmarks and things to do in London, Paris, Tokyo, Dubai and hundreds of destinations worldwide." />
+                <link rel="canonical" href="https://orbitotrip.com/attractions" />
+                <meta property="og:type" content="website" />
+                <meta property="og:title" content="Popular Attractions & Things To Do | Orbito" />
+                <meta property="og:description" content="Discover top attractions and experiences in hundreds of destinations worldwide." />
+                <meta property="og:url" content="https://orbitotrip.com/attractions" />
+                <meta property="og:image" content="https://orbitotrip.com/og-image.jpg" />
+                <meta name="twitter:card" content="summary_large_image" />
             </Helmet>
 
             <div className="container mx-auto px-4 lg:px-8 py-12">

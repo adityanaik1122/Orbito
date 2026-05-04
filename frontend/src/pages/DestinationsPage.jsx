@@ -58,8 +58,15 @@ const DestinationsPage = () => {
     return (
         <>
             <Helmet>
-                <title>Popular Destinations - Orbito</title>
-                <meta name="description" content="Explore the most popular travel destinations around the world with Orbito." />
+                <title>Popular Destinations | Tours & Experiences | Orbito</title>
+                <meta name="description" content="Explore the world's most popular travel destinations. Book tours and experiences in London, Paris, Tokyo, Dubai, Bali and 500+ cities worldwide." />
+                <link rel="canonical" href="https://orbitotrip.com/destinations" />
+                <meta property="og:type" content="website" />
+                <meta property="og:title" content="Popular Destinations | Orbito" />
+                <meta property="og:description" content="Explore the world's best travel destinations and book unforgettable tours and experiences." />
+                <meta property="og:url" content="https://orbitotrip.com/destinations" />
+                <meta property="og:image" content="https://orbitotrip.com/og-image.jpg" />
+                <meta name="twitter:card" content="summary_large_image" />
             </Helmet>
 
             <div className="container mx-auto px-4 lg:px-8 py-12">

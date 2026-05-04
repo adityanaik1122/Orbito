@@ -176,7 +176,39 @@ const TourDetailPage = () => {
     <>
       <Helmet>
         <title>{tour.title} | Orbito</title>
-        <meta name="description" content={tour.description} />
+        <meta name="description" content={(tour.description || '').slice(0, 160)} />
+        <link rel="canonical" href={`https://orbitotrip.com/tours/${slug}`} />
+        <meta property="og:type" content="product" />
+        <meta property="og:title" content={`${tour.title} | Orbito`} />
+        <meta property="og:description" content={(tour.description || '').slice(0, 160)} />
+        <meta property="og:image" content={imageUrl} />
+        <meta property="og:url" content={`https://orbitotrip.com/tours/${slug}`} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={tour.title} />
+        <meta name="twitter:image" content={imageUrl} />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Product",
+          "name": tour.title,
+          "description": tour.description,
+          "image": imageUrl,
+          "url": `https://orbitotrip.com/tours/${slug}`,
+          "brand": { "@type": "Organization", "name": "Orbito" },
+          "offers": {
+            "@type": "Offer",
+            "price": tour.price_adult || tour.price_amount || 0,
+            "priceCurrency": tour.currency || tour.price_currency || "GBP",
+            "availability": "https://schema.org/InStock",
+            "url": `https://orbitotrip.com/tours/${slug}`
+          },
+          ...(tour.rating > 0 && {
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": tour.rating,
+              "reviewCount": tour.review_count || 1
+            }
+          })
+        })}</script>
       </Helmet>
 
       <div className="min-h-screen bg-gray-50">

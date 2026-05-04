@@ -3,6 +3,13 @@
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "framework": "vite",
+  "redirects": [
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://orbito-backend.up.railway.app/sitemap.xml",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",

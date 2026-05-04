@@ -32,8 +32,15 @@ const AboutUsPage = () => {
     return (
         <>
             <Helmet>
-                <title>About Us - Orbito</title>
-                <meta name="description" content="Learn about Orbito's mission to revolutionize travel planning with AI-powered itineraries." />
+                <title>About Us | Orbito</title>
+                <meta name="description" content="Learn about Orbito's mission to revolutionize travel planning with AI-powered itineraries and real bookable tours." />
+                <link rel="canonical" href="https://orbitotrip.com/about" />
+                <meta property="og:type" content="website" />
+                <meta property="og:title" content="About Orbito | AI-Powered Travel Planning" />
+                <meta property="og:description" content="Built by travelers, for travelers. Orbito uses AI to make trip planning fast, personal and effortless." />
+                <meta property="og:url" content="https://orbitotrip.com/about" />
+                <meta property="og:image" content="https://orbitotrip.com/og-image.jpg" />
+                <meta name="twitter:card" content="summary" />
             </Helmet>
             <div className="container mx-auto px-4 py-20">
                 <motion.div

@@ -39,7 +39,9 @@ const SupplierTermsPage = () => {
   return (
     <>
       <Helmet>
-        <title>Supplier Terms - Orbito</title>
+        <title>Supplier Terms | Orbito</title>
+        <meta name="description" content="Terms and conditions for tour operators and suppliers listing experiences on the Orbito platform." />
+        <link rel="canonical" href="https://orbitotrip.com/supplier-terms" />
       </Helmet>
       <div className="min-h-screen bg-white py-12">
         <div className="container mx-auto px-4 lg:px-8 max-w-4xl">

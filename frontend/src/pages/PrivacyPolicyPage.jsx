@@ -95,8 +95,9 @@ Address: 123 Travel Street, Suite 100, San Francisco, CA 94102`
     return (
         <>
             <Helmet>
-                <title>Privacy Policy - Orbito</title>
+                <title>Privacy Policy | Orbito</title>
                 <meta name="description" content="Learn how Orbito collects, uses, and protects your personal information." />
+                <link rel="canonical" href="https://orbitotrip.com/privacy" />
             </Helmet>
             <div className="container mx-auto px-4 py-20">
                 <motion.div

@@ -281,41 +281,61 @@ DO $$ BEGIN
 END $$;
 
 -- =====================================================
--- 4. OPERATOR APPLICATIONS — ensure correct array types
---    (bare ARRAY becomes text[] here)
+-- 4. FIX bare ARRAY → typed arrays
+--    Untyped ARRAY columns cannot be reliably queried.
+--    These exist in tours and operator_applications.
 -- =====================================================
 DO $$ BEGIN
-  -- If tour_types exists but is wrong type, fix it
-  IF EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_name='operator_applications' AND column_name='tour_types'
-    AND data_type = 'ARRAY' AND udt_name != '_text'
-  ) THEN
+
+  -- tours: text arrays
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='tours' AND column_name='highlights' AND (udt_name != '_text' OR data_type != 'ARRAY')) THEN
+    ALTER TABLE tours ALTER COLUMN highlights TYPE text[] USING highlights::text[];
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='tours' AND column_name='price_includes' AND (udt_name != '_text' OR data_type != 'ARRAY')) THEN
+    ALTER TABLE tours ALTER COLUMN price_includes TYPE text[] USING price_includes::text[];
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='tours' AND column_name='price_excludes' AND (udt_name != '_text' OR data_type != 'ARRAY')) THEN
+    ALTER TABLE tours ALTER COLUMN price_excludes TYPE text[] USING price_excludes::text[];
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='tours' AND column_name='available_days' AND (udt_name != '_text' OR data_type != 'ARRAY')) THEN
+    ALTER TABLE tours ALTER COLUMN available_days TYPE text[] USING available_days::text[];
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='tours' AND column_name='start_times' AND (udt_name != '_text' OR data_type != 'ARRAY')) THEN
+    ALTER TABLE tours ALTER COLUMN start_times TYPE text[] USING start_times::text[];
+  END IF;
+
+  -- tours: date array (blackout dates are dates, not text)
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='tours' AND column_name='blackout_dates' AND udt_name != '_date') THEN
+    ALTER TABLE tours ALTER COLUMN blackout_dates TYPE date[] USING blackout_dates::date[];
+  END IF;
+
+  -- operator_applications: text arrays
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='operator_applications' AND column_name='tour_types' AND (udt_name != '_text' OR data_type != 'ARRAY')) THEN
     ALTER TABLE operator_applications ALTER COLUMN tour_types TYPE text[] USING tour_types::text[];
   END IF;
-  IF EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_name='operator_applications' AND column_name='operating_locations'
-    AND data_type = 'ARRAY' AND udt_name != '_text'
-  ) THEN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='operator_applications' AND column_name='operating_locations' AND (udt_name != '_text' OR data_type != 'ARRAY')) THEN
     ALTER TABLE operator_applications ALTER COLUMN operating_locations TYPE text[] USING operating_locations::text[];
   END IF;
+
 END $$;
 
 -- =====================================================
 -- 5. FIX character(1) COLUMNS → text
---    (character without length defaults to 1 char)
+--    PostgreSQL `character` without length = character(1).
+--    Any value longer than 1 char is silently truncated.
 -- =====================================================
-DO $$ BEGIN
-  -- profiles.role (if it was created as character instead of text)
-  IF EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_name='profiles' AND column_name='role'
-    AND data_type='character' AND character_maximum_length=1
-  ) THEN
-    ALTER TABLE profiles ALTER COLUMN role TYPE text;
-  END IF;
-END $$;
+
+-- tours.country_code
+ALTER TABLE tours ALTER COLUMN country_code TYPE text;
+
+-- itineraries.destination_country
+ALTER TABLE itineraries ALTER COLUMN destination_country TYPE text;
+
+-- profiles.country_code
+ALTER TABLE profiles ALTER COLUMN country_code TYPE text;
+
+-- suppliers.country_code
+ALTER TABLE suppliers ALTER COLUMN country_code TYPE text;
 
 -- =====================================================
 -- 6. AUTO-GENERATE booking_reference (safe re-run)

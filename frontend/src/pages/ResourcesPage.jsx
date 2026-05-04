@@ -22,8 +22,15 @@ const ResourcesPage = () => {
     return (
         <>
             <Helmet>
-                <title>Travel Resources - Orbito</title>
-                <meta name="description" content="Expert guides and tips for your next adventure." />
+                <title>Travel Guides & Resources | Orbito</title>
+                <meta name="description" content="Expert travel guides, packing tips, visa advice, and destination inspiration for your next adventure." />
+                <link rel="canonical" href="https://orbitotrip.com/resources" />
+                <meta property="og:type" content="website" />
+                <meta property="og:title" content="Travel Guides & Resources | Orbito" />
+                <meta property="og:description" content="Expert travel guides, tips, and destination inspiration for every type of traveller." />
+                <meta property="og:url" content="https://orbitotrip.com/resources" />
+                <meta property="og:image" content="https://orbitotrip.com/og-image.jpg" />
+                <meta name="twitter:card" content="summary_large_image" />
             </Helmet>
 
             <div className="min-h-screen bg-gray-50 pb-20">

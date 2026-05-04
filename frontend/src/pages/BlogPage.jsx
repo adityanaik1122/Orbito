@@ -56,6 +56,25 @@ const BlogPage = () => {
       <Helmet>
         <title>Travel Blog | Orbito</title>
         <meta name="description" content="Latest travel news, guides, tips and destination inspiration curated from the world's best travel blogs." />
+        <link rel="canonical" href="https://orbitotrip.com/blog" />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Travel Blog | Orbito" />
+        <meta property="og:description" content="Latest travel news, guides, tips and destination inspiration curated from the world's best travel blogs." />
+        <meta property="og:url" content="https://orbitotrip.com/blog" />
+        <meta property="og:image" content="https://orbitotrip.com/og-image.jpg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Blog",
+          "name": "Orbito Travel Blog",
+          "description": "Latest travel news, guides, tips and destination inspiration.",
+          "url": "https://orbitotrip.com/blog",
+          "publisher": {
+            "@type": "Organization",
+            "name": "Orbito",
+            "url": "https://orbitotrip.com"
+          }
+        })}</script>
       </Helmet>
 
       <div className="min-h-screen bg-gray-50">

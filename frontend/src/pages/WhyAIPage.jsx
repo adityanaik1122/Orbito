@@ -88,8 +88,15 @@ const WhyAIPage = () => {
     return (
         <>
             <Helmet>
-                <title>Why AI-Powered Travel Planning - Orbito</title>
-                <meta name="description" content="Discover how Orbito's AI transforms travel planning. Save time, get personalized recommendations, and discover hidden gems." />
+                <title>Why AI-Powered Travel Planning | Orbito</title>
+                <meta name="description" content="Discover how Orbito's AI transforms travel planning. Save 10+ hours per trip, get personalised recommendations, and discover hidden gems in seconds." />
+                <link rel="canonical" href="https://orbitotrip.com/why-ai" />
+                <meta property="og:type" content="website" />
+                <meta property="og:title" content="Why AI Travel Planning? | Orbito" />
+                <meta property="og:description" content="Plan your perfect trip in seconds with AI. Personalised itineraries, real bookable tours, and zero research time." />
+                <meta property="og:url" content="https://orbitotrip.com/why-ai" />
+                <meta property="og:image" content="https://orbitotrip.com/og-image.jpg" />
+                <meta name="twitter:card" content="summary_large_image" />
             </Helmet>
 
             {/* Hero */}

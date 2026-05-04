@@ -105,8 +105,13 @@ const PricingPage = () => {
     return (
         <>
             <Helmet>
-                <title>Pricing Plans - Orbito</title>
-                <meta name="description" content="Choose the perfect plan for your travel needs, from free basic access to unlimited premium features." />
+                <title>Pricing | Orbito — Free AI Travel Planner</title>
+                <meta name="description" content="Orbito is free to use. AI-powered itinerary planning, tour booking, and trip management — no credit card required to get started." />
+                <link rel="canonical" href="https://orbitotrip.com/pricing" />
+                <meta property="og:type" content="website" />
+                <meta property="og:title" content="Pricing | Orbito — Free AI Travel Planner" />
+                <meta property="og:description" content="Start planning for free. Upgrade for unlimited itineraries and advanced features." />
+                <meta property="og:url" content="https://orbitotrip.com/pricing" />
             </Helmet>
             <div className="container mx-auto px-4 py-20">
                 <motion.div

@@ -39,8 +39,15 @@ const ResourceDetailPage = () => {
     return (
         <>
             <Helmet>
-                <title>{resource.title} - Orbito</title>
-                <meta name="description" content={resource.description} />
+                <title>{resource.title} | Travel Guide | Orbito</title>
+                <meta name="description" content={(resource.description || '').slice(0, 160)} />
+                <link rel="canonical" href={`https://orbitotrip.com/resources/${resource.id}`} />
+                <meta property="og:type" content="article" />
+                <meta property="og:title" content={`${resource.title} | Orbito`} />
+                <meta property="og:description" content={(resource.description || '').slice(0, 160)} />
+                <meta property="og:url" content={`https://orbitotrip.com/resources/${resource.id}`} />
+                {resource.image && <meta property="og:image" content={resource.image} />}
+                <meta name="twitter:card" content="summary_large_image" />
             </Helmet>
 
             <div className="bg-white min-h-screen pb-20">
