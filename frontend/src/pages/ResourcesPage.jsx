@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, PlayCircle, FileText, ArrowRight, Clock } from 'lucide-react';
+import { Search, PlayCircle, FileText, ArrowRight, Clock, X } from 'lucide-react';
 import { resources } from '@/data/resources';
 
 const ResourcesPage = () => {
     const navigate = useNavigate();
     const [filter, setFilter] = useState('All');
     const [search, setSearch] = useState('');
+    const [activeVideo, setActiveVideo] = useState(null); // { url, title }
 
     const filteredResources = resources.filter(resource => {
         const matchesFilter = filter === 'All' || resource.type === filter;
@@ -95,13 +96,18 @@ const ResourcesPage = () => {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.1 }}
                                     className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all group cursor-pointer border border-gray-100 flex flex-col h-full"
-                                    onClick={() => navigate(`/resources/${resource.id}`)}
+                                    onClick={() =>
+                                        resource.type === 'Video' && resource.videoUrl
+                                            ? setActiveVideo({ url: resource.videoUrl, title: resource.title })
+                                            : navigate(`/resources/${resource.id}`)
+                                    }
                                 >
-                                    <div className="relative aspect-video overflow-hidden">
-                                        <img 
-                                            src={resource.image} 
-                                            alt={resource.title} 
+                                    <div className="relative aspect-video overflow-hidden bg-gray-900">
+                                        <img
+                                            src={resource.image}
+                                            alt={resource.title}
                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                            referrerPolicy="no-referrer"
                                         />
                                         <div className="absolute top-4 left-4">
                                             <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${resource.type === 'Video' ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'}`}>
@@ -109,8 +115,10 @@ const ResourcesPage = () => {
                                             </span>
                                         </div>
                                         {resource.type === 'Video' && (
-                                            <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
-                                                <PlayCircle className="w-12 h-12 text-white opacity-90 group-hover:scale-110 transition-transform" />
+                                            <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/50 transition-colors">
+                                                <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform">
+                                                    <PlayCircle className="w-10 h-10 text-white" />
+                                                </div>
                                             </div>
                                         )}
                                     </div>
@@ -131,9 +139,15 @@ const ResourcesPage = () => {
                                                 <Clock className="w-3 h-3" />
                                                 {resource.readTime}
                                             </div>
-                                            <span className="text-sm font-semibold text-blue-600 group-hover:translate-x-1 transition-transform flex items-center">
-                                                Read More <ArrowRight className="w-4 h-4 ml-1" />
-                                            </span>
+                                            {resource.type === 'Video' ? (
+                                                <span className="text-sm font-semibold text-red-600 flex items-center gap-1">
+                                                    <PlayCircle className="w-4 h-4" /> Watch Now
+                                                </span>
+                                            ) : (
+                                                <span className="text-sm font-semibold text-blue-600 group-hover:translate-x-1 transition-transform flex items-center">
+                                                    Read More <ArrowRight className="w-4 h-4 ml-1" />
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                 </motion.div>
@@ -148,6 +162,47 @@ const ResourcesPage = () => {
                     )}
                 </div>
             </div>
+
+            {/* YouTube Video Modal */}
+            <AnimatePresence>
+                {activeVideo && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+                        onClick={() => setActiveVideo(null)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.92, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.92, opacity: 0 }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                            className="relative w-full max-w-4xl bg-black rounded-2xl overflow-hidden shadow-2xl"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="flex items-center justify-between px-4 py-3 bg-[#0B1D35]">
+                                <p className="text-white font-semibold text-sm truncate pr-4">{activeVideo.title}</p>
+                                <button
+                                    onClick={() => setActiveVideo(null)}
+                                    className="text-white/70 hover:text-white transition-colors flex-shrink-0"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <div className="aspect-video w-full">
+                                <iframe
+                                    src={`${activeVideo.url}?autoplay=1&rel=0`}
+                                    title={activeVideo.title}
+                                    className="w-full h-full"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                />
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </>
     );
 };

@@ -6,7 +6,7 @@
   "redirects": [
     {
       "source": "/sitemap.xml",
-      "destination": "https://orbito-backend.up.railway.app/sitemap.xml",
+      "destination": "https://orbito.onrender.com/sitemap.xml",
       "permanent": false
     }
   ],

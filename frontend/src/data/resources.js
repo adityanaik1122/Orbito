@@ -20,17 +20,32 @@ export const resources = [
     `
   },
   {
-    id: 'video-tokyo-food',
-    title: 'Tokyo Street Food Tour: Hidden Gems',
+    id: 'video-street-food-asia',
+    title: 'Ultimate Asian Street Food Tour',
     type: 'Video',
-    category: 'Destinations',
-    author: 'Mike Chen',
-    date: 'Nov 2, 2023',
+    category: 'Food & Culture',
+    youtubeId: 'RY1CAaGslyc',
+    author: 'Orbito Travel',
+    date: 'May 4, 2026',
+    readTime: '15 min watch',
+    image: 'https://img.youtube.com/vi/RY1CAaGslyc/maxresdefault.jpg',
+    description: 'From Bangkok night markets to Singapore hawker centres — a mouth-watering journey through Asia\'s best street food scenes.',
+    videoUrl: 'https://www.youtube.com/embed/RY1CAaGslyc',
+    content: 'Asia is a street food paradise. Every corner reveals a new flavour, a new story, a new reason to travel.'
+  },
+  {
+    id: 'video-tokyo-food',
+    title: 'Tokyo Hidden Food Gems: A Local\'s Guide',
+    type: 'Video',
+    category: 'Food & Culture',
+    youtubeId: 'RY1CAaGslyc',
+    author: 'Orbito Travel',
+    date: 'Apr 10, 2026',
     readTime: '12 min watch',
-    image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1000&auto=format&fit=crop',
-    description: 'Join us as we explore the back alleys of Shinjuku to find the best yakitori, ramen, and mochi in Tokyo.',
-    videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', 
-    content: 'Experience the sights and sounds of Tokyo culinary scene...'
+    image: 'https://img.youtube.com/vi/RY1CAaGslyc/hqdefault.jpg',
+    description: 'Explore the back alleys of Shinjuku to find the best yakitori, ramen, and mochi in Tokyo — spots only locals know.',
+    videoUrl: 'https://www.youtube.com/embed/RY1CAaGslyc',
+    content: 'Experience the sights and sounds of Tokyo\'s culinary scene.'
   },
   {
     id: 'guide-budget-europe',
@@ -45,16 +60,31 @@ export const resources = [
     content: 'Europe can be expensive, but it does not have to be...'
   },
   {
+    id: 'video-bali-experiences',
+    title: 'Bali Beyond the Beach: Experiences You Can\'t Miss',
+    type: 'Video',
+    category: 'Experiences',
+    youtubeId: 'RY1CAaGslyc',
+    author: 'Orbito Travel',
+    date: 'Mar 22, 2026',
+    readTime: '10 min watch',
+    image: 'https://img.youtube.com/vi/RY1CAaGslyc/maxresdefault.jpg',
+    description: 'Rice terraces, temple ceremonies, cooking classes, and sunrise hikes — discover the Bali that most tourists never see.',
+    videoUrl: 'https://www.youtube.com/embed/RY1CAaGslyc',
+    content: 'Bali is more than beautiful beaches. It\'s a living, breathing culture waiting to be explored.'
+  },
+  {
     id: 'video-solo-travel',
     title: 'Why You Should Travel Solo at Least Once',
     type: 'Video',
     category: 'Inspiration',
-    author: 'Alex Smith',
+    youtubeId: 'RY1CAaGslyc',
+    author: 'Orbito Travel',
     date: 'Dec 10, 2023',
     readTime: '8 min watch',
-    image: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=1000&auto=format&fit=crop',
+    image: 'https://img.youtube.com/vi/RY1CAaGslyc/hqdefault.jpg',
     description: 'Solo travel builds confidence and allows for complete freedom. Here are 5 reasons to book that solo ticket now.',
-    videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+    videoUrl: 'https://www.youtube.com/embed/RY1CAaGslyc',
     content: 'Solo travel is a transformative experience...'
   },
   {
