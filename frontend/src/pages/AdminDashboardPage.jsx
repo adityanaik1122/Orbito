@@ -29,6 +29,9 @@ import {
   AlertCircle,
   Clock,
   Newspaper,
+  Link2,
+  ExternalLink,
+  Trash2,
 } from 'lucide-react';
 import { apiService } from '@/services/api';
 import {
@@ -45,6 +48,7 @@ const STATUS_CONFIG = {
 const sections = [
   { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
   { id: 'tours', label: 'Tours', icon: ShoppingBag },
+  { id: 'affiliate', label: 'Affiliate Tours', icon: Link2 },
   { id: 'operators', label: 'Tour Operators', icon: FileText },
   { id: 'clients', label: 'Clients', icon: Users },
   { id: 'bookings', label: 'Bookings', icon: CreditCard },
@@ -189,6 +193,199 @@ jobs:
             </div>
           </div>
           <p className="text-xs text-gray-400">Set <span className="font-mono">CRON_SECRET</span> in your backend environment variables to protect the endpoint.</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+// ── Affiliate Tours section ───────────────────────────────────────────────────
+const FALLBACK_TOUR_IMG = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400&q=80';
+
+const EMPTY_FORM = {
+  title: '', description: '', destination_city: '', country: '',
+  image_url: '', viator_url: '', price_from: '', currency: 'USD',
+  duration: '', category: '',
+};
+
+const AffiliateSection = () => {
+  const { toast } = useToast();
+  const [affiliateTours, setAffiliateTours] = useState([]);
+  const [loadingTours, setLoadingTours] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState(EMPTY_FORM);
+
+  const fetchAffiliate = async () => {
+    const { data } = await supabase
+      .from('affiliate_tours')
+      .select('*')
+      .order('created_at', { ascending: false });
+    setAffiliateTours(data || []);
+    setLoadingTours(false);
+  };
+
+  useEffect(() => { fetchAffiliate(); }, []);
+
+  const set = (key, val) => setForm((f) => ({ ...f, [key]: val }));
+
+  const handleSave = async () => {
+    if (!form.title || !form.viator_url || !form.destination_city || !form.country) {
+      toast({ variant: 'destructive', title: 'Missing fields', description: 'Title, Viator URL, City and Country are required.' });
+      return;
+    }
+    setSaving(true);
+    const { error } = await supabase.from('affiliate_tours').insert({
+      ...form,
+      price_from: form.price_from ? parseFloat(form.price_from) : null,
+    });
+    setSaving(false);
+    if (error) {
+      toast({ variant: 'destructive', title: 'Error', description: error.message });
+    } else {
+      toast({ title: 'Tour added!', description: `${form.title} is now live on the tours page.` });
+      setForm(EMPTY_FORM);
+      fetchAffiliate();
+    }
+  };
+
+  const handleDelete = async (id) => {
+    await supabase.from('affiliate_tours').delete().eq('id', id);
+    fetchAffiliate();
+    toast({ title: 'Deleted' });
+  };
+
+  const handleToggle = async (id, current) => {
+    await supabase.from('affiliate_tours').update({ is_active: !current }).eq('id', id);
+    fetchAffiliate();
+  };
+
+  const activeCount = affiliateTours.filter((t) => t.is_active).length;
+  const countries = [...new Set(affiliateTours.map((t) => t.country).filter(Boolean))].sort();
+
+  return (
+    <div className="space-y-6">
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-4">
+        {[
+          { label: 'Total Tours', value: affiliateTours.length },
+          { label: 'Active / Visible', value: activeCount },
+          { label: 'Countries', value: countries.length },
+        ].map((s) => (
+          <Card key={s.label}>
+            <CardContent className="pt-5 text-center">
+              <p className="text-3xl font-bold text-[#0B3D91]">{s.value}</p>
+              <p className="text-xs text-gray-500 mt-1">{s.label}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Add form */}
+      <Card>
+        <CardHeader><CardTitle>Add Affiliate Tour</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-gray-600">Title *</label>
+              <Input placeholder="Skip-the-line Colosseum Tour" value={form.title} onChange={(e) => set('title', e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-gray-600">Viator URL *</label>
+              <Input placeholder="https://www.viator.com/tours/Rome/..." value={form.viator_url} onChange={(e) => set('viator_url', e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-gray-600">City *</label>
+              <Input placeholder="Rome" value={form.destination_city} onChange={(e) => set('destination_city', e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-gray-600">Country *</label>
+              <Input placeholder="Italy" value={form.country} onChange={(e) => set('country', e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-gray-600">Image URL</label>
+              <Input placeholder="https://images.unsplash.com/..." value={form.image_url} onChange={(e) => set('image_url', e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-gray-600">Price From</label>
+              <div className="flex gap-2">
+                <Input type="number" placeholder="29" value={form.price_from} onChange={(e) => set('price_from', e.target.value)} />
+                <Select value={form.currency} onValueChange={(v) => set('currency', v)}>
+                  <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {['USD', 'EUR', 'GBP', 'AUD', 'SGD', 'INR'].map((c) => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-gray-600">Duration</label>
+              <Input placeholder="3 hours" value={form.duration} onChange={(e) => set('duration', e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-gray-600">Category</label>
+              <Input placeholder="City Tours, Food & Drink, Adventure..." value={form.category} onChange={(e) => set('category', e.target.value)} />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-gray-600">Description</label>
+            <Input placeholder="Short description shown on the card" value={form.description} onChange={(e) => set('description', e.target.value)} />
+          </div>
+          <Button onClick={handleSave} disabled={saving} className="bg-[#0B3D91] hover:bg-[#092C6B]">
+            {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving…</> : 'Add Tour'}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Existing tours */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Saved Affiliate Tours ({affiliateTours.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loadingTours ? (
+            <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-[#0B3D91]" /></div>
+          ) : affiliateTours.length === 0 ? (
+            <p className="text-center text-gray-400 py-8 text-sm">No affiliate tours yet. Add your first one above.</p>
+          ) : (
+            <div className="space-y-3">
+              {affiliateTours.map((t) => (
+                <div key={t.id} className="flex items-center gap-4 p-3 rounded-xl border border-gray-100 hover:bg-gray-50">
+                  <img
+                    src={t.image_url || FALLBACK_TOUR_IMG}
+                    alt={t.title}
+                    className="w-16 h-12 rounded-lg object-cover flex-shrink-0"
+                    referrerPolicy="no-referrer"
+                    onError={(e) => { e.currentTarget.src = FALLBACK_TOUR_IMG; }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm text-gray-900 truncate">{t.title}</p>
+                    <p className="text-xs text-gray-500">
+                      {t.destination_city}, {t.country}
+                      {t.category && ` · ${t.category}`}
+                      {t.duration && ` · ${t.duration}`}
+                      {t.price_from && ` · From ${t.currency} ${t.price_from}`}
+                    </p>
+                    <a href={t.viator_url} target="_blank" rel="noopener noreferrer" className="text-xs text-[#0B3D91] hover:underline flex items-center gap-1 mt-0.5">
+                      <ExternalLink className="w-3 h-3" /> View on Viator
+                    </a>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${t.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                      {t.is_active ? 'Active' : 'Hidden'}
+                    </span>
+                    <Button variant="outline" size="sm" onClick={() => handleToggle(t.id, t.is_active)} className="text-xs h-7">
+                      {t.is_active ? 'Hide' : 'Show'}
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleDelete(t.id)} className="text-red-400 hover:text-red-600 hover:bg-red-50 h-7 w-7 p-0">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
@@ -1248,6 +1445,9 @@ const AdminDashboardPage = () => {
 
               {activeSection === 'blog' && (
                 <BlogSection />
+              )}
+              {activeSection === 'affiliate' && (
+                <AffiliateSection />
               )}
             </main>
           </div>

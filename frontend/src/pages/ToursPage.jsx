@@ -3,8 +3,12 @@ import { Helmet } from 'react-helmet';
 import { Link, useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Sparkles } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Search, Sparkles, Clock, MapPin, ExternalLink, Loader2 } from 'lucide-react';
 import { useLocale } from '@/contexts/LocaleContext';
+import { supabase } from '@/lib/customSupabaseClient';
+
+const FALLBACK_IMG = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&q=80';
 
 const POPULAR_DESTINATIONS = [
   { slug: 'london',    name: 'London',    flag: '🇬🇧', image: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?q=80&w=400&auto=format&fit=crop' },
@@ -19,28 +23,99 @@ const POPULAR_DESTINATIONS = [
   { slug: 'new-york',  name: 'New York',  flag: '🇺🇸', image: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?q=80&w=400&auto=format&fit=crop' },
 ];
 
-const VIATOR_WIDGET_SRC = 'https://www.viator.com/orion/partner/widget.js';
+const AffiliateCard = ({ tour }) => {
+  const price = tour.price_from != null
+    ? `From ${tour.currency || 'USD'} ${Number(tour.price_from).toFixed(0)}`
+    : null;
+
+  return (
+    <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col border border-gray-100">
+      <div className="relative h-48 overflow-hidden bg-gray-100">
+        <img
+          src={tour.image_url || FALLBACK_IMG}
+          alt={tour.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          loading="lazy"
+          decoding="async"
+          referrerPolicy="no-referrer"
+          onError={(e) => { e.currentTarget.src = FALLBACK_IMG; }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+        {tour.category && (
+          <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-[#0B3D91] text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full shadow-sm">
+            {tour.category}
+          </span>
+        )}
+      </div>
+
+      <div className="p-5 flex flex-col flex-1">
+        <div className="flex items-start gap-1 text-xs text-gray-500 mb-2">
+          <MapPin className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-[#0B3D91]" />
+          <span>{tour.destination_city}, {tour.country}</span>
+        </div>
+
+        <h3 className="font-bold text-gray-900 text-base leading-snug line-clamp-2 mb-2 group-hover:text-[#0B3D91] transition-colors">
+          {tour.title}
+        </h3>
+
+        {tour.description && (
+          <p className="text-sm text-gray-500 line-clamp-2 mb-3">{tour.description}</p>
+        )}
+
+        <div className="flex items-center gap-4 text-xs text-gray-500 mb-4">
+          {tour.duration && (
+            <span className="flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5" /> {tour.duration}
+            </span>
+          )}
+          {price && (
+            <span className="font-semibold text-gray-800">{price}</span>
+          )}
+        </div>
+
+        <div className="mt-auto">
+          <a
+            href={tour.viator_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full bg-[#0B3D91] hover:bg-[#092C6B] text-white text-sm font-semibold py-2.5 px-4 rounded-xl transition-colors"
+          >
+            <ExternalLink className="w-4 h-4" /> Book on Viator
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const ToursPage = () => {
   const navigate = useNavigate();
   const { t } = useLocale();
   const [search, setSearch] = useState('');
+  const [tours, setTours] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCountry, setSelectedCountry] = useState('All');
 
   useEffect(() => {
-    // Force re-initialization on every mount (SPA navigation fix)
-    const existing = document.querySelector(`script[src="${VIATOR_WIDGET_SRC}"]`);
-    if (existing) existing.remove();
-
-    const script = document.createElement('script');
-    script.src = VIATOR_WIDGET_SRC;
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      const s = document.querySelector(`script[src="${VIATOR_WIDGET_SRC}"]`);
-      if (s) s.remove();
-    };
+    supabase
+      .from('affiliate_tours')
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        setTours(data || []);
+        setLoading(false);
+      });
   }, []);
+
+  const countries = ['All', ...new Set(tours.map((t) => t.country).filter(Boolean))].sort((a, b) => a === 'All' ? -1 : a.localeCompare(b));
+
+  const filtered = tours.filter((t) => {
+    const matchCountry = selectedCountry === 'All' || t.country === selectedCountry;
+    const q = search.trim().toLowerCase();
+    const matchSearch = !q || t.title?.toLowerCase().includes(q) || t.destination_city?.toLowerCase().includes(q) || t.country?.toLowerCase().includes(q);
+    return matchCountry && matchSearch;
+  });
 
   const handleSearch = () => {
     const slug = search.trim().toLowerCase().replace(/\s+/g, '-');
@@ -132,18 +207,56 @@ const ToursPage = () => {
           </div>
         </div>
 
-        {/* Viator Widget — Primary Content */}
+        {/* Main content */}
         <div className="container mx-auto px-4 py-8">
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-xl font-bold text-gray-900">Browse Experiences</h2>
-              <span className="text-xs text-gray-400">Affiliate partner content · Viator</span>
+          {/* Country filter */}
+          {countries.length > 1 && (
+            <div className="flex flex-wrap gap-2 mb-6">
+              {countries.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setSelectedCountry(c)}
+                  className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition-colors ${
+                    selectedCountry === c
+                      ? 'bg-[#0B3D91] text-white border-[#0B3D91]'
+                      : 'bg-white text-gray-600 border-gray-200 hover:border-[#0B3D91] hover:text-[#0B3D91]'
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
             </div>
-            <div
-              data-vi-partner-id="P00281964"
-              data-vi-widget-ref="W-e50d8b20-0e81-4083-a036-aad28f2f0562"
-            />
-          </div>
+          )}
+
+          {loading ? (
+            <div className="flex justify-center py-24">
+              <Loader2 className="w-8 h-8 animate-spin text-[#0B3D91]" />
+            </div>
+          ) : filtered.length > 0 ? (
+            <>
+              <p className="text-sm text-gray-500 mb-5">{filtered.length} experience{filtered.length !== 1 ? 's' : ''} found</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {filtered.map((tour) => (
+                  <AffiliateCard key={tour.id} tour={tour} />
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-24 bg-white rounded-2xl border border-dashed border-gray-200">
+              <p className="text-4xl mb-4">🗺️</p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                {tours.length === 0 ? 'Tours coming soon' : `No tours in ${selectedCountry} yet`}
+              </h3>
+              <p className="text-gray-500 text-sm mb-4">
+                {tours.length === 0
+                  ? "We're curating the best experiences. Check back soon!"
+                  : 'Try a different country or browse all destinations.'}
+              </p>
+              {selectedCountry !== 'All' && (
+                <Button variant="outline" onClick={() => setSelectedCountry('All')}>Show all tours</Button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </>
