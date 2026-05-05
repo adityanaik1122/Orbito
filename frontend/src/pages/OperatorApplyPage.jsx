@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { supabase } from '@/lib/customSupabaseClient';
-import { CheckCircle, Loader2, Building2, MapPin, Users, Globe } from 'lucide-react';
+import { CheckCircle, Loader2, Building2, Users, Globe, Eye, EyeOff } from 'lucide-react';
 
 const TOUR_TYPES = ['Cultural', 'Adventure', 'Food & Drink', 'Sightseeing', 'Nature', 'Water Sports', 'History', 'Wellness', 'Photography', 'Nightlife'];
 
@@ -19,6 +19,12 @@ export default function OperatorApplyPage() {
   const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  // Account creation fields (shown only when user is not logged in)
+  const [newEmail, setNewEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const [form, setForm] = useState({
     company_name: '',
@@ -54,18 +60,42 @@ export default function OperatorApplyPage() {
 
     setSubmitting(true);
     try {
+      let applicantId = user?.id;
+      let applicantEmail = user?.email || form.contact_email;
+
+      // If not logged in, create a new account first
+      if (!user) {
+        if (!newEmail || !newPassword) throw new Error('Email and password are required to create your account');
+        if (newPassword !== confirmPassword) throw new Error('Passwords do not match');
+        if (newPassword.length < 8) throw new Error('Password must be at least 8 characters');
+
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: newEmail,
+          password: newPassword,
+          options: {
+            data: { full_name: form.contact_name },
+            emailRedirectTo: `${window.location.origin}/operator/dashboard`,
+          },
+        });
+        if (signUpError) throw signUpError;
+        applicantId = signUpData.user?.id;
+        applicantEmail = newEmail;
+        if (!applicantId) throw new Error('Account creation failed. Please try again.');
+      }
+
       const { data: existing } = await supabase
         .from('operator_applications')
         .select('id, status')
-        .eq('user_id', user.id)
+        .eq('user_id', applicantId)
         .maybeSingle();
 
       if (existing?.status === 'pending') throw new Error('You already have a pending application');
       if (existing?.status === 'approved') throw new Error('Your application has already been approved');
 
       const { error } = await supabase.from('operator_applications').insert({
-        user_id: user.id,
+        user_id: applicantId,
         ...form,
+        contact_email: applicantEmail,
         years_in_business: form.years_in_business ? parseInt(form.years_in_business) : null,
         tour_types: selectedTypes,
         operating_locations: form.operating_locations
@@ -83,6 +113,7 @@ export default function OperatorApplyPage() {
   };
 
   if (submitted) {
+    const emailUsed = user?.email || newEmail || form.contact_email;
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="bg-white rounded-2xl shadow p-10 max-w-md w-full text-center space-y-4">
@@ -90,8 +121,13 @@ export default function OperatorApplyPage() {
           <h2 className="text-2xl font-bold text-gray-900">Application submitted!</h2>
           <p className="text-gray-600">
             We'll review your application within <strong>48 hours</strong> and email you at{' '}
-            <strong>{form.contact_email}</strong>.
+            <strong>{emailUsed}</strong>.
           </p>
+          {!user && (
+            <p className="text-sm text-blue-700 bg-blue-50 rounded-lg px-4 py-3">
+              Check your inbox to <strong>verify your email address</strong> before logging in.
+            </p>
+          )}
           <Button onClick={() => navigate('/')}>Back to Home</Button>
         </div>
       </div>
@@ -120,6 +156,67 @@ export default function OperatorApplyPage() {
           {/* Form */}
           <div className="bg-white rounded-2xl shadow p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
+
+              {/* Account creation — only shown when visitor is not logged in */}
+              {!user && (
+                <div className="space-y-4 pb-6 border-b border-gray-100">
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900">Create your operator account</h2>
+                    <p className="text-sm text-gray-500 mt-0.5">You'll use these credentials to log into your dashboard after approval.</p>
+                  </div>
+                  <div>
+                    <Label>Email address *</Label>
+                    <Input
+                      type="email"
+                      value={newEmail}
+                      onChange={(e) => { setNewEmail(e.target.value); setForm((f) => ({ ...f, contact_email: e.target.value })); }}
+                      placeholder="you@company.com"
+                      required
+                      className="mt-1"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Password *</Label>
+                      <div className="relative mt-1">
+                        <Input
+                          type={showPassword ? 'text' : 'password'}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="Min. 8 characters"
+                          required
+                          minLength={8}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((v) => !v)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Confirm Password *</Label>
+                      <Input
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Repeat password"
+                        required
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {user && (
+                <div className="bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 text-sm text-blue-800">
+                  Submitting as <strong>{user.email}</strong>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label>Company / Business Name *</Label>
@@ -129,10 +226,12 @@ export default function OperatorApplyPage() {
                   <Label>Your Name *</Label>
                   <Input value={form.contact_name} onChange={set('contact_name')} placeholder="Jane Smith" required />
                 </div>
-                <div>
-                  <Label>Business Email *</Label>
-                  <Input type="email" value={form.contact_email} onChange={set('contact_email')} placeholder="hello@company.com" required />
-                </div>
+                {user && (
+                  <div>
+                    <Label>Business Email *</Label>
+                    <Input type="email" value={form.contact_email} onChange={set('contact_email')} placeholder="hello@company.com" required />
+                  </div>
+                )}
                 <div>
                   <Label>Phone</Label>
                   <Input value={form.contact_phone} onChange={set('contact_phone')} placeholder="+44 7700 900000" />

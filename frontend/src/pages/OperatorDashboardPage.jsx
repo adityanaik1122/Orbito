@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { supabase } from '@/lib/customSupabaseClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,9 +14,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
 import {
-  Plus, Edit, Trash2, Calendar, DollarSign, Users, TrendingUp,
-  MapPin, Clock, Star, RefreshCw, CheckCircle, XCircle, AlertCircle,
-  Loader2, PoundSterling
+  Plus, Edit, Trash2, Calendar, TrendingUp,
+  MapPin, Clock, RefreshCw, AlertCircle,
+  Loader2, PoundSterling, Lock, Eye, EyeOff
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -39,9 +39,15 @@ const EMPTY_FORM = {
 };
 
 export default function OperatorDashboardPage() {
-  const { user, profile } = useAuth();
+  const { user, profile, role, loading: authLoading, signIn } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Login gate state
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [tours, setTours] = useState([]);
@@ -257,6 +263,116 @@ export default function OperatorDashboardPage() {
       toast({ variant: 'destructive', title: 'Delete failed', description: err.message });
     }
   };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoginLoading(true);
+    const { error } = await signIn(loginEmail, loginPassword);
+    if (error) {
+      toast({ variant: 'destructive', title: 'Login failed', description: error.message });
+    }
+    setLoginLoading(false);
+  };
+
+  // Auth loading
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#0B3D91]" />
+      </div>
+    );
+  }
+
+  // Not logged in → show operator login form
+  if (!user) {
+    return (
+      <>
+        <Helmet><title>Operator Login — Orbito</title></Helmet>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+          <div className="w-full max-w-md">
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#0B3D91] mb-4">
+                <Lock className="w-6 h-6 text-white" />
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900">Operator Dashboard</h1>
+              <p className="text-gray-500 mt-1">Sign in with your operator account</p>
+            </div>
+            <div className="bg-white rounded-2xl shadow-sm border p-8">
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div>
+                  <Label>Email address</Label>
+                  <Input
+                    type="email"
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    placeholder="you@company.com"
+                    required
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label>Password</Label>
+                  <div className="relative mt-1">
+                    <Input
+                      type={showPassword ? 'text' : 'password'}
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      placeholder="••••••••"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+                <Button type="submit" disabled={loginLoading} className="w-full bg-[#0B3D91] hover:bg-[#092C6B]">
+                  {loginLoading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Signing in…</> : 'Sign In'}
+                </Button>
+              </form>
+              <div className="mt-6 pt-6 border-t text-center text-sm text-gray-500 space-y-2">
+                <p>Not an operator yet?{' '}
+                  <Link to="/operator/apply" className="text-[#0B3D91] font-semibold hover:underline">Apply to list your tours</Link>
+                </p>
+                <p>
+                  <Link to="/login" className="text-gray-400 hover:text-gray-600 text-xs">Use main login instead</Link>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Logged in but wrong role
+  if (role !== 'operator' && role !== 'admin') {
+    return (
+      <>
+        <Helmet><title>Operator Dashboard — Orbito</title></Helmet>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+          <div className="bg-white rounded-2xl shadow-sm border p-10 max-w-md w-full text-center space-y-4">
+            <AlertCircle className="w-14 h-14 text-yellow-500 mx-auto" />
+            <h2 className="text-xl font-bold text-gray-900">Operator access required</h2>
+            <p className="text-gray-600 text-sm">
+              Your account (<strong>{user.email}</strong>) is not approved as an operator yet.
+            </p>
+            <div className="flex flex-col gap-2 pt-2">
+              <Button asChild className="bg-[#0B3D91] hover:bg-[#092C6B]">
+                <Link to="/operator/apply">Apply to Become an Operator</Link>
+              </Button>
+              <Button variant="outline" onClick={async () => { await supabase.auth.signOut(); }}>
+                Sign out
+              </Button>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   if (loading) {
     return (

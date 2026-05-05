@@ -98,14 +98,7 @@ function App() {
 
           {/* Operator & Admin dashboards */}
           <Route path="/operator/apply" element={<Layout><OperatorApplyPage /></Layout>} />
-          <Route
-            path="/operator/dashboard"
-            element={
-              <RequireRole role="operator">
-                <Layout><OperatorDashboardPage /></Layout>
-              </RequireRole>
-            }
-          />
+          <Route path="/operator/dashboard" element={<Layout><OperatorDashboardPage /></Layout>} />
           <Route
             path="/admin"
             element={

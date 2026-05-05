@@ -4,17 +4,9 @@ import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 
 const RequireRole = ({ role: requiredRole, children }) => {
-  const { user, role, loading, profile } = useAuth();
+  const { user, role, loading } = useAuth();
 
-  // Debug logging
-  console.log('RequireRole Debug:', {
-    user: user?.email,
-    role,
-    requiredRole,
-    profile,
-    loading
-  });
-
+  // Still initialising — wait for auth + profile to load
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -23,17 +15,16 @@ const RequireRole = ({ role: requiredRole, children }) => {
     );
   }
 
+  // Not logged in → send to login
   if (!user) {
-    console.log('No user, redirecting to login');
     return <Navigate to="/login" replace />;
   }
 
+  // Logged in but wrong role (admin always has access)
   if (requiredRole && role !== requiredRole && role !== 'admin') {
-    console.log(`Role mismatch: required=${requiredRole}, actual=${role}`);
     return <Navigate to="/" replace />;
   }
 
-  console.log('Access granted!');
   return children;
 };
 
