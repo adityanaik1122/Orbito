@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
-import { supabase } from '@/lib/customSupabaseClient';
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { supabase, initialUrlAuthType } from '@/lib/customSupabaseClient';
 import { useToast } from '@/components/ui/use-toast';
 
 const AuthContext = createContext(undefined);
@@ -11,7 +11,9 @@ export const AuthProvider = ({ children }) => {
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+  // Initialise as true immediately if the page loaded with a recovery URL hash
+  const [isRecoveryMode, setIsRecoveryMode] = useState(initialUrlAuthType === 'recovery');
+  const recoveryModeRef = useRef(initialUrlAuthType === 'recovery');
   
   const handleSession = useCallback(async (session) => {
     setSession(session);
@@ -51,23 +53,34 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      handleSession(session);
-    };
-
-    getSession();
+    // Skip getSession() if we already know this is a recovery page load —
+    // it would set loading=false and overwrite state before the event fires.
+    if (!recoveryModeRef.current) {
+      const getSession = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        handleSession(session);
+      };
+      getSession();
+    }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'PASSWORD_RECOVERY') {
+          recoveryModeRef.current = true;
           setIsRecoveryMode(true);
           setUser(session?.user ?? null);
           setSession(session);
           setLoading(false);
-        } else {
+        } else if (event === 'SIGNED_OUT') {
+          recoveryModeRef.current = false;
           setIsRecoveryMode(false);
           handleSession(session);
+        } else if (!recoveryModeRef.current) {
+          // Only update auth state for non-recovery events when not in recovery mode
+          handleSession(session);
+        } else {
+          // In recovery mode: update loading but keep recovery state
+          setLoading(false);
         }
       }
     );
@@ -139,6 +152,11 @@ export const AuthProvider = ({ children }) => {
     return { error };
   }, [toast]);
 
+  const setIsRecoveryModeAndRef = useCallback((val) => {
+    recoveryModeRef.current = val;
+    setIsRecoveryMode(val);
+  }, []);
+
   const value = useMemo(() => ({
     user,
     session,
@@ -146,11 +164,11 @@ export const AuthProvider = ({ children }) => {
     profile,
     role: profile?.role || 'customer',
     isRecoveryMode,
-    setIsRecoveryMode,
+    setIsRecoveryMode: setIsRecoveryModeAndRef,
     signUp,
     signIn,
     signOut,
-  }), [user, session, loading, profile, isRecoveryMode, signUp, signIn, signOut]);
+  }), [user, session, loading, profile, isRecoveryMode, setIsRecoveryModeAndRef, signUp, signIn, signOut]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

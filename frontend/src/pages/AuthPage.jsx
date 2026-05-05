@@ -26,7 +26,8 @@ const AuthPage = () => {
   
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [view, setView] = useState('auth'); // 'auth' | 'forgot' | 'reset-password'
+  // Start on reset form immediately if we arrived via a recovery link
+  const [view, setView] = useState(isRecoveryMode ? 'reset-password' : 'auth'); // 'auth' | 'forgot' | 'reset-password'
   const [newPassword, setNewPassword] = useState('');
   const [formData, setFormData] = useState({
     name: '',
@@ -35,7 +36,15 @@ const AuthPage = () => {
     country: ''
   });
 
-  // Recovery mode is detected reliably in SupabaseAuthContext
+  // Layer 1: URL hash check (synchronous, fires before any Supabase events)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    if (params.get('type') === 'recovery') {
+      setView('reset-password');
+    }
+  }, []);
+
+  // Layer 2: context-based recovery mode (catches cases where hash was already cleared)
   useEffect(() => {
     if (isRecoveryMode) setView('reset-password');
   }, [isRecoveryMode]);
@@ -181,14 +190,16 @@ const AuthPage = () => {
     }
     setIsLoading(true);
     const { error } = await supabase.auth.updateUser({ password: newPassword });
-    setIsLoading(false);
     if (error) {
+      setIsLoading(false);
       toast({ variant: 'destructive', title: 'Error', description: error.message });
     } else {
-      toast({ title: 'Password updated!', description: 'You can now log in with your new password.' });
+      // Sign out to clear the recovery session, then go to login for a fresh sign-in
+      await supabase.auth.signOut();
       setIsRecoveryMode(false);
-      setView('auth');
       setNewPassword('');
+      setIsLoading(false);
+      toast({ title: 'Password updated!', description: 'Please log in with your new password.' });
       navigate('/login');
     }
   };
