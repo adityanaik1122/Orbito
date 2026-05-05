@@ -268,8 +268,6 @@ const AdminDashboardPage = () => {
         .order('created_at', { ascending: false })
         .limit(200);
 
-      const profilesRes = await supabase.rpc('get_admin_clients');
-
       const bookingsRes = await supabase
         .from('bookings')
         .select('*')
@@ -282,12 +280,30 @@ const AdminDashboardPage = () => {
         .order('created_at', { ascending: false })
         .limit(500);
 
+      // Try RPC (SECURITY DEFINER — bypasses RLS so admin can see all users)
+      let clientsData = [];
+      const rpcRes = await supabase.rpc('get_admin_clients');
+      if (rpcRes.error) {
+        console.warn('get_admin_clients RPC error — run setup-operator-marketplace.sql in Supabase:', rpcRes.error.message);
+      }
+      if (rpcRes.data && rpcRes.data.length > 0) {
+        clientsData = rpcRes.data;
+      } else {
+        // Fallback: direct profiles query (may only show own row if RLS is strict)
+        const fallback = await supabase
+          .from('profiles')
+          .select('*')
+          .order('updated_at', { ascending: false })
+          .limit(500);
+        clientsData = fallback.data || [];
+      }
+
       const toursData = toursRes.data || [];
       const providerData = suppliersRes.data || [];
 
       setTours(toursData);
       setProviders(providerData);
-      setProfiles(profilesRes.data || []);
+      setProfiles(clientsData);
       setBookings(bookingsRes.data || []);
       setPayments(paymentsRes.data || []);
 

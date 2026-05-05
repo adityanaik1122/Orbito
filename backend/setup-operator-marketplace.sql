@@ -137,3 +137,36 @@ DO $$ BEGIN
       );
   END IF;
 END $$;
+
+-- 11. Admin: read all clients (joins profiles + auth.users for email & last sign in)
+CREATE OR REPLACE FUNCTION public.get_admin_clients()
+RETURNS TABLE (
+  id uuid,
+  full_name text,
+  email text,
+  country text,
+  role text,
+  created_at timestamptz,
+  last_sign_in_at timestamptz
+)
+SECURITY DEFINER SET search_path = public
+LANGUAGE plpgsql AS $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin') THEN
+    RAISE EXCEPTION 'Access denied';
+  END IF;
+  RETURN QUERY
+    SELECT
+      p.id,
+      COALESCE(p.full_name, u.raw_user_meta_data->>'full_name')::text AS full_name,
+      u.email::text,
+      p.country::text,
+      COALESCE(p.role, 'customer')::text AS role,
+      u.created_at,
+      u.last_sign_in_at
+    FROM public.profiles p
+    LEFT JOIN auth.users u ON p.id = u.id
+    ORDER BY u.created_at DESC NULLS LAST;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.get_admin_clients() TO authenticated;
