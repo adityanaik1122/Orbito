@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Calendar, MapPin, Users, Star, MessageSquare } from 'lucide-react';
-import { apiService } from '@/services/api';
+import { supabase } from '@/lib/customSupabaseClient';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { formatDate } from '@/lib/locale';
@@ -35,8 +35,13 @@ const BookingsPage = () => {
 
   const fetchBookings = async () => {
     try {
-      const response = await apiService.getUserBookings();
-      setBookings(response.bookings || []);
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      setBookings(data || []);
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -50,8 +55,11 @@ const BookingsPage = () => {
 
   const fetchMyReviews = async () => {
     try {
-      const res = await apiService.getMyReviews();
-      setMyReviews(res.reviews || []);
+      const { data } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('user_id', user.id);
+      setMyReviews(data || []);
     } catch {
       // non-critical
     }

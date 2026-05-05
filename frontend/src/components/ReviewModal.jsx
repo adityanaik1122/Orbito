@@ -4,12 +4,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Star, Loader2, X } from 'lucide-react';
-import { apiService } from '@/services/api';
+import { supabase } from '@/lib/customSupabaseClient';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useToast } from '@/components/ui/use-toast';
 
 const LABELS = ['', 'Terrible', 'Poor', 'OK', 'Good', 'Excellent'];
 
 export default function ReviewModal({ isOpen, onClose, tourId, bookingId, tourTitle, onReviewSubmitted }) {
+  const { user } = useAuth();
   const { toast } = useToast();
   const [rating, setRating] = useState(0);
   const [hovered, setHovered] = useState(0);
@@ -31,7 +33,15 @@ export default function ReviewModal({ isOpen, onClose, tourId, bookingId, tourTi
 
     setSubmitting(true);
     try {
-      await apiService.createReview({ tour_id: tourId, booking_id: bookingId, rating, title, comment });
+      const { error } = await supabase.from('reviews').insert({
+        tour_id: tourId,
+        booking_id: bookingId || null,
+        user_id: user?.id,
+        rating,
+        title: title || null,
+        comment,
+      });
+      if (error) throw error;
       toast({ title: 'Review submitted!', description: 'Thank you for sharing your experience.' });
       onReviewSubmitted?.();
       onClose();

@@ -1,14 +1,54 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, MapPin, Star } from 'lucide-react';
+import { Clock, MapPin, Star, Heart } from 'lucide-react';
 import { useLocale } from '@/contexts/LocaleContext';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { supabase } from '@/lib/customSupabaseClient';
+import { useToast } from '@/components/ui/use-toast';
 
 const TourCard = ({ tour }) => {
   const navigate = useNavigate();
   const { formatMoney, t } = useLocale();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [favId, setFavId] = useState(null);
+
+  useEffect(() => {
+    if (!user || !tour?.id) return;
+    supabase
+      .from('favorites')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('tour_id', tour.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) { setIsFavorited(true); setFavId(data.id); }
+      });
+  }, [user, tour?.id]);
+
+  const handleFavorite = async (e) => {
+    e.stopPropagation();
+    if (!user) { navigate('/login'); return; }
+    if (isFavorited) {
+      await supabase.from('favorites').delete().eq('id', favId);
+      setIsFavorited(false); setFavId(null);
+      toast({ title: 'Removed from favorites' });
+    } else {
+      const { data } = await supabase.from('favorites').insert({
+        user_id: user.id,
+        tour_id: tour.id,
+        name: tour.title,
+        type: tour.category || 'Tour',
+        rating: tour.rating || 0,
+      }).select('id').maybeSingle();
+      setIsFavorited(true); setFavId(data?.id);
+      toast({ title: 'Saved to favorites' });
+    }
+  };
 
   const handleViewDetails = () => {
     navigate(`/tours/${tour.id || tour.external_id}`);
@@ -70,6 +110,13 @@ const TourCard = ({ tour }) => {
             </Badge>
           ))}
         </div>
+        <button
+          onClick={handleFavorite}
+          className="absolute top-2 right-2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow hover:scale-110 transition-transform"
+          aria-label={isFavorited ? 'Remove from favorites' : 'Save to favorites'}
+        >
+          <Heart className={`w-4 h-4 ${isFavorited ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
+        </button>
 
         {/* Rating */}
         {ratingValue > 0 && (

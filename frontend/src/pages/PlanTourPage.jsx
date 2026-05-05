@@ -792,11 +792,7 @@ const PlanTourPage = () => {
           activities: allActivities
         };
 
-        console.log('Attempting to save itinerary:', tripData);
-
         const response = await apiService.saveItinerary(tripData);
-
-        console.log('Save response:', response);
 
         if (response.success) {
           toast({

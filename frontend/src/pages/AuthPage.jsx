@@ -96,9 +96,8 @@ const AuthPage = () => {
         description: "You have successfully logged in.",
       });
       navigate(target);
-    } catch (error) {
-      // Error is handled in context, but we catch here to stop loading state if needed
-      console.error(error);
+    } catch {
+      // Error handled in signIn (toast shown there)
     } finally {
       setIsLoading(false);
     }
@@ -141,7 +140,6 @@ const AuthPage = () => {
               updated_at: new Date().toISOString()
             }, { onConflict: 'id' });
         } catch (profileError) {
-          console.error('Profile upsert failed:', profileError);
         }
       }
 
@@ -157,8 +155,8 @@ const AuthPage = () => {
           description: "Please check your email to confirm your account.",
         });
       }
-    } catch (error) {
-      console.error(error);
+    } catch {
+      // Error handled in signUp (toast shown there)
     } finally {
       setIsLoading(false);
     }

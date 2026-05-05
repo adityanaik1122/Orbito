@@ -72,7 +72,7 @@ const MyAccountPage = () => {
             .single();
         
         if (profileError && profileError.code !== 'PGRST116') {
-             console.error('Error fetching profile:', profileError);
+          // profile fetch error — non-fatal
         }
 
         if (profileData) {
@@ -127,7 +127,6 @@ const MyAccountPage = () => {
         setFavorites(favoritesData);
 
     } catch (error) {
-        console.error('Error loading account data:', error);
         toast({
             variant: "destructive",
             title: "Error loading data",
@@ -161,7 +160,6 @@ const MyAccountPage = () => {
             description: "Your changes have been saved successfully"
         });
     } catch (error) {
-        console.error('Error saving profile:', error);
         toast({
             variant: "destructive",
             title: "Update Failed",
@@ -187,7 +185,6 @@ const MyAccountPage = () => {
             description: "Your itinerary has been removed"
         });
     } catch (error) {
-        console.error('Error deleting itinerary:', error);
         toast({
             variant: "destructive",
             title: "Error",
@@ -210,7 +207,6 @@ const MyAccountPage = () => {
             title: "Removed from Favorites"
         });
     } catch (error) {
-        console.error('Error removing favorite:', error);
         toast({ variant: "destructive", title: "Error removing favorite" });
     }
   };

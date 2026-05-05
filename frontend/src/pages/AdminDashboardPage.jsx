@@ -31,6 +31,9 @@ import {
   Newspaper,
 } from 'lucide-react';
 import { apiService } from '@/services/api';
+import {
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+} from 'recharts';
 
 const STATUS_CONFIG = {
   live: { label: 'Live', class: 'bg-green-100 text-green-800' },
@@ -415,6 +418,28 @@ const AdminDashboardPage = () => {
     { label: 'Total Revenue', value: `£${totalRevenue.toFixed(2)}`, icon: CreditCard },
   ];
 
+  const monthlyChartData = useMemo(() => {
+    const map = new Map();
+    const now = new Date();
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const label = d.toLocaleString('default', { month: 'short', year: '2-digit' });
+      map.set(key, { month: label, revenue: 0, bookings: 0 });
+    }
+    bookings.forEach((b) => {
+      if (!b.created_at) return;
+      const d = new Date(b.created_at);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      if (map.has(key)) {
+        const entry = map.get(key);
+        entry.bookings += 1;
+        entry.revenue += Number(b.total_amount || b.total_price_amount || 0);
+      }
+    });
+    return Array.from(map.values());
+  }, [bookings]);
+
   const handleBadgeToggle = (tourId, field) => {
     setBadgeEdits((prev) => ({
       ...prev,
@@ -773,6 +798,48 @@ const AdminDashboardPage = () => {
                         </Card>
                       );
                     })}
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base">Revenue (last 12 months)</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ResponsiveContainer width="100%" height={220}>
+                          <AreaChart data={monthlyChartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                            <defs>
+                              <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#0B3D91" stopOpacity={0.2} />
+                                <stop offset="95%" stopColor="#0B3D91" stopOpacity={0} />
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                            <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                            <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `£${v}`} width={55} />
+                            <Tooltip formatter={(v) => [`£${v.toFixed(2)}`, 'Revenue']} />
+                            <Area type="monotone" dataKey="revenue" stroke="#0B3D91" strokeWidth={2} fill="url(#revGrad)" />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base">Bookings (last 12 months)</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ResponsiveContainer width="100%" height={220}>
+                          <BarChart data={monthlyChartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                            <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                            <YAxis tick={{ fontSize: 11 }} allowDecimals={false} width={35} />
+                            <Tooltip formatter={(v) => [v, 'Bookings']} />
+                            <Bar dataKey="bookings" fill="#0B3D91" radius={[4, 4, 0, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
                   </div>
 
                   <Card>

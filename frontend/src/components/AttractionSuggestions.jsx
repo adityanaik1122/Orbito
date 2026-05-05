@@ -3,9 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Plus, Star, Bookmark, ExternalLink, ChevronDown, Clock, MapPin, Tag } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/lib/customSupabaseClient';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
 
 const AttractionSuggestions = ({ itinerary, setItinerary }) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [suggestions] = useState([
     { id: 'sg1', name: 'The British Museum', type: 'Museum', rating: 4.8, openingHours: '10:00 - 17:30', price: 'Free', location: 'Great Russell St', info: 'Home to a vast collection of world art and artifacts.', image: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?q=80&w=1000&auto=format&fit=crop' },
     { id: 'sg2', name: 'Tower of London', type: 'Historic Site', rating: 4.7, openingHours: '09:00 - 17:30', price: '£29.90', location: 'St Katharine\'s & Wapping', info: 'Historic castle housing the Crown Jewels.', image: 'https://images.unsplash.com/photo-1526129318478-62ed807ebdf9?q=80&w=1000&auto=format&fit=crop' },
@@ -17,22 +20,42 @@ const AttractionSuggestions = ({ itinerary, setItinerary }) => {
   const [expandedId, setExpandedId] = useState(null);
 
   useEffect(() => {
-    const savedFavorites = JSON.parse(localStorage.getItem('favoriteSpots') || '[]');
-    setFavorites(savedFavorites);
-  }, []);
+    if (user) {
+      supabase
+        .from('favorites')
+        .select('*')
+        .eq('user_id', user.id)
+        .is('tour_id', null)
+        .then(({ data }) => { if (data) setFavorites(data); });
+    } else {
+      const saved = JSON.parse(localStorage.getItem('favoriteSpots') || '[]');
+      setFavorites(saved);
+    }
+  }, [user]);
 
-  const toggleFavorite = (attraction) => {
-    const isFavorite = favorites.some(fav => fav.id === attraction.id);
-    let updatedFavorites;
-    if (isFavorite) {
-      updatedFavorites = favorites.filter(fav => fav.id !== attraction.id);
+  const toggleFavorite = async (attraction) => {
+    const existing = favorites.find(fav => fav.name === attraction.name);
+    if (existing) {
+      if (user) await supabase.from('favorites').delete().eq('id', existing.id);
+      setFavorites(prev => prev.filter(f => f.name !== attraction.name));
+      if (!user) localStorage.setItem('favoriteSpots', JSON.stringify(favorites.filter(f => f.name !== attraction.name)));
       toast({ title: "Removed from Favorites!" });
     } else {
-      updatedFavorites = [...favorites, attraction];
+      if (user) {
+        const { data } = await supabase.from('favorites').insert({
+          user_id: user.id,
+          name: attraction.name,
+          type: attraction.type,
+          rating: attraction.rating,
+        }).select().maybeSingle();
+        if (data) setFavorites(prev => [...prev, data]);
+      } else {
+        const updated = [...favorites, attraction];
+        setFavorites(updated);
+        localStorage.setItem('favoriteSpots', JSON.stringify(updated));
+      }
       toast({ title: "Added to Favorites! ⭐" });
     }
-    setFavorites(updatedFavorites);
-    localStorage.setItem('favoriteSpots', JSON.stringify(updatedFavorites));
   };
 
   const addToItinerary = (attraction) => {

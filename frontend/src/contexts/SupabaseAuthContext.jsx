@@ -90,7 +90,6 @@ export const AuthProvider = ({ children }) => {
 
   // ✅ NEW CLEAN SIGNUP FUNCTION
   const signUp = useCallback(async (email, password, options) => {
-    console.log("Attempting signup for:", email);
 
     const emailRedirectTo = options?.emailRedirectTo || `${window.location.origin}/auth`;
 
@@ -117,8 +116,6 @@ export const AuthProvider = ({ children }) => {
       return { error };
     }
 
-    // If we get here, it worked. The error you saw before is impossible now.
-    console.log("✅ Signup successful via Trigger. User ID:", data.user?.id);
     return { data, error: null };
 
   }, [toast]);

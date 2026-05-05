@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Calendar as CalendarIcon, Clock, MapPin, Star, Check, Loader2, ArrowLeft, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { apiService } from '@/services/api';
+import { supabase } from '@/lib/customSupabaseClient';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { useLocale } from '@/contexts/LocaleContext';
@@ -47,9 +47,15 @@ const TourDetailPage = () => {
 
   const fetchTourDetail = async () => {
     try {
-      const response = await apiService.getTourDetail(slug);
-      setTour(response.tour);
-      fetchReviews(response.tour?.id);
+      const { data, error } = await supabase
+        .from('tours')
+        .select('*')
+        .eq('slug', slug)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) throw new Error('Tour not found');
+      setTour(data);
+      fetchReviews(data.id);
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -65,8 +71,13 @@ const TourDetailPage = () => {
     if (!tourId) return;
     setReviewsLoading(true);
     try {
-      const res = await apiService.getTourReviews(tourId);
-      setReviews(res.reviews || []);
+      const { data } = await supabase
+        .from('reviews')
+        .select('*, profiles(full_name)')
+        .eq('tour_id', tourId)
+        .order('created_at', { ascending: false })
+        .limit(20);
+      setReviews(data || []);
     } catch {
       // non-critical — reviews silently fail
     } finally {

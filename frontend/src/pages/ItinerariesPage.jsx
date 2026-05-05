@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, Heart, Star, Search, MapPin } from 'lucide-react';
+import { ArrowLeft, Calendar, Heart, Star, Search, MapPin, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { itineraries, getItinerariesByCity, FALLBACK_IMAGE } from '@/data/itineraries';
+import { itineraries as staticItineraries, FALLBACK_IMAGE } from '@/data/itineraries';
+import { supabase } from '@/lib/customSupabaseClient';
 
 const cityImages = {
     'London': 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?q=80&w=1000&auto=format&fit=crop',
@@ -37,17 +38,58 @@ const cityImages = {
     'Rio de Janeiro': 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?q=80&w=1000&auto=format&fit=crop',
 };
 
+const mapDbItinerary = (item) => {
+    const start = item.start_date ? new Date(item.start_date) : null;
+    const end = item.end_date ? new Date(item.end_date) : null;
+    const dayCount = start && end
+        ? Math.max(Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1, 1)
+        : (Array.isArray(item.days) ? item.days.length : 1) || 1;
+    const city = item.destination_city || item.destination || 'Unknown';
+    return {
+        id: item.id,
+        title: item.title || 'Untitled Trip',
+        city,
+        duration: `${dayCount} ${dayCount === 1 ? 'Day' : 'Days'}`,
+        heroImage: cityImages[city] || FALLBACK_IMAGE,
+        summary: `A ${dayCount}-day trip to ${city}.`,
+        styles: [],
+        tags: [],
+        rating: null,
+        reviews: null,
+        price: 'Free',
+    };
+};
+
 const ItinerariesPage = () => {
     const navigate = useNavigate();
     const [selectedCity, setSelectedCity] = useState('All');
     const [selectedStyle, setSelectedStyle] = useState('All');
+    const [itineraries, setItineraries] = useState(staticItineraries);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchPublic = async () => {
+            const { data } = await supabase
+                .from('itineraries')
+                .select('id, title, destination, destination_city, start_date, end_date, days')
+                .eq('is_public', true)
+                .not('share_id', 'is', null)
+                .order('created_at', { ascending: false })
+                .limit(50);
+            if (data && data.length > 0) {
+                setItineraries(data.map(mapDbItinerary));
+            }
+            setLoading(false);
+        };
+        fetchPublic();
+    }, []);
+
     const cityList = Array.from(new Set(itineraries.map((item) => item.city)));
     const cities = ['All', ...cityList];
 
-    const filteredItineraries = getItinerariesByCity(selectedCity).filter((itinerary) => {
-        if (selectedStyle === 'All') return true;
-        return (itinerary.styles || []).includes(selectedStyle);
-    });
+    const filteredItineraries = itineraries
+        .filter((item) => selectedCity === 'All' || item.city === selectedCity)
+        .filter((item) => selectedStyle === 'All' || (item.styles || []).includes(selectedStyle));
 
     return (
         <>
@@ -125,7 +167,11 @@ const ItinerariesPage = () => {
                     </div>
                 </div>
                 
-                {filteredItineraries.length > 0 ? (
+                {loading ? (
+                    <div className="flex items-center justify-center py-20">
+                        <Loader2 className="w-8 h-8 animate-spin text-[#0B3D91]" />
+                    </div>
+                ) : filteredItineraries.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {filteredItineraries.map((itinerary, index) => (
                             <motion.div
@@ -138,9 +184,9 @@ const ItinerariesPage = () => {
                                 onClick={() => navigate(`/itinerary/${itinerary.id}`)}
                             >
                                 <div className="relative aspect-[4/3] overflow-hidden bg-gray-200">
-                                    <img 
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                                        alt={itinerary.title} 
+                                    <img
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                        alt={itinerary.title}
                                         src={itinerary.heroImage || itinerary.image || FALLBACK_IMAGE}
                                         loading="lazy"
                                         decoding="async"
@@ -156,18 +202,20 @@ const ItinerariesPage = () => {
                                     </div>
                                 </div>
                                 <div className="p-6">
-                                    <div className="flex items-center gap-2 mb-3 flex-wrap">
-                                        {(itinerary.styles || []).map(style => (
-                                            <span key={style} className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-full uppercase tracking-wide">
-                                                {style}
-                                            </span>
-                                        ))}
-                                        {itinerary.tags.map(tag => (
-                                            <span key={tag} className="px-2 py-0.5 bg-blue-50 text-[#0B3D91] text-[10px] font-bold rounded-full uppercase tracking-wide">
-                                                {tag}
-                                            </span>
-                                        ))}
-                                    </div>
+                                    {((itinerary.styles || []).length > 0 || (itinerary.tags || []).length > 0) && (
+                                        <div className="flex items-center gap-2 mb-3 flex-wrap">
+                                            {(itinerary.styles || []).map(style => (
+                                                <span key={style} className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-full uppercase tracking-wide">
+                                                    {style}
+                                                </span>
+                                            ))}
+                                            {(itinerary.tags || []).map(tag => (
+                                                <span key={tag} className="px-2 py-0.5 bg-blue-50 text-[#0B3D91] text-[10px] font-bold rounded-full uppercase tracking-wide">
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                     <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-[#0B3D91] transition-colors">{itinerary.title}</h3>
                                     <p className="text-sm text-gray-600 line-clamp-2 mb-3">{itinerary.summary}</p>
                                     <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
@@ -175,11 +223,13 @@ const ItinerariesPage = () => {
                                             <Calendar className="w-4 h-4" />
                                             {itinerary.duration}
                                         </div>
-                                        <div className="flex items-center gap-1.5">
-                                            <Star className="w-4 h-4 fill-[#0B3D91] text-[#0B3D91]" />
-                                            <span className="font-semibold text-gray-900">{itinerary.rating}</span> 
-                                            <span className="text-gray-400">({itinerary.reviews})</span>
-                                        </div>
+                                        {itinerary.rating != null && (
+                                            <div className="flex items-center gap-1.5">
+                                                <Star className="w-4 h-4 fill-[#0B3D91] text-[#0B3D91]" />
+                                                <span className="font-semibold text-gray-900">{itinerary.rating}</span>
+                                                {itinerary.reviews != null && <span className="text-gray-400">({itinerary.reviews})</span>}
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                                         <span className="text-base font-bold text-gray-900">{itinerary.price}</span>
