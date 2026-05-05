@@ -3,7 +3,6 @@ import { Helmet } from 'react-helmet';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { supabase } from '@/lib/customSupabaseClient';
-import { apiService } from '@/services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -40,7 +39,7 @@ const EMPTY_FORM = {
 };
 
 export default function OperatorDashboardPage() {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -58,24 +57,63 @@ export default function OperatorDashboardPage() {
   const [availableDays, setAvailableDays] = useState([]);
   const [imageUploading, setImageUploading] = useState(false);
 
-  useEffect(() => { loadAll(); }, []);
+  useEffect(() => { if (user) loadAll(); }, [user]);
 
   const loadAll = async () => {
     setLoading(true);
     try {
-      const [toursRes, bookingsRes, statsRes, earningsRes] = await Promise.allSettled([
-        apiService.getOperatorTours(),
-        apiService.getOperatorBookings(),
-        apiService.getOperatorStats(),
-        apiService.getOperatorEarnings(),
-      ]);
-      if (toursRes.status === 'fulfilled') setTours(toursRes.value.tours || []);
-      if (bookingsRes.status === 'fulfilled') setBookings(bookingsRes.value.bookings || []);
-      if (statsRes.status === 'fulfilled') setStats(statsRes.value);
-      if (earningsRes.status === 'fulfilled') {
-        setEarnings(earningsRes.value.earnings || []);
-        setEarningsSummary(earningsRes.value.summary);
+      const { data: toursData } = await supabase
+        .from('tours')
+        .select('*')
+        .eq('operator_id', user.id)
+        .order('created_at', { ascending: false });
+
+      const toursList = toursData || [];
+      setTours(toursList);
+
+      const tourIds = toursList.map((t) => t.id);
+      let bookingsList = [];
+      if (tourIds.length > 0) {
+        const { data: bookingsData } = await supabase
+          .from('bookings')
+          .select('*, tours!inner(title)')
+          .in('tour_id', tourIds)
+          .order('created_at', { ascending: false });
+        bookingsList = bookingsData || [];
       }
+      setBookings(bookingsList);
+
+      const confirmedBookings = bookingsList.filter((b) =>
+        ['confirmed', 'paid', 'completed'].includes((b.booking_status || b.status || '').toLowerCase())
+      );
+      const totalRevenue = confirmedBookings.reduce((sum, b) =>
+        sum + Number(b.total_amount || b.total_price_amount || 0), 0
+      );
+      const operatorEarned = totalRevenue * 0.85;
+
+      setStats({
+        totalTours: toursList.length,
+        liveTours: toursList.filter((t) => t.listing_status === 'live').length,
+        pendingTours: toursList.filter((t) => t.listing_status === 'pending_review').length,
+        totalBookings: confirmedBookings.length,
+      });
+      setEarningsSummary({ totalEarned: operatorEarned, pendingPayout: operatorEarned, paidOut: 0 });
+
+      try {
+        const { data: earningsData } = await supabase
+          .from('operator_earnings')
+          .select('*')
+          .eq('operator_id', user.id)
+          .order('created_at', { ascending: false });
+        if (earningsData?.length) {
+          setEarnings(earningsData);
+          const totalEarned = earningsData.reduce((s, r) => s + Number(r.operator_payout || 0), 0);
+          const pendingPayout = earningsData
+            .filter((r) => r.booking_status === 'confirmed')
+            .reduce((s, r) => s + Number(r.operator_payout || 0), 0);
+          setEarningsSummary({ totalEarned, pendingPayout, paidOut: totalEarned - pendingPayout });
+        }
+      } catch { /* operator_earnings table may not exist yet */ }
     } catch {
       toast({ variant: 'destructive', title: 'Error', description: 'Failed to load dashboard' });
     } finally {
@@ -153,24 +191,49 @@ export default function OperatorDashboardPage() {
 
     setSavingTour(true);
     try {
-      const payload = {
-        ...tourForm,
+      const base = {
+        title: tourForm.title,
+        description: tourForm.description || null,
+        destination: tourForm.destination,
+        city: tourForm.city || tourForm.destination,
+        country: tourForm.country || null,
+        category: tourForm.category || null,
+        duration_hours: tourForm.duration_hours ? parseFloat(tourForm.duration_hours) : null,
+        duration_minutes: tourForm.duration_hours ? Math.round(parseFloat(tourForm.duration_hours) * 60) : null,
         price_adult: parseFloat(tourForm.price_adult),
         price_child: tourForm.price_child ? parseFloat(tourForm.price_child) : null,
-        duration_hours: tourForm.duration_hours ? parseFloat(tourForm.duration_hours) : null,
-        max_group_size: tourForm.max_group_size ? parseInt(tourForm.max_group_size) : null,
+        currency: tourForm.currency || 'GBP',
+        meeting_point: tourForm.meeting_point || null,
         highlights: splitLines(tourForm.highlights),
         price_includes: splitLines(tourForm.price_includes),
         price_excludes: splitLines(tourForm.price_excludes),
+        cancellation_policy: tourForm.cancellation_policy || null,
         start_times: splitCommas(tourForm.start_times),
+        max_group_size: tourForm.max_group_size ? parseInt(tourForm.max_group_size) : null,
         available_days: availableDays,
+        main_image: tourForm.main_image || null,
       };
 
       if (editingTour) {
-        await apiService.updateOperatorTour(editingTour.id, payload);
+        const payload = { ...base };
+        if (editingTour.listing_status === 'live') {
+          payload.listing_status = 'pending_review';
+          payload.is_active = false;
+        }
+        const { error } = await supabase.from('tours').update(payload).eq('id', editingTour.id);
+        if (error) throw error;
         toast({ title: 'Tour updated', description: 'Submitted for re-review' });
       } else {
-        await apiService.createOperatorTour(payload);
+        const slug = `${tourForm.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}`;
+        const { error } = await supabase.from('tours').insert({
+          ...base,
+          operator_id: user.id,
+          slug,
+          listing_status: 'pending_review',
+          is_active: false,
+          source: 'operator',
+        });
+        if (error) throw error;
         toast({ title: 'Tour submitted!', description: 'Under review — live within 48hrs once approved' });
       }
 
@@ -186,7 +249,8 @@ export default function OperatorDashboardPage() {
   const handleDeleteTour = async (tourId) => {
     if (!window.confirm('Delete this tour? This cannot be undone.')) return;
     try {
-      await apiService.deleteOperatorTour(tourId);
+      const { error } = await supabase.from('tours').delete().eq('id', tourId);
+      if (error) throw error;
       toast({ title: 'Tour deleted' });
       setTours((prev) => prev.filter((t) => t.id !== tourId));
     } catch (err) {

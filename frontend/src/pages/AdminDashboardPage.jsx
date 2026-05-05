@@ -283,7 +283,7 @@ const AdminDashboardPage = () => {
         .limit(500);
 
       const toursData = toursRes.data || [];
-      const providerData = providersRes.data?.length ? providersRes.data : suppliersRes.data || [];
+      const providerData = suppliersRes.data || [];
 
       setTours(toursData);
       setProviders(providerData);
@@ -294,11 +294,11 @@ const AdminDashboardPage = () => {
       // Load operator marketplace data (non-blocking)
       try {
         const [appsRes, pendingToursRes] = await Promise.allSettled([
-          apiService.getAdminApplications(),
-          apiService.getAdminPendingTours(),
+          supabase.from('operator_applications').select('*').order('created_at', { ascending: false }),
+          supabase.from('tours').select('*, profiles!operator_id(full_name, email)').eq('listing_status', 'pending_review').order('created_at', { ascending: false }),
         ]);
-        if (appsRes.status === 'fulfilled') setApplications(appsRes.value.applications || []);
-        if (pendingToursRes.status === 'fulfilled') setPendingAdminTours(pendingToursRes.value.tours || []);
+        if (appsRes.status === 'fulfilled') setApplications(appsRes.value.data || []);
+        if (pendingToursRes.status === 'fulfilled') setPendingAdminTours(pendingToursRes.value.data || []);
       } catch { /* non-critical */ }
 
       const nextEdits = {};
@@ -552,8 +552,9 @@ const AdminDashboardPage = () => {
   const handleApproveApplication = async (id) => {
     setActionLoading(id);
     try {
-      await apiService.approveApplication(id);
-      toast({ title: 'Approved', description: 'Operator account activated and email sent' });
+      const { error } = await supabase.rpc('approve_operator_application', { app_id: id });
+      if (error) throw error;
+      toast({ title: 'Approved', description: 'Operator account activated' });
       setApplications((prev) => prev.map((a) => a.id === id ? { ...a, status: 'approved' } : a));
     } catch (err) {
       toast({ variant: 'destructive', title: 'Error', description: err.message });
@@ -564,11 +565,12 @@ const AdminDashboardPage = () => {
 
   const handleRejectApplication = async (id) => {
     const reason = window.prompt('Rejection reason (optional):');
-    if (reason === null) return; // cancelled
+    if (reason === null) return;
     setActionLoading(id);
     try {
-      await apiService.rejectApplication(id, reason);
-      toast({ title: 'Rejected', description: 'Applicant has been notified' });
+      const { error } = await supabase.rpc('reject_operator_application', { app_id: id, reject_reason: reason || null });
+      if (error) throw error;
+      toast({ title: 'Rejected', description: 'Application rejected' });
       setApplications((prev) => prev.map((a) => a.id === id ? { ...a, status: 'rejected' } : a));
     } catch (err) {
       toast({ variant: 'destructive', title: 'Error', description: err.message });
@@ -580,7 +582,8 @@ const AdminDashboardPage = () => {
   const handleApproveTour = async (id) => {
     setActionLoading(id);
     try {
-      await apiService.approveTour(id);
+      const { error } = await supabase.rpc('approve_operator_tour', { tour_id: id });
+      if (error) throw error;
       toast({ title: 'Tour approved', description: 'Now live on the marketplace' });
       setPendingAdminTours((prev) => prev.filter((t) => t.id !== id));
     } catch (err) {
@@ -593,7 +596,8 @@ const AdminDashboardPage = () => {
   const handleRejectTour = async (id) => {
     setActionLoading(id);
     try {
-      await apiService.rejectTour(id);
+      const { error } = await supabase.rpc('reject_operator_tour', { tour_id: id });
+      if (error) throw error;
       toast({ title: 'Tour rejected' });
       setPendingAdminTours((prev) => prev.filter((t) => t.id !== id));
     } catch (err) {

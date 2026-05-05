@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
-import { apiService } from '@/services/api';
+import { supabase } from '@/lib/customSupabaseClient';
 import { CheckCircle, Loader2, Building2, MapPin, Users, Globe } from 'lucide-react';
 
 const TOUR_TYPES = ['Cultural', 'Adventure', 'Food & Drink', 'Sightseeing', 'Nature', 'Water Sports', 'History', 'Wellness', 'Photography', 'Nightlife'];
@@ -54,14 +54,26 @@ export default function OperatorApplyPage() {
 
     setSubmitting(true);
     try {
-      await apiService.applyAsOperator({
+      const { data: existing } = await supabase
+        .from('operator_applications')
+        .select('id, status')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (existing?.status === 'pending') throw new Error('You already have a pending application');
+      if (existing?.status === 'approved') throw new Error('Your application has already been approved');
+
+      const { error } = await supabase.from('operator_applications').insert({
+        user_id: user.id,
         ...form,
         years_in_business: form.years_in_business ? parseInt(form.years_in_business) : null,
         tour_types: selectedTypes,
         operating_locations: form.operating_locations
           ? form.operating_locations.split(',').map((s) => s.trim()).filter(Boolean)
           : [],
+        status: 'pending',
       });
+      if (error) throw error;
       setSubmitted(true);
     } catch (err) {
       toast({ variant: 'destructive', title: 'Submission failed', description: err.message });
