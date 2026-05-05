@@ -151,8 +151,9 @@ RETURNS TABLE (
 )
 SECURITY DEFINER SET search_path = public
 LANGUAGE plpgsql AS $$
+#variable_conflict use_column
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin') THEN
+  IF NOT EXISTS (SELECT 1 FROM profiles p2 WHERE p2.id = auth.uid() AND p2.role = 'admin') THEN
     RAISE EXCEPTION 'Access denied';
   END IF;
   RETURN QUERY

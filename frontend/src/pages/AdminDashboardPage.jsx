@@ -82,10 +82,15 @@ const BlogSection = () => {
   const [stats, setStats] = useState(null);
   const [lastResult, setLastResult] = useState(null);
 
+  const loadStats = async () => {
+    const { count } = await supabase
+      .from('blog_posts')
+      .select('*', { count: 'exact', head: true });
+    setStats({ total: count ?? 0 });
+  };
+
   useEffect(() => {
-    apiService.adminGetBlogStats()
-      .then((res) => setStats(res))
-      .catch(() => {});
+    loadStats().catch(() => {});
   }, []);
 
   const handleFetch = async () => {
@@ -97,9 +102,7 @@ const BlogSection = () => {
         title: 'Blog updated',
         description: `${result.inserted} new articles added, ${result.skipped} already existed.`,
       });
-      // Refresh stats
-      const updated = await apiService.adminGetBlogStats();
-      setStats(updated);
+      await loadStats();
     } catch (err) {
       toast({ variant: 'destructive', title: 'Fetch failed', description: err.message });
     } finally {
@@ -311,7 +314,7 @@ const AdminDashboardPage = () => {
       try {
         const [appsRes, pendingToursRes] = await Promise.allSettled([
           supabase.from('operator_applications').select('*').order('created_at', { ascending: false }),
-          supabase.from('tours').select('*, profiles!operator_id(full_name, email)').eq('listing_status', 'pending_review').order('created_at', { ascending: false }),
+          supabase.from('tours').select('*').eq('listing_status', 'pending_review').order('created_at', { ascending: false }),
         ]);
         if (appsRes.status === 'fulfilled') setApplications(appsRes.value.data || []);
         if (pendingToursRes.status === 'fulfilled') setPendingAdminTours(pendingToursRes.value.data || []);
