@@ -10,7 +10,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Calendar as CalendarIcon, MapPin, Plus, Sparkles, ArrowLeft, Save, Share2, Clock, DollarSign, Trash2, GripVertical, Coffee, Loader2, Link2, Printer, Edit } from 'lucide-react';
+import { Calendar as CalendarIcon, MapPin, Plus, Sparkles, ArrowLeft, Save, Share2, Clock, DollarSign, Trash2, GripVertical, Coffee, Loader2, Link2, Printer, Edit, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 import { Reorder, motion } from 'framer-motion';
@@ -1631,6 +1631,20 @@ const PlanTourPage = () => {
                                                                           </p>
                                                                         )}
                                                                         {item.openingHours && <p className="text-xs text-gray-400 mt-1">Open: {item.openingHours}</p>}
+                                                                        {item.type !== 'break' && (
+                                                                            <a
+                                                                                href={
+                                                                                    (item.tour?.booking_url || item.suggestedTour?.booking_url) ||
+                                                                                    `https://www.viator.com/search?text=${encodeURIComponent((item.name || '') + (tripDetails.destination ? ' ' + tripDetails.destination : ''))}&pid=P00281964`
+                                                                                }
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                onClick={(e) => e.stopPropagation()}
+                                                                                className="inline-flex items-center gap-1 mt-2 text-[10px] font-semibold text-[#0B3D91] hover:text-[#092C6B] hover:underline"
+                                                                            >
+                                                                                <ExternalLink className="w-3 h-3" /> Book on Viator
+                                                                            </a>
+                                                                        )}
                                                                     </>
                                                                 )}
                                                             </div>

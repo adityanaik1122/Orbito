@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet';
 import { Button } from '@/components/ui/button';
 import { useLocale } from '@/contexts/LocaleContext';
-import { Sparkles, ArrowRight, Star, CheckCircle2, MessageSquare, CreditCard, Shield } from 'lucide-react';
+import { Sparkles, ArrowRight, CheckCircle2, MessageSquare, CreditCard, Shield, MapPin, Clock, ExternalLink, Calendar } from 'lucide-react';
 
 const DESTINATIONS = [
   { slug: 'london',    name: 'London',    flag: '🇬🇧', image: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?q=80&w=600&auto=format&fit=crop' },
@@ -25,31 +25,64 @@ const PROMPTS = [
   'Solo backpacking through Italy, 2 weeks 🇮🇹',
 ];
 
-const TESTIMONIALS = [
+const STEPS = [
+  { icon: MessageSquare, title: 'Describe your trip', desc: 'Tell the AI where you want to go, for how long, and what you enjoy — in plain English.' },
+  { icon: Sparkles,      title: 'Get your itinerary', desc: 'A full day-by-day plan is generated in seconds, tailored to your style and budget.' },
+  { icon: CreditCard,    title: 'Book experiences', desc: 'Every activity links to real bookable tours via Viator, straight from your plan.' },
+];
+
+const SAMPLE_DAYS = [
   {
-    name: 'Sarah M.',
-    location: 'London',
-    rating: 5,
-    text: 'Planned my entire Tokyo trip in under 5 minutes. The AI understood exactly what I wanted — perfect mix of temples, street food, and modern Tokyo.',
+    day: 1,
+    title: 'Temples & Tradition',
+    items: [
+      { time: '09:00', name: 'Senso-ji Temple', note: 'Arrive early to beat crowds', duration: '1.5h' },
+      { time: '11:00', name: 'Nakamise Street', note: 'Street food & souvenirs', duration: '1h' },
+      { time: '14:00', name: 'Ueno Park', note: 'National museums nearby', duration: '2h' },
+      { time: '18:00', name: 'Shibuya Crossing', note: 'Golden hour views', duration: '1h' },
+    ],
   },
   {
-    name: 'James K.',
-    location: 'Manchester',
-    rating: 5,
-    text: 'Used Orbito for our family holiday in Bali. Saved hours of research and the itinerary was genuinely better than anything I could have put together myself.',
+    day: 2,
+    title: 'Modern Tokyo',
+    items: [
+      { time: '10:00', name: 'teamLab Borderless', note: 'Book tickets in advance', duration: '2h' },
+      { time: '13:00', name: 'Harajuku & Takeshita St', note: 'Fashion & crepes', duration: '2h' },
+      { time: '17:00', name: 'Meiji Shrine', note: 'Peaceful forest walk', duration: '1h' },
+      { time: '20:00', name: 'Shinjuku Ramen', note: 'Try Ichiran for solo booths', duration: '1h' },
+    ],
   },
   {
-    name: 'Priya R.',
-    location: 'Edinburgh',
-    rating: 5,
-    text: 'The AI suggested places I\'d never have found on my own. Our Paris trip was absolutely magical thanks to the personalised recommendations.',
+    day: 3,
+    title: 'Day Trip to Nikko',
+    items: [
+      { time: '08:00', name: 'Shinkansen to Nikko', note: '2h from Tokyo', duration: '2h' },
+      { time: '10:30', name: 'Tosho-gu Shrine', note: 'UNESCO World Heritage', duration: '2h' },
+      { time: '13:00', name: 'Kegon Falls', note: 'Stunning 97m waterfall', duration: '1h' },
+      { time: '17:00', name: 'Return to Tokyo', note: '', duration: '2h' },
+    ],
   },
 ];
 
-const STEPS = [
-  { icon: MessageSquare, title: 'Describe your trip', desc: 'Tell the AI where you want to go, for how long, and what you enjoy.' },
-  { icon: Sparkles,      title: 'Get your itinerary', desc: 'A full day-by-day plan is generated in seconds, tailored to you.' },
-  { icon: CreditCard,    title: 'Book experiences', desc: 'Browse and book tours from Viator directly from your plan.' },
+const FEATURES = [
+  {
+    icon: Sparkles,
+    title: 'Plain English planning',
+    desc: 'Just type "5 days in Bali, foodie focus, mid-budget" — the AI handles the rest. No forms, no filters.',
+    color: 'from-blue-500 to-[#0B3D91]',
+  },
+  {
+    icon: ExternalLink,
+    title: 'Real bookable tours',
+    desc: 'Every activity in your plan links to a real tour on Viator. One click from plan to booked.',
+    color: 'from-emerald-500 to-teal-600',
+  },
+  {
+    icon: Calendar,
+    title: 'Save, share & edit',
+    desc: 'Your itinerary lives online. Share it with travel companions, tweak it anytime, print it for offline.',
+    color: 'from-violet-500 to-purple-700',
+  },
 ];
 
 const HomePage = () => {
@@ -74,28 +107,12 @@ const HomePage = () => {
   return (
     <>
       <Helmet>
-        <title>Orbito — AI Travel Planner & Tour Booking</title>
-        <meta name="description" content="Describe your trip in plain English and get a personalised day-by-day itinerary in seconds. Browse and book tours from Viator's global network." />
+        <title>Orbito — AI Itinerary Maker & Tour Booking</title>
+        <meta name="description" content="Describe any trip in plain English and get a full day-by-day itinerary in seconds. Book tours from Viator directly from your plan. Free forever." />
         <link rel="canonical" href="https://orbitotrip.com" />
-        <meta property="og:title" content="Orbito — AI Travel Planner & Tour Booking" />
+        <meta property="og:title" content="Orbito — AI Itinerary Maker & Tour Booking" />
         <meta property="og:description" content="AI-powered trip planning with real bookable tours from Viator. Free to use." />
         <meta property="og:type" content="website" />
-        <script type="application/ld+json">{`
-          {
-            "@context": "https://schema.org",
-            "@type": "WebApplication",
-            "name": "Orbito",
-            "description": "AI-powered travel planning and tour booking platform",
-            "applicationCategory": "TravelApplication",
-            "operatingSystem": "Web",
-            "url": "https://orbitotrip.com",
-            "aggregateRating": {
-              "@type": "AggregateRating",
-              "ratingValue": "4.9",
-              "ratingCount": "2847"
-            }
-          }
-        `}</script>
       </Helmet>
 
       <div className="bg-white">
@@ -124,20 +141,20 @@ const HomePage = () => {
               {/* Badge */}
               <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 text-white/90 text-sm font-medium px-4 py-2 rounded-full">
                 <Sparkles className="w-4 h-4 text-yellow-400" />
-                AI-powered trip planning — free forever
+                AI itinerary maker — free forever
               </div>
 
               {/* Headline */}
               <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold text-white tracking-tight leading-tight">
-                Plan your perfect<br />
+                Your trip, planned<br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">
-                  trip with AI
+                  by AI in seconds
                 </span>
               </h1>
 
               <p className="text-lg md:text-xl text-white/70 font-light max-w-2xl mx-auto leading-relaxed">
                 Describe any trip in plain English — get a full day-by-day itinerary
-                in seconds, with real bookable tours from Viator.
+                with real bookable tours from Viator.
               </p>
 
               {/* Search */}
@@ -149,7 +166,7 @@ const HomePage = () => {
                       type="text"
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
-                      placeholder="Where would you like to go?"
+                      placeholder="e.g. 7 days in Tokyo, foodie and culture"
                       className="flex-1 px-6 py-5 text-base md:text-lg bg-transparent border-0 focus:outline-none text-gray-900 placeholder:text-gray-400"
                       autoComplete="off"
                     />
@@ -159,7 +176,7 @@ const HomePage = () => {
                         className="bg-[#0B3D91] hover:bg-[#092C6B] text-white font-semibold px-5 py-3 rounded-xl flex items-center gap-2"
                       >
                         <Sparkles className="w-4 h-4" />
-                        Plan
+                        Plan my trip
                       </Button>
                     </div>
                   </div>
@@ -181,7 +198,7 @@ const HomePage = () => {
             </motion.div>
           </div>
 
-          {/* Stats strip */}
+          {/* Feature strip */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -189,16 +206,132 @@ const HomePage = () => {
             className="absolute bottom-0 left-0 right-0 z-10 bg-black/40 backdrop-blur-sm border-t border-white/10"
           >
             <div className="container mx-auto px-4 py-4 flex flex-wrap justify-center gap-8 text-sm text-white/70 font-medium">
-              <span>✦ 50,000+ trips planned</span>
               <span>✦ 500+ destinations</span>
               <span>✦ Powered by Viator</span>
               <span>✦ Free to use</span>
+              <span>✦ No account needed</span>
             </div>
           </motion.div>
         </section>
 
-        {/* ── HOW IT WORKS ─────────────────────────────────────────────────── */}
+        {/* ── ITINERARY PREVIEW ────────────────────────────────────────────── */}
+        <section className="py-20 bg-gray-50">
+          <div className="container mx-auto px-5 max-w-6xl">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7 }}
+              className="text-center mb-12"
+            >
+              <div className="inline-flex items-center gap-2 bg-[#0B3D91]/10 text-[#0B3D91] text-xs font-bold px-3 py-1.5 rounded-full mb-4 uppercase tracking-widest">
+                Example output
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+                This is what you'll get
+              </h2>
+              <p className="text-gray-500 text-lg max-w-xl mx-auto">
+                A complete day-by-day plan — generated in seconds from one sentence.
+              </p>
+            </motion.div>
+
+            {/* Mock prompt bubble */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="max-w-2xl mx-auto mb-8"
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#0B3D91] text-white flex items-center justify-center text-sm font-bold flex-shrink-0 mt-1">
+                  Y
+                </div>
+                <div className="bg-[#0B3D91] text-white px-5 py-3 rounded-2xl rounded-tl-sm text-sm font-medium shadow-md">
+                  "7 days in Tokyo, mix of tradition and modern, foodie focus 🇯🇵"
+                </div>
+              </div>
+              <div className="flex items-center gap-2 mt-3 ml-11 text-xs text-gray-400">
+                <Sparkles className="w-3.5 h-3.5 text-[#0B3D91]" />
+                <span className="text-[#0B3D91] font-semibold">Orbito AI</span>
+                <span>generated your 7-day Tokyo itinerary</span>
+              </div>
+            </motion.div>
+
+            {/* Day cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {SAMPLE_DAYS.map((day, i) => (
+                <motion.div
+                  key={day.day}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.1, duration: 0.5 }}
+                  className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
+                >
+                  <div className="bg-gradient-to-r from-[#0B3D91] to-[#1E5BA8] px-5 py-4">
+                    <p className="text-white/70 text-xs font-bold uppercase tracking-widest">Day {day.day}</p>
+                    <p className="text-white font-bold text-lg">{day.title}</p>
+                  </div>
+                  <div className="divide-y divide-gray-50">
+                    {day.items.map((item, j) => (
+                      <div key={j} className="px-5 py-3 flex items-start gap-3">
+                        <span className="text-xs font-mono text-[#0B3D91] font-semibold bg-blue-50 px-1.5 py-0.5 rounded mt-0.5 flex-shrink-0">
+                          {item.time}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-gray-900 truncate">{item.name}</p>
+                          {item.note && <p className="text-xs text-gray-400 mt-0.5 truncate">{item.note}</p>}
+                        </div>
+                        <span className="ml-auto text-xs text-gray-400 flex-shrink-0 flex items-center gap-1">
+                          <Clock className="w-3 h-3" />{item.duration}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="text-center mt-10">
+              <Button
+                onClick={() => handlePrompt('7 days in Tokyo, mix of tradition and modern 🇯🇵')}
+                className="bg-[#0B3D91] hover:bg-[#092C6B] text-white font-bold px-8 py-4 text-base rounded-full shadow-md"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Generate my Tokyo itinerary
+              </Button>
+              <p className="text-sm text-gray-400 mt-3">Or type your own destination above ↑</p>
+            </div>
+          </div>
+        </section>
+
+        {/* ── FEATURES ─────────────────────────────────────────────────────── */}
         <section className="py-20 bg-white">
+          <div className="container mx-auto px-5 max-w-5xl">
+            <div className="text-center mb-14">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">Why Orbito?</h2>
+              <p className="text-gray-500 text-lg">The smarter way to plan a trip</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {FEATURES.map((f, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.1, duration: 0.6 }}
+                  className="text-center px-4"
+                >
+                  <div className={`w-14 h-14 bg-gradient-to-br ${f.color} rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-md`}>
+                    <f.icon className="w-7 h-7 text-white" strokeWidth={1.5} />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">{f.title}</h3>
+                  <p className="text-gray-500 leading-relaxed">{f.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── HOW IT WORKS ─────────────────────────────────────────────────── */}
+        <section className="py-20 bg-gray-50">
           <div className="container mx-auto px-5 max-w-5xl">
             <div className="text-center mb-14">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">How it works</h2>
@@ -226,18 +359,18 @@ const HomePage = () => {
         </section>
 
         {/* ── POPULAR DESTINATIONS ──────────────────────────────────────────── */}
-        <section className="py-20 bg-gray-50">
+        <section className="py-20 bg-white">
           <div className="container mx-auto px-5">
             <div className="flex items-end justify-between mb-10">
               <div>
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Popular destinations</h2>
-                <p className="text-gray-500 text-lg">Start exploring the world's best travel experiences</p>
+                <p className="text-gray-500 text-lg">Click any city to start building your itinerary</p>
               </div>
               <Link
-                to="/tours"
+                to="/destinations"
                 className="hidden md:flex items-center gap-1 text-[#0B3D91] font-semibold hover:underline text-sm"
               >
-                Browse all <ArrowRight className="w-4 h-4" />
+                View all <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
 
@@ -249,9 +382,9 @@ const HomePage = () => {
                   whileInView={{ opacity: 1, scale: 1 }}
                   transition={{ delay: i * 0.05, duration: 0.4 }}
                 >
-                  <Link
-                    to={`/destinations/${dest.slug}`}
-                    className="relative block h-44 sm:h-52 rounded-2xl overflow-hidden group"
+                  <button
+                    onClick={() => handlePrompt(`7 days in ${dest.name}, best mix of culture and food`)}
+                    className="relative block w-full h-44 sm:h-52 rounded-2xl overflow-hidden group text-left"
                   >
                     <img
                       src={dest.image}
@@ -264,73 +397,59 @@ const HomePage = () => {
                     <div className="absolute bottom-0 left-0 p-4">
                       <p className="text-white font-bold text-lg leading-tight">{dest.flag} {dest.name}</p>
                     </div>
-                    <div className="absolute top-3 right-3 bg-white/20 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                      Explore →
+                    <div className="absolute top-3 right-3 bg-white/20 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" /> Plan trip
                     </div>
-                  </Link>
+                  </button>
                 </motion.div>
               ))}
             </div>
 
             <div className="text-center mt-8 md:hidden">
-              <Link to="/tours" className="text-[#0B3D91] font-semibold text-sm flex items-center gap-1 justify-center">
-                Browse all destinations <ArrowRight className="w-4 h-4" />
+              <Link to="/destinations" className="text-[#0B3D91] font-semibold text-sm flex items-center gap-1 justify-center">
+                View all destinations <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           </div>
         </section>
 
-        {/* ── SOCIAL PROOF ─────────────────────────────────────────────────── */}
-        <section className="py-20 bg-white">
-          <div className="container mx-auto px-5 max-w-5xl">
-            <div className="text-center mb-12">
-              <div className="flex justify-center gap-0.5 mb-3">
-                {[1,2,3,4,5].map((s) => (
-                  <Star key={s} className="w-6 h-6 fill-yellow-400 text-yellow-400" />
-                ))}
+        {/* ── EARLY ADOPTER BANNER ─────────────────────────────────────────── */}
+        <section className="py-16 bg-gray-50">
+          <div className="container mx-auto px-5 max-w-3xl text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="bg-gradient-to-br from-[#0B3D91]/5 to-blue-50 border border-[#0B3D91]/15 rounded-3xl p-10"
+            >
+              <div className="inline-flex items-center gap-2 bg-[#0B3D91] text-white text-xs font-bold px-3 py-1.5 rounded-full mb-5 uppercase tracking-widest">
+                <Sparkles className="w-3.5 h-3.5" /> Early Access
               </div>
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Loved by travellers</h2>
-              <p className="text-gray-500 text-lg">4.9 average · 2,800+ happy trips</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {TESTIMONIALS.map((t, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1, duration: 0.6 }}
-                  className="bg-gray-50 rounded-2xl p-6 border border-gray-100"
-                >
-                  <div className="flex gap-0.5 mb-4">
-                    {Array.from({ length: t.rating }).map((_, s) => (
-                      <Star key={s} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    ))}
-                  </div>
-                  <p className="text-gray-700 leading-relaxed mb-5 text-sm">"{t.text}"</p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-[#0B3D91] text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
-                      {t.name[0]}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-sm text-gray-900">{t.name}</p>
-                      <p className="text-xs text-gray-500">{t.location}</p>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                Be among the first<br />to plan smarter
+              </h2>
+              <p className="text-gray-500 text-lg leading-relaxed mb-8 max-w-xl mx-auto">
+                Orbito is brand new. Try the AI itinerary builder today — it's completely free, and your feedback shapes what we build next.
+              </p>
+              <Button
+                onClick={() => navigate('/plan')}
+                className="bg-[#0B3D91] hover:bg-[#092C6B] text-white font-bold px-8 py-4 text-base rounded-full shadow-md"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Try it free — no sign-up needed
+              </Button>
+            </motion.div>
           </div>
         </section>
 
         {/* ── TRUST BAR ────────────────────────────────────────────────────── */}
-        <section className="py-10 bg-gray-50 border-y border-gray-100">
+        <section className="py-10 bg-white border-y border-gray-100">
           <div className="container mx-auto px-4">
             <div className="flex flex-wrap justify-center items-center gap-8 md:gap-14 text-sm font-medium text-gray-600">
               <div className="flex items-center gap-2"><Shield className="w-5 h-5 text-green-600" /> Secure payments</div>
               <div className="flex items-center gap-2"><CheckCircle2 className="w-5 h-5 text-blue-600" /> Verified via Viator</div>
               <div className="flex items-center gap-2"><Sparkles className="w-5 h-5 text-yellow-500" /> Free AI planning</div>
-              <div className="flex items-center gap-2"><Star className="w-5 h-5 fill-yellow-400 text-yellow-400" /> 4.9 / 5 rating</div>
+              <div className="flex items-center gap-2"><CheckCircle2 className="w-5 h-5 text-green-600" /> No sign-up to plan</div>
             </div>
           </div>
         </section>
