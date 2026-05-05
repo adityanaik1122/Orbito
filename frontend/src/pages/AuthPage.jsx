@@ -18,7 +18,7 @@ const AuthPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, isRecoveryMode, setIsRecoveryMode } = useAuth();
   const { locale, currency, country, t } = useLocale();
   
   // Get the intended destination from location state, or default to my-account
@@ -35,17 +35,10 @@ const AuthPage = () => {
     country: ''
   });
 
-  // Detect Supabase recovery token in URL hash
+  // Recovery mode is detected reliably in SupabaseAuthContext
   useEffect(() => {
-    const hash = window.location.hash;
-    if (hash.includes('type=recovery')) {
-      setView('reset-password');
-    }
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') setView('reset-password');
-    });
-    return () => subscription.unsubscribe();
-  }, []);
+    if (isRecoveryMode) setView('reset-password');
+  }, [isRecoveryMode]);
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
@@ -193,6 +186,7 @@ const AuthPage = () => {
       toast({ variant: 'destructive', title: 'Error', description: error.message });
     } else {
       toast({ title: 'Password updated!', description: 'You can now log in with your new password.' });
+      setIsRecoveryMode(false);
       setView('auth');
       setNewPassword('');
       navigate('/login');

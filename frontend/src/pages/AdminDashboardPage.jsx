@@ -262,23 +262,13 @@ const AdminDashboardPage = () => {
         .order('created_at', { ascending: false })
         .limit(200);
 
-      const providersRes = await supabase
-        .from('tour_providers')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(200);
-
       const suppliersRes = await supabase
         .from('suppliers')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(200);
 
-      const profilesRes = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(500);
+      const profilesRes = await supabase.rpc('get_admin_clients');
 
       const bookingsRes = await supabase
         .from('bookings')
@@ -1082,11 +1072,11 @@ const AdminDashboardPage = () => {
 
               {activeSection === 'clients' && (
                 <Card>
-                  <CardHeader>
+                  <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle>Client Database</CardTitle>
+                    <span className="text-sm text-gray-500">{filteredClients.length} clients</span>
                   </CardHeader>
-                                      <CardContent>
-                      
+                  <CardContent>
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead className="text-xs text-gray-500 border-b">
@@ -1094,16 +1084,30 @@ const AdminDashboardPage = () => {
                             <th className="text-left py-2">Name</th>
                             <th className="text-left py-2">Email</th>
                             <th className="text-left py-2">Country</th>
+                            <th className="text-left py-2">Role</th>
                             <th className="text-left py-2">Joined</th>
+                            <th className="text-left py-2">Last Sign In</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y">
                           {filteredClients.map((client) => (
-                            <tr key={client.id}>
-                              <td className="py-3 font-semibold text-gray-900">{client.name || 'Unknown'}</td>
-                              <td className="py-3 text-gray-500">{client.email}</td>
+                            <tr key={client.id} className="hover:bg-gray-50">
+                              <td className="py-3 font-semibold text-gray-900">
+                                {client.full_name || <span className="text-gray-400 font-normal">No name</span>}
+                              </td>
+                              <td className="py-3 text-gray-600">{client.email || '-'}</td>
                               <td className="py-3">{client.country || '-'}</td>
+                              <td className="py-3">
+                                <Badge className={
+                                  client.role === 'admin' ? 'bg-purple-100 text-purple-800' :
+                                  client.role === 'operator' ? 'bg-blue-100 text-blue-800' :
+                                  'bg-gray-100 text-gray-600'
+                                }>
+                                  {client.role || 'customer'}
+                                </Badge>
+                              </td>
                               <td className="py-3 text-gray-500">{client.created_at ? format(new Date(client.created_at), 'PP') : '-'}</td>
+                              <td className="py-3 text-gray-500">{client.last_sign_in_at ? format(new Date(client.last_sign_in_at), 'PP') : 'Never'}</td>
                             </tr>
                           ))}
                         </tbody>

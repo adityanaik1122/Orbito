@@ -11,6 +11,7 @@ export const AuthProvider = ({ children }) => {
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
   
   const handleSession = useCallback(async (session) => {
     setSession(session);
@@ -59,7 +60,15 @@ export const AuthProvider = ({ children }) => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        handleSession(session);
+        if (event === 'PASSWORD_RECOVERY') {
+          setIsRecoveryMode(true);
+          setUser(session?.user ?? null);
+          setSession(session);
+          setLoading(false);
+        } else {
+          setIsRecoveryMode(false);
+          handleSession(session);
+        }
       }
     );
 
@@ -136,10 +145,12 @@ export const AuthProvider = ({ children }) => {
     loading,
     profile,
     role: profile?.role || 'customer',
+    isRecoveryMode,
+    setIsRecoveryMode,
     signUp,
     signIn,
     signOut,
-  }), [user, session, loading, profile, signUp, signIn, signOut]);
+  }), [user, session, loading, profile, isRecoveryMode, signUp, signIn, signOut]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
