@@ -1,6 +1,6 @@
 const express = require('express');
 const { suggestActivities } = require('../controllers/aiController');
-const LangChainTravelAgent = require('../services/langchainAgent');
+const LangGraphTravelAgent = require('../services/langGraphAgent');
 const SemanticSearch = require('../services/semanticSearch');
 const SentimentAnalyzer = require('../services/sentimentAnalysis');
 const SmartRecommendations = require('../services/smartRecommendations');
@@ -8,7 +8,7 @@ const SmartRecommendations = require('../services/smartRecommendations');
 const router = express.Router();
 
 // Initialize services
-const agent = new LangChainTravelAgent();
+const agent = new LangGraphTravelAgent();
 const semanticSearch = new SemanticSearch();
 const sentimentAnalyzer = new SentimentAnalyzer();
 const recommendations = new SmartRecommendations();
@@ -25,11 +25,13 @@ router.post('/chat', async (req, res) => {
       return res.status(400).json({ error: 'Message is required' });
     }
     
-    const response = await agent.chat(userId || 'anonymous', message);
-    
-    res.json({ 
+    const result = await agent.chat(userId || 'anonymous', message);
+
+    res.json({
       success: true,
-      response,
+      response: result.text ?? result,
+      intent: result.intent,
+      messageType: result.messageType,
       timestamp: new Date().toISOString()
     });
   } catch (error) {
@@ -41,9 +43,36 @@ router.post('/chat', async (req, res) => {
   }
 });
 
+// Streaming chat (SSE)
+router.post('/chat/stream', async (req, res) => {
+  const { userId, message } = req.body;
+
+  if (!message) {
+    return res.status(400).json({ error: 'Message is required' });
+  }
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders();
+
+  try {
+    for await (const event of agent.streamChat(userId || 'anonymous', message)) {
+      res.write(`data: ${JSON.stringify(event)}\n\n`);
+    }
+  } catch (err) {
+    res.write(`data: ${JSON.stringify({ type: 'error', message: err.message })}\n\n`);
+  }
+
+  res.write('data: [DONE]\n\n');
+  res.end();
+});
+
 // Clear chat memory
 router.post('/chat/clear', (req, res) => {
-  agent.clearMemory();
+  const { userId } = req.body;
+  agent.clearMemory(userId || null);
   res.json({ success: true, message: 'Memory cleared' });
 });
 
