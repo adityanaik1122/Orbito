@@ -178,6 +178,19 @@ export default function AIChatWidget() {
     const ctrl = new AbortController();
     abortRef.current = ctrl;
 
+    // 15-second timeout — if backend hangs, we abort and show error
+    const timeoutId = setTimeout(() => ctrl.abort(), 15000);
+
+    const showError = (text = 'Sorry, I couldn\'t reach the server. Check that the backend is running and GROQ_API_KEY is set.') => {
+      setMessages((prev) => {
+        const msgs = [...prev];
+        if (msgs[msgs.length - 1]?.streaming) {
+          msgs[msgs.length - 1] = { role: 'assistant', content: text, streaming: false };
+        }
+        return msgs;
+      });
+    };
+
     try {
       const response = await fetch(`${API_BASE}/chat/stream`, {
         method: 'POST',
@@ -186,7 +199,10 @@ export default function AIChatWidget() {
         signal: ctrl.signal,
       });
 
-      if (!response.ok) throw new Error('Server error');
+      if (!response.ok) {
+        showError(`Server error (${response.status}). Make sure the backend is deployed and GROQ_API_KEY is set.`);
+        return;
+      }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
@@ -247,22 +263,22 @@ export default function AIChatWidget() {
           } catch { /* malformed JSON — skip */ }
         }
       }
+      // Ensure streaming is cleared when reader closes without a done event
+      setMessages((prev) => {
+        const msgs = [...prev];
+        if (msgs[msgs.length - 1]?.streaming) {
+          msgs[msgs.length - 1] = { ...msgs[msgs.length - 1], streaming: false };
+        }
+        return msgs;
+      });
     } catch (err) {
-      if (err.name !== 'AbortError') {
-        setMessages((prev) => {
-          const msgs = [...prev];
-          const last = msgs[msgs.length - 1];
-          if (last?.streaming) {
-            msgs[msgs.length - 1] = {
-              role: 'assistant',
-              content: 'Sorry, I couldn\'t connect to the server. Make sure the backend is running.',
-              streaming: false,
-            };
-          }
-          return msgs;
-        });
+      if (err.name === 'AbortError') {
+        showError('Request timed out — the backend may be slow or unreachable. Check your GROQ_API_KEY and backend logs.');
+      } else {
+        showError('Couldn\'t connect to the server. Make sure the backend is running.');
       }
     } finally {
+      clearTimeout(timeoutId);
       setIsStreaming(false);
       abortRef.current = null;
     }
