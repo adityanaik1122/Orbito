@@ -10,7 +10,9 @@ import {
 import { Loader2, CheckCircle, AlertCircle, ArrowLeft, MapPin, Clock, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
+const stripePromise = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
+  ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
+  : null;
 
 // ── Inner form — must be inside <Elements> ───────────────────────────────────
 function PaymentForm({ booking, tour, onSuccess }) {

@@ -178,14 +178,28 @@ export default function AIChatWidget() {
     const ctrl = new AbortController();
     abortRef.current = ctrl;
 
-    // 15-second timeout — if backend hangs, we abort and show error
-    const timeoutId = setTimeout(() => ctrl.abort(), 15000);
+    // 45-second timeout (covers Render free tier cold-start ~30s)
+    // After 8s show a "warming up" hint so user knows we're working on it
+    const warmupId = setTimeout(() => {
+      setMessages((prev) => {
+        const msgs = [...prev];
+        if (msgs[msgs.length - 1]?.streaming && msgs[msgs.length - 1]?.content === '') {
+          msgs[msgs.length - 1] = { ...msgs[msgs.length - 1], content: '⏳ Warming up, one moment…' };
+        }
+        return msgs;
+      });
+    }, 8000);
+    const timeoutId = setTimeout(() => ctrl.abort(), 45000);
 
-    const showError = (text = 'Sorry, I couldn\'t reach the server. Check that the backend is running and GROQ_API_KEY is set.') => {
+    const showError = () => {
       setMessages((prev) => {
         const msgs = [...prev];
         if (msgs[msgs.length - 1]?.streaming) {
-          msgs[msgs.length - 1] = { role: 'assistant', content: text, streaming: false };
+          msgs[msgs.length - 1] = {
+            role: 'assistant',
+            content: 'Sorry, I\'m having trouble right now. Please try again in a moment.',
+            streaming: false,
+          };
         }
         return msgs;
       });
@@ -200,7 +214,7 @@ export default function AIChatWidget() {
       });
 
       if (!response.ok) {
-        showError(`Server error (${response.status}). Make sure the backend is deployed and GROQ_API_KEY is set.`);
+        showError();
         return;
       }
 
@@ -250,15 +264,7 @@ export default function AIChatWidget() {
                 return msgs;
               });
             } else if (event.type === 'error') {
-              setMessages((prev) => {
-                const msgs = [...prev];
-                msgs[msgs.length - 1] = {
-                  role: 'assistant',
-                  content: 'Sorry, something went wrong. Please try again.',
-                  streaming: false,
-                };
-                return msgs;
-              });
+              showError();
             }
           } catch { /* malformed JSON — skip */ }
         }
@@ -272,12 +278,9 @@ export default function AIChatWidget() {
         return msgs;
       });
     } catch (err) {
-      if (err.name === 'AbortError') {
-        showError('Request timed out — the backend may be slow or unreachable. Check your GROQ_API_KEY and backend logs.');
-      } else {
-        showError('Couldn\'t connect to the server. Make sure the backend is running.');
-      }
+      showError();
     } finally {
+      clearTimeout(warmupId);
       clearTimeout(timeoutId);
       setIsStreaming(false);
       abortRef.current = null;
