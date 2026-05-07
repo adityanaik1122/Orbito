@@ -70,78 +70,132 @@ Always end with:
 🎟️ All these experiences can be found and booked on **Viator** directly from your Orbito trip plan. Build your itinerary and every activity gets a Book on Viator link automatically!`,
 };
 
-// ── Models ───────────────────────────────────────────────────────────────────
-let classifyModel = null;
-let chatModel = null;
+// ── Multi-key fallback ────────────────────────────────────────────────────────
+function getApiKeys() {
+  const keys = [];
+  // Support GROQ_API_KEYS (comma-separated) or individual GROQ_API_KEY, GROQ_API_KEY_2, etc.
+  if (process.env.GROQ_API_KEYS) {
+    keys.push(...process.env.GROQ_API_KEYS.split(',').map((k) => k.trim()).filter(Boolean));
+  }
+  if (process.env.GROQ_API_KEY)   keys.push(process.env.GROQ_API_KEY);
+  if (process.env.GROQ_API_KEY_2) keys.push(process.env.GROQ_API_KEY_2);
+  if (process.env.GROQ_API_KEY_3) keys.push(process.env.GROQ_API_KEY_3);
+  if (process.env.GROQ_API_KEY_4) keys.push(process.env.GROQ_API_KEY_4);
+  // Deduplicate
+  return [...new Set(keys)];
+}
 
-function getModels() {
-  if (!classifyModel) {
-    classifyModel = new ChatGroq({
-      apiKey: process.env.GROQ_API_KEY,
-      model: 'llama-3.1-8b-instant',
-      temperature: 0,
-      maxTokens: 10,
-    });
+function shouldRotateKey(err) {
+  const status = err.status || err.statusCode;
+  const msg = (err.message || '').toLowerCase();
+  return (
+    status === 401 || status === 403 || status === 429 ||
+    msg.includes('invalid_api_key') ||
+    msg.includes('authentication') ||
+    msg.includes('rate_limit') ||
+    msg.includes('quota') ||
+    msg.includes('expired')
+  );
+}
+
+function makeClassifyModel(apiKey) {
+  return new ChatGroq({ apiKey, model: 'llama-3.1-8b-instant', temperature: 0, maxTokens: 10 });
+}
+
+function makeChatModel(apiKey) {
+  return new ChatGroq({ apiKey, model: 'llama-3.3-70b-versatile', temperature: 0.7, maxTokens: 2048 });
+}
+
+async function invokeWithFallback(buildMessages, modelType = 'chat') {
+  const keys = getApiKeys();
+  if (!keys.length) throw new Error('No Groq API keys configured');
+
+  let lastErr;
+  for (const key of keys) {
+    try {
+      const model = modelType === 'classify' ? makeClassifyModel(key) : makeChatModel(key);
+      return await model.invoke(buildMessages());
+    } catch (err) {
+      lastErr = err;
+      if (shouldRotateKey(err)) {
+        const logger = require('../utils/logger');
+        logger.warn(`Groq key rotation triggered: ${err.message?.slice(0, 60)}`);
+        continue;
+      }
+      throw err;
+    }
   }
-  if (!chatModel) {
-    chatModel = new ChatGroq({
-      apiKey: process.env.GROQ_API_KEY,
-      model: 'llama-3.3-70b-versatile',
-      temperature: 0.7,
-      maxTokens: 2048,
-    });
+  throw lastErr;
+}
+
+async function* streamWithFallback(messages) {
+  const keys = getApiKeys();
+  if (!keys.length) throw new Error('No Groq API keys configured');
+
+  let lastErr;
+  for (const key of keys) {
+    try {
+      const model = makeChatModel(key);
+      const stream = await model.stream(messages);
+      for await (const chunk of stream) {
+        yield chunk;
+      }
+      return; // success
+    } catch (err) {
+      lastErr = err;
+      if (shouldRotateKey(err)) {
+        const logger = require('../utils/logger');
+        logger.warn(`Groq stream key rotation: ${err.message?.slice(0, 60)}`);
+        continue;
+      }
+      throw err;
+    }
   }
-  return { classifyModel, chatModel };
+  throw lastErr;
 }
 
 // ── Graph nodes ───────────────────────────────────────────────────────────────
+const CLASSIFY_PROMPT = new SystemMessage(
+  'Classify the travel message. Reply with EXACTLY one word — "plan", "tours", or "chat".\n' +
+  '- plan: user wants to create/build a trip itinerary, day-by-day schedule, what to do each day\n' +
+  '- tours: user asks about specific tours, activities, things to do, booking experiences\n' +
+  '- chat: general travel questions, destination info, tips, advice, comparisons\n' +
+  'Reply only: plan, tours, or chat'
+);
+
 async function classifyNode(state) {
-  const { classifyModel } = getModels();
   try {
-    const res = await classifyModel.invoke([
-      new SystemMessage(
-        'Classify the travel message. Reply with EXACTLY one word — "plan", "tours", or "chat".\n' +
-        '- plan: user wants to create/build a trip itinerary, day-by-day schedule, what to do each day\n' +
-        '- tours: user asks about specific tours, activities, things to do, booking experiences\n' +
-        '- chat: general travel questions, destination info, tips, advice, comparisons\n' +
-        'Reply only: plan, tours, or chat'
-      ),
-      new HumanMessage(state.input),
-    ]);
+    const res = await invokeWithFallback(
+      () => [CLASSIFY_PROMPT, new HumanMessage(state.input)],
+      'classify'
+    );
     const raw = res.content.trim().toLowerCase().replace(/[^a-z]/g, '');
-    const intent = ['plan', 'tours', 'chat'].includes(raw) ? raw : 'chat';
-    return { intent };
+    return { intent: ['plan', 'tours', 'chat'].includes(raw) ? raw : 'chat' };
   } catch {
     return { intent: 'chat' };
   }
 }
 
-function buildMessagesForNode(state) {
-  const { chatModel } = getModels();
+function buildHistory(state) {
   const systemPrompt = SYSTEM_PROMPTS[state.intent] || SYSTEM_PROMPTS.chat;
-
   const history = (state.history || []).slice(-12).map((m) =>
     m.role === 'user' ? new HumanMessage(m.content) : new AIMessage(m.content)
   );
-
-  return { chatModel, messages: [new SystemMessage(systemPrompt), ...history] };
+  return [new SystemMessage(systemPrompt), ...history];
 }
 
 async function chatNode(state) {
-  const { chatModel, messages } = buildMessagesForNode(state);
-  const res = await chatModel.invoke(messages);
+  const res = await invokeWithFallback(() => buildHistory(state));
   return { response: res.content, messageType: 'chat' };
 }
 
 async function planNode(state) {
-  const { chatModel, messages } = buildMessagesForNode(state);
-  const res = await chatModel.invoke(messages);
+  const res = await invokeWithFallback(() => buildHistory(state));
   return { response: res.content, messageType: 'itinerary' };
 }
 
 async function toursNode(state) {
-  const { chatModel, messages } = buildMessagesForNode(state);
-  const res = await chatModel.invoke(messages);
+  const res = await invokeWithFallback(() => buildHistory(state));
   return { response: res.content, messageType: 'tours' };
 }
 
@@ -206,28 +260,17 @@ class LangGraphTravelAgent {
   async *streamChat(userId, message) {
     const history = this._ensureHistory(userId);
 
-    // 1. Classify intent first (fast model, non-streaming)
+    // 1. Classify intent with key fallback
     let intent = 'chat';
     try {
-      const { classifyModel } = getModels();
-      const res = await classifyModel.invoke([
-        new SystemMessage(
-          'Classify the travel message. Reply with EXACTLY one word — "plan", "tours", or "chat".\n' +
-          '- plan: user wants to create/build a trip itinerary, day-by-day schedule\n' +
-          '- tours: user asks about specific tours, activities, things to do, booking\n' +
-          '- chat: general travel questions, destination info, tips, advice\n' +
-          'Reply only: plan, tours, or chat'
-        ),
-        new HumanMessage(message),
-      ]);
+      const res = await invokeWithFallback(() => [CLASSIFY_PROMPT, new HumanMessage(message)], 'classify');
       const raw = res.content.trim().toLowerCase().replace(/[^a-z]/g, '');
       intent = ['plan', 'tours', 'chat'].includes(raw) ? raw : 'chat';
-    } catch { /* keep default */ }
+    } catch { /* keep default intent */ }
 
     yield { type: 'intent', intent };
 
     // 2. Build messages with history
-    const { chatModel } = getModels();
     const systemPrompt = SYSTEM_PROMPTS[intent] || SYSTEM_PROMPTS.chat;
     const historyWithCurrent = [...history, { role: 'user', content: message }];
     const lcMessages = [
@@ -237,11 +280,10 @@ class LangGraphTravelAgent {
       ),
     ];
 
-    // 3. Stream tokens
+    // 3. Stream tokens with key fallback
     let fullResponse = '';
     try {
-      const stream = await chatModel.stream(lcMessages);
-      for await (const chunk of stream) {
+      for await (const chunk of streamWithFallback(lcMessages)) {
         const token = chunk.content || '';
         if (token) {
           fullResponse += token;
