@@ -28,7 +28,7 @@ export const resources = [
     author: 'Orbito Travel',
     date: 'May 4, 2026',
     readTime: '15 min watch',
-    image: 'https://img.youtube.com/vi/RY1CAaGslyc/maxresdefault.jpg',
+    image: 'https://images.unsplash.com/photo-1504544750208-dc0358e63f7f?q=80&w=1000&auto=format&fit=crop',
     description: 'From Bangkok night markets to Singapore hawker centres — a mouth-watering journey through Asia\'s best street food scenes.',
     videoUrl: 'https://www.youtube.com/embed/RY1CAaGslyc',
     content: 'Asia is a street food paradise. Every corner reveals a new flavour, a new story, a new reason to travel.'
@@ -42,7 +42,7 @@ export const resources = [
     author: 'Orbito Travel',
     date: 'Apr 10, 2026',
     readTime: '12 min watch',
-    image: 'https://img.youtube.com/vi/RY1CAaGslyc/hqdefault.jpg',
+    image: 'https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?q=80&w=1000&auto=format&fit=crop',
     description: 'Explore the back alleys of Shinjuku to find the best yakitori, ramen, and mochi in Tokyo — spots only locals know.',
     videoUrl: 'https://www.youtube.com/embed/RY1CAaGslyc',
     content: 'Experience the sights and sounds of Tokyo\'s culinary scene.'
@@ -68,7 +68,7 @@ export const resources = [
     author: 'Orbito Travel',
     date: 'Mar 22, 2026',
     readTime: '10 min watch',
-    image: 'https://img.youtube.com/vi/RY1CAaGslyc/maxresdefault.jpg',
+    image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1000&auto=format&fit=crop',
     description: 'Rice terraces, temple ceremonies, cooking classes, and sunrise hikes — discover the Bali that most tourists never see.',
     videoUrl: 'https://www.youtube.com/embed/RY1CAaGslyc',
     content: 'Bali is more than beautiful beaches. It\'s a living, breathing culture waiting to be explored.'
@@ -82,7 +82,7 @@ export const resources = [
     author: 'Orbito Travel',
     date: 'Dec 10, 2023',
     readTime: '8 min watch',
-    image: 'https://img.youtube.com/vi/RY1CAaGslyc/hqdefault.jpg',
+    image: 'https://images.unsplash.com/photo-1452421822248-d4c2b47f0c81?q=80&w=1000&auto=format&fit=crop',
     description: 'Solo travel builds confidence and allows for complete freedom. Here are 5 reasons to book that solo ticket now.',
     videoUrl: 'https://www.youtube.com/embed/RY1CAaGslyc',
     content: 'Solo travel is a transformative experience...'

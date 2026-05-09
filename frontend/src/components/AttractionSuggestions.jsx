@@ -10,8 +10,8 @@ const AttractionSuggestions = ({ itinerary, setItinerary }) => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [suggestions] = useState([
-    { id: 'sg1', name: 'The British Museum', type: 'Museum', rating: 4.8, openingHours: '10:00 - 17:30', price: 'Free', location: 'Great Russell St', info: 'Home to a vast collection of world art and artifacts.', image: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?q=80&w=1000&auto=format&fit=crop' },
-    { id: 'sg2', name: 'Tower of London', type: 'Historic Site', rating: 4.7, openingHours: '09:00 - 17:30', price: '£29.90', location: 'St Katharine\'s & Wapping', info: 'Historic castle housing the Crown Jewels.', image: 'https://images.unsplash.com/photo-1526129318478-62ed807ebdf9?q=80&w=1000&auto=format&fit=crop' },
+    { id: 'sg1', name: 'The British Museum', type: 'Museum', rating: 4.8, openingHours: '10:00 - 17:30', price: 'Free', location: 'Great Russell St', info: 'Home to a vast collection of world art and artifacts.', image: 'https://images.unsplash.com/photo-1575223970966-76ae61ee7838?q=80&w=1000&auto=format&fit=crop' },
+    { id: 'sg2', name: 'Tower of London', type: 'Historic Site', rating: 4.7, openingHours: '09:00 - 17:30', price: '£29.90', location: 'St Katharine\'s & Wapping', info: 'Historic castle housing the Crown Jewels.', image: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?q=80&w=1000&auto=format&fit=crop' },
     { id: 'sg3', name: 'The London Eye', type: 'Landmark', rating: 4.6, openingHours: '11:00 - 18:00', price: '£32.50', location: 'South Bank', info: 'A giant Ferris wheel offering panoramic views.', image: 'https://images.unsplash.com/photo-1528336163200-92d20d5a385f?q=80&w=1000&auto=format&fit=crop' },
     { id: 'sg4', name: 'Buckingham Palace', type: 'Royal Palace', rating: 4.5, openingHours: 'Varies', price: 'Tour-dependent', location: 'Westminster', info: 'The Queen\'s official London residence.', image: 'https://images.unsplash.com/photo-1506268478002-a27e776e553b?q=80&w=1000&auto=format&fit=crop' },
     { id: 'sg5', name: 'Borough Market', type: 'Food Market', rating: 4.7, openingHours: '10:00 - 17:00', price: 'Varies', location: 'Southwark', info: 'A bustling market with gourmet food.', image: 'https://images.unsplash.com/photo-1520986606214-8b456906c813?q=80&w=1000&auto=format&fit=crop' }
@@ -131,7 +131,7 @@ const AttractionSuggestions = ({ itinerary, setItinerary }) => {
               <div className="p-4">
                 <motion.div layout="position" className="flex items-start gap-4">
                   <div className="w-16 h-16 flex-shrink-0">
-                    <img className="w-full h-full object-cover rounded-lg" alt={attraction.name} src={attraction.image} />
+                    <img className="w-full h-full object-cover rounded-lg" alt={attraction.name} src={attraction.image} referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold mb-1 text-gray-900 truncate">{attraction.name}</h3>

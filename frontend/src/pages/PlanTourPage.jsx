@@ -1707,7 +1707,7 @@ const PlanTourPage = () => {
                                         >
                                             <GripVertical className="w-5 h-5 text-gray-300 self-center opacity-0 group-hover:opacity-100 group-hover:text-[#0B3D91] transition-all" />
                                             <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-200 shrink-0 ring-2 ring-gray-100 group-hover:ring-[#0B3D91]/30 transition-all">
-                                                <img src={suggestion.image} alt={suggestion.title} className="w-full h-full object-cover" />
+                                                <img src={suggestion.image} alt={suggestion.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <h4 className="font-bold text-sm text-gray-900 truncate group-hover:text-[#0B3D91] transition-colors">{suggestion.title}</h4>
