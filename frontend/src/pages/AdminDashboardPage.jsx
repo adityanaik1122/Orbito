@@ -53,6 +53,7 @@ const sections = [
   { id: 'clients', label: 'Clients', icon: Users },
   { id: 'bookings', label: 'Bookings', icon: CreditCard },
   { id: 'blog', label: 'Blog', icon: Newspaper },
+  { id: 'tour-guides', label: 'Tour Guides', icon: Users },
 ];
 
 const defaultBadgeOverrides = {
@@ -206,6 +207,170 @@ const EMPTY_FORM = {
   title: '', description: '', destination_city: '', country: '',
   image_url: '', viator_url: '', price_from: '', currency: 'USD',
   duration: '', category: '',
+};
+
+// ── Tour Guides Admin Section ─────────────────────────────────────────────────
+const API_URL_TG = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+const GUIDE_STATUS_CONFIG = {
+  pending:  { label: 'Pending',  class: 'bg-yellow-100 text-yellow-800' },
+  approved: { label: 'Approved', class: 'bg-green-100 text-green-800' },
+  rejected: { label: 'Rejected', class: 'bg-red-100 text-red-800' },
+};
+
+const TourGuidesAdminSection = () => {
+  const { toast } = useToast();
+  const [guides, setGuides] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('all');
+  const [selected, setSelected] = useState(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [rejectDialog, setRejectDialog] = useState(null);
+  const [acting, setActing] = useState(false);
+
+  const fetchGuides = async () => {
+    const { data } = await supabase.from('tour_guide_profiles').select('*').order('created_at', { ascending: false });
+    setGuides(data || []);
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchGuides(); }, []);
+
+  const pendingCount = guides.filter((g) => g.status === 'pending').length;
+
+  const filtered = filter === 'all' ? guides : guides.filter((g) => g.status === filter);
+
+  const updateStatus = async (guide, status, rejectionReason = null) => {
+    setActing(true);
+    try {
+      const update = { status };
+      if (rejectionReason) update.rejection_reason = rejectionReason;
+      const { error } = await supabase.from('tour_guide_profiles').update(update).eq('id', guide.id);
+      if (error) throw error;
+
+      // Email the guide
+      fetch(`${API_URL_TG}/tour-guides/notify-status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: guide.email, name: guide.full_name, status, rejectionReason }),
+      }).catch(() => {});
+
+      toast({ title: `Guide ${status}`, description: `${guide.full_name} has been ${status}.` });
+      setRejectDialog(null);
+      setRejectReason('');
+      setSelected(null);
+      fetchGuides();
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'Update failed', description: err.message });
+    } finally {
+      setActing(false);
+    }
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">Tour Guides</h2>
+          {pendingCount > 0 && <p className="text-sm text-yellow-700 mt-0.5">{pendingCount} pending approval</p>}
+        </div>
+        <div className="flex gap-2">
+          {['all', 'pending', 'approved', 'rejected'].map((f) => (
+            <button key={f} onClick={() => setFilter(f)}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize border transition-colors ${filter === f ? 'bg-[#0B3D91] text-white border-[#0B3D91]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#0B3D91]'}`}>
+              {f}{f === 'pending' && pendingCount > 0 ? ` (${pendingCount})` : ''}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-16"><div className="w-7 h-7 border-4 border-[#0B3D91] border-t-transparent rounded-full animate-spin" /></div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-16 text-gray-400">No {filter !== 'all' ? filter : ''} guides found.</div>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map((g) => (
+            <div key={g.id} className="bg-white border rounded-xl p-5 hover:shadow-sm transition-shadow">
+              <div className="flex items-start gap-4">
+                <img
+                  src={g.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(g.full_name)}&background=0B3D91&color=fff&size=80`}
+                  alt={g.full_name} className="w-14 h-14 rounded-full object-cover shrink-0"
+                  onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(g.full_name)}&background=0B3D91&color=fff`; }}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-3 flex-wrap">
+                    <div>
+                      <p className="font-bold text-gray-900">{g.full_name}</p>
+                      <p className="text-sm text-gray-500">{g.email} · {g.phone_number}</p>
+                      <p className="text-sm text-gray-500 flex items-center gap-1 mt-0.5">
+                        <MapPin className="w-3 h-3" />{g.location}
+                        {g.charges_per_hour && <span className="ml-2">${g.charges_per_hour}/hr</span>}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${GUIDE_STATUS_CONFIG[g.status]?.class || 'bg-gray-100 text-gray-700'}`}>
+                        {GUIDE_STATUS_CONFIG[g.status]?.label || g.status}
+                      </span>
+                      <span className="text-xs text-gray-400">{new Date(g.created_at).toLocaleDateString('en-GB')}</span>
+                    </div>
+                  </div>
+                  {g.description && <p className="text-sm text-gray-600 mt-2 line-clamp-2">{g.description}</p>}
+                  {(g.languages?.length > 0 || g.specialties?.length > 0) && (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {(g.languages || []).slice(0, 3).map((l) => <span key={l} className="text-[11px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">{l}</span>)}
+                      {(g.specialties || []).slice(0, 3).map((s) => <span key={s} className="text-[11px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{s}</span>)}
+                    </div>
+                  )}
+                  {g.rejection_reason && <p className="text-xs text-red-600 mt-1 bg-red-50 px-2 py-1 rounded"><strong>Rejection reason:</strong> {g.rejection_reason}</p>}
+                </div>
+              </div>
+              <div className="flex gap-2 mt-4 pt-3 border-t flex-wrap">
+                {g.status !== 'approved' && (
+                  <Button size="sm" onClick={() => updateStatus(g, 'approved')} disabled={acting}
+                    className="bg-green-600 hover:bg-green-700 text-white text-xs gap-1">
+                    <CheckCircle className="w-3.5 h-3.5" /> Approve
+                  </Button>
+                )}
+                {g.status !== 'rejected' && (
+                  <Button size="sm" variant="outline" onClick={() => setRejectDialog(g)} disabled={acting}
+                    className="text-red-600 border-red-200 hover:bg-red-50 text-xs gap-1">
+                    <XCircle className="w-3.5 h-3.5" /> Reject
+                  </Button>
+                )}
+                {g.status !== 'pending' && (
+                  <Button size="sm" variant="outline" onClick={() => updateStatus(g, 'pending')} disabled={acting}
+                    className="text-yellow-700 border-yellow-200 hover:bg-yellow-50 text-xs">
+                    Set Pending
+                  </Button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Reject reason dialog */}
+      <Dialog open={!!rejectDialog} onOpenChange={(open) => { if (!open) { setRejectDialog(null); setRejectReason(''); } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Reject Guide — {rejectDialog?.full_name}</DialogTitle></DialogHeader>
+          <div className="py-3">
+            <p className="text-sm text-gray-600 mb-3">Optionally explain why (this will be emailed to the guide):</p>
+            <textarea className="w-full border rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#0B3D91]/30"
+              rows={4} placeholder="Reason for rejection…"
+              value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} />
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={() => { setRejectDialog(null); setRejectReason(''); }}>Cancel</Button>
+            <Button onClick={() => updateStatus(rejectDialog, 'rejected', rejectReason || null)} disabled={acting}
+              className="bg-red-600 hover:bg-red-700 text-white">
+              {acting ? 'Rejecting…' : 'Reject Guide'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
 };
 
 const AffiliateSection = () => {
@@ -1448,6 +1613,9 @@ const AdminDashboardPage = () => {
               )}
               {activeSection === 'affiliate' && (
                 <AffiliateSection />
+              )}
+              {activeSection === 'tour-guides' && (
+                <TourGuidesAdminSection />
               )}
             </main>
           </div>

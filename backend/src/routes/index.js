@@ -13,6 +13,7 @@ const adminRoutes = require('./adminRoutes');
 const reviewRoutes = require('./reviewRoutes');
 const jobRoutes = require('./jobRoutes');
 const blogRoutes = require('./blogRoutes');
+const tourGuideRoutes = require('./tourGuideRoutes');
 const { octoRoutes } = require('../octo-api');
 
 function registerRoutes(app) {
@@ -31,6 +32,7 @@ function registerRoutes(app) {
   app.use('/api', reviewRoutes);
   app.use('/api', jobRoutes);
   app.use('/api', blogRoutes);
+  app.use('/api/tour-guides', tourGuideRoutes);
   app.use('/api/octo', octoRoutes);
 }
 

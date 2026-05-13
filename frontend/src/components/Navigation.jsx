@@ -32,6 +32,7 @@ const Navigation = () => {
   const navItems = [
     { key: 'nav_tours', path: '/tours' },
     { key: 'nav_itineraries', path: '/itineraries' },
+    { label: 'Tour Guides', path: '/tour-guides' },
     { key: 'nav_why_ai', path: '/why-ai', highlight: true },
     { key: 'nav_about', path: '/about' },
     { key: 'nav_contact', path: '/contact' },
@@ -58,7 +59,7 @@ const Navigation = () => {
               }`}
             >
               {item.highlight && <Sparkles className="w-3.5 h-3.5" />}
-              {t(item.key)}
+              {item.label || t(item.key)}
             </Link>
           ))}
         </div>
@@ -137,12 +138,12 @@ const Navigation = () => {
           </div>
           {navItems.map((item) => (
             <Link
-              key={item.key}
+              key={item.key || item.label}
               to={item.path}
               className="py-3 px-4 text-gray-600 hover:bg-gray-50 hover:text-[#0B3D91] rounded-lg font-medium"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              {t(item.key)}
+              {item.label || t(item.key)}
             </Link>
           ))}
           <div className="h-px bg-gray-100 my-2" />

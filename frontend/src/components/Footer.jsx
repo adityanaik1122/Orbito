@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Facebook, Instagram, Twitter, Linkedin, Phone, Mail, MapPin } from 'lucide-react';
+import { Facebook, Instagram, Twitter, Linkedin, Phone, Mail, MapPin, UserCheck } from 'lucide-react';
 import { useLocale } from '@/contexts/LocaleContext';
 
 const Footer = () => {
@@ -54,6 +54,15 @@ const Footer = () => {
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-[#0B3D91] group-hover:bg-[#092C6B] flex-shrink-0" />
                   {t('footer_list_business')}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/tour-guides/register"
+                  className="text-[#0B3D91] font-semibold hover:text-[#092C6B] flex items-center gap-1.5 group"
+                >
+                  <UserCheck className="w-3.5 h-3.5 shrink-0" />
+                  Register as a Tour Guide
                 </Link>
               </li>
             </ul>

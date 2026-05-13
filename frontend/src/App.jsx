@@ -35,6 +35,10 @@ import WhyAIPage from '@/pages/WhyAIPage';
 import CheckoutPage from '@/pages/CheckoutPage';
 import OperatorApplyPage from '@/pages/OperatorApplyPage';
 import DestinationPage from '@/pages/DestinationPage';
+import TourGuidesPage from '@/pages/TourGuidesPage';
+import TourGuideRegisterPage from '@/pages/TourGuideRegisterPage';
+import TourGuideLoginPage from '@/pages/TourGuideLoginPage';
+import TourGuideDashboardPage from '@/pages/TourGuideDashboardPage';
 import RequireRole from '@/components/RequireRole';
 import RequireAuth from '@/components/RequireAuth';
 import { AuthProvider } from '@/contexts/SupabaseAuthContext';
@@ -95,6 +99,12 @@ function App() {
           <Route path="/terms" element={<Layout><TermsOfServicePage /></Layout>} />
           <Route path="/refunds" element={<Layout><RefundPolicyPage /></Layout>} />
           <Route path="/supplier-terms" element={<Layout><SupplierTermsPage /></Layout>} />
+
+          {/* Tour Guides */}
+          <Route path="/tour-guides" element={<Layout><TourGuidesPage /></Layout>} />
+          <Route path="/tour-guides/register" element={<TourGuideRegisterPage />} />
+          <Route path="/tour-guides/login" element={<TourGuideLoginPage />} />
+          <Route path="/tour-guide-dashboard" element={<TourGuideDashboardPage />} />
 
           {/* Operator & Admin dashboards */}
           <Route path="/operator/apply" element={<Layout><OperatorApplyPage /></Layout>} />
