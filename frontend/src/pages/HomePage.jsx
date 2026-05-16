@@ -239,9 +239,9 @@ const HomePage = () => {
               initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="max-w-2xl mx-auto mb-8"
+              className="flex flex-col items-center mb-8"
             >
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-3 max-w-xl w-full">
                 <div className="w-8 h-8 rounded-full bg-[#0B3D91] text-white flex items-center justify-center text-sm font-bold flex-shrink-0 mt-1">
                   Y
                 </div>
@@ -249,7 +249,7 @@ const HomePage = () => {
                   "7 days in Tokyo, mix of tradition and modern, foodie focus 🇯🇵"
                 </div>
               </div>
-              <div className="flex items-center gap-2 mt-3 ml-11 text-xs text-gray-400">
+              <div className="flex items-center gap-2 mt-3 text-xs text-gray-400">
                 <Sparkles className="w-3.5 h-3.5 text-[#0B3D91]" />
                 <span className="text-[#0B3D91] font-semibold">Orbito AI</span>
                 <span>generated your 7-day Tokyo itinerary</span>
