@@ -333,7 +333,7 @@ const MyAccountPage = () => {
                                 size="icon"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  navigate('/plan');
+                                  navigate('/plan', { state: { itineraryId: item.id } });
                                 }}
                                 className="text-gray-600 hover:text-[#0B3D91]"
                               >

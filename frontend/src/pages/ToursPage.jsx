@@ -102,8 +102,8 @@ const ToursPage = () => {
       .select('*')
       .eq('is_active', true)
       .order('created_at', { ascending: false })
-      .then(({ data }) => {
-        setTours(data || []);
+      .then(({ data, error }) => {
+        if (!error) setTours(data || []);
         setLoading(false);
       });
   }, []);

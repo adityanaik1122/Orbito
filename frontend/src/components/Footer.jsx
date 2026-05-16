@@ -34,10 +34,10 @@ const Footer = () => {
             </div>
             
             <div className="flex items-center gap-4">
-              <a href="#" className="text-gray-400 hover:text-[#0B3D91] transition-colors"><Facebook className="w-5 h-5" /></a>
-              <a href="#" className="text-gray-400 hover:text-[#0B3D91] transition-colors"><Instagram className="w-5 h-5" /></a>
-              <a href="#" className="text-gray-400 hover:text-[#0B3D91] transition-colors"><Twitter className="w-5 h-5" /></a>
-              <a href="#" className="text-gray-400 hover:text-[#0B3D91] transition-colors"><Linkedin className="w-5 h-5" /></a>
+              <a href="https://www.facebook.com/orbito" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#0B3D91] transition-colors" aria-label="Facebook"><Facebook className="w-5 h-5" /></a>
+              <a href="https://www.instagram.com/orbito" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#0B3D91] transition-colors" aria-label="Instagram"><Instagram className="w-5 h-5" /></a>
+              <a href="https://twitter.com/orbito" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#0B3D91] transition-colors" aria-label="Twitter / X"><Twitter className="w-5 h-5" /></a>
+              <a href="https://www.linkedin.com/company/orbito" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#0B3D91] transition-colors" aria-label="LinkedIn"><Linkedin className="w-5 h-5" /></a>
             </div>
           </div>
 
@@ -93,7 +93,7 @@ const Footer = () => {
 
         <div className="border-t border-gray-100 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-gray-400 text-sm">
-            © 2025 ORBITO. All rights reserved.
+            © {new Date().getFullYear()} ORBITO. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2 text-gray-400 text-sm">

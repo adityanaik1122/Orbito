@@ -345,7 +345,7 @@ export default function AIChatWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.96 }}
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-            className="fixed bottom-6 right-6 z-50 w-[420px] h-[620px] bg-white rounded-2xl shadow-2xl flex flex-col border border-gray-100 overflow-hidden"
+            className="fixed bottom-6 right-4 sm:right-6 z-50 w-[calc(100vw-32px)] sm:w-[420px] h-[600px] sm:h-[620px] bg-white rounded-2xl shadow-2xl flex flex-col border border-gray-100 overflow-hidden"
             style={{ maxHeight: 'calc(100vh - 96px)' }}
           >
             {/* Header */}

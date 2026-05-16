@@ -101,10 +101,12 @@ const AttractionsPage = () => {
                                         selectedCity === city ? "ring-2 scale-[1.02] shadow-xl" : "opacity-90 hover:opacity-100 hover:scale-[1.02] hover:shadow-lg"
                                     )}
                                 >
-                                    <img 
-                                        src={cityImages[city]} 
-                                        alt={city} 
-                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                                    <img
+                                        src={cityImages[city]}
+                                        alt={city}
+                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                        referrerPolicy="no-referrer"
+                                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
                                     />
                                     {/* City Label Badge */}
                                     <div className="absolute top-3 left-3 bg-[#1B263B] text-white text-base font-bold px-4 py-2 rounded-md shadow-md z-10"> {/* Adjusted text size and padding */}

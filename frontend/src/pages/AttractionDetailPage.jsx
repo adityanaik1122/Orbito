@@ -71,7 +71,7 @@ const AttractionDetailPage = () => {
                                 className="w-full h-full object-cover" 
                                 alt={attraction.title} 
                                 src={attraction.image}
-                                onError={(e) => {e.target.src = "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=1000&auto=format&fit=crop"}}
+                                onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=1000&auto=format&fit=crop"; }}
                            />
                         </div>
                         <div className="flex items-center gap-2 mb-4">

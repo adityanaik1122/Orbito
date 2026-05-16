@@ -110,11 +110,19 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (!clientSecret || !booking) {
-      navigate('/tours');
+      const t = setTimeout(() => navigate('/tours'), 2500);
+      return () => clearTimeout(t);
     }
   }, [clientSecret, booking, navigate]);
 
-  if (!clientSecret || !booking) return null;
+  if (!clientSecret || !booking) return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center">
+        <p className="text-gray-600 mb-1">No checkout session found.</p>
+        <p className="text-sm text-gray-400">Redirecting to tours…</p>
+      </div>
+    </div>
+  );
 
   const elementsOptions = {
     clientSecret,

@@ -1090,7 +1090,8 @@ const PlanTourPage = () => {
   return (
     <>
       <Helmet>
-        <title>Plan Your {tripDetails.destination} Trip - Orbito</title>
+        <title>Plan Your {tripDetails.destination || 'Next'} Trip — Orbito AI Planner</title>
+        <meta name="description" content={`Build a personalised day-by-day itinerary for ${tripDetails.destination || 'your next destination'} with Orbito's free AI trip planner.`} />
       </Helmet>
 
       <div className="min-h-screen bg-[#F8F9FC] pb-20 font-sans">
@@ -1493,7 +1494,7 @@ const PlanTourPage = () => {
                                                         >
                                                             {item.image && item.type !== 'break' ? (
                                                                 <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-200 shrink-0 ring-2 ring-gray-100 group-hover:ring-[#0B3D91]/20 transition-all">
-                                                                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                                                                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                                                                 </div>
                                                             ) : (
                                                                 <div className={cn(
