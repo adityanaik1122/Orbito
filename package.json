@@ -1,0 +1,30 @@
+{
+  "name": "orbito",
+  "version": "1.0.0",
+  "description": "**Smart travel planning with AI-powered recommendations**",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:report": "playwright show-report tests/e2e/report",
+    "test:api": "cd backend && npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adityanaik1122/Orbito.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/adityanaik1122/Orbito/issues"
+  },
+  "homepage": "https://github.com/adityanaik1122/Orbito#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.60.0"
+  }
+}
