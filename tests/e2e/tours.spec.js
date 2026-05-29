@@ -22,24 +22,24 @@ test.describe('Tours page', () => {
 
   test('popular destinations strip is visible', async ({ page }) => {
     await expect(page.getByText(/popular destinations/i)).toBeVisible();
-    // At least one destination card (London)
     await expect(page.getByText('London').first()).toBeVisible();
   });
 
   test('shows loading spinner or tour cards', async ({ page }) => {
-    // Either cards load or a spinner shows then cards appear
     const spinner = page.locator('[class*="animate-spin"]');
     const cards = page.locator('[class*="rounded-2xl"]');
     await Promise.race([
       spinner.waitFor({ timeout: 3000 }).catch(() => {}),
       cards.first().waitFor({ timeout: 10000 }).catch(() => {}),
     ]);
-    // Page should not show an error
     await expect(page.getByText(/error|something went wrong/i)).not.toBeVisible();
   });
 
   test('popular destination link navigates to destination page', async ({ page }) => {
-    await page.getByText('Paris').first().click();
+    // Target the <a> link inside the popular destinations strip, not any text match
+    const parisLink = page.locator('a[href="/destinations/paris"]');
+    await expect(parisLink).toBeVisible();
+    await parisLink.click();
     await expect(page).toHaveURL(/destinations\/paris/i);
   });
 });

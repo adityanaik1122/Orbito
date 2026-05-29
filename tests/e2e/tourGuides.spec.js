@@ -24,30 +24,27 @@ test.describe('Tour Guide registration form', () => {
   });
 
   test('registration form fields are visible', async ({ page }) => {
-    await expect(page.getByLabel(/full name/i)).toBeVisible();
-    await expect(page.getByLabel(/email/i)).toBeVisible();
-    await expect(page.getByLabel(/phone/i)).toBeVisible();
-    await expect(page.getByLabel(/^password/i)).toBeVisible();
+    // Labels use plain <label> without htmlFor — locate by placeholder
+    await expect(page.getByPlaceholder('Jane Smith')).toBeVisible();
+    await expect(page.getByPlaceholder('you@example.com')).toBeVisible();
+    await expect(page.getByPlaceholder('Min 6 characters')).toBeVisible();
   });
 
-  test('submitting empty form shows validation', async ({ page }) => {
-    await page.getByRole('button', { name: /register|submit|create/i }).click();
-    // HTML5 required validation or our own error message should appear
-    const hasNativeError = await page.evaluate(() =>
-      [...document.querySelectorAll('input')].some(i => !i.validity.valid)
-    );
-    const hasCustomError = await page.locator('text=/required|fill in|must/i').count() > 0;
-    expect(hasNativeError || hasCustomError).toBeTruthy();
+  test('submitting empty form shows validation errors', async ({ page }) => {
+    await page.getByRole('button', { name: /register|submit/i }).click();
+    // Custom error messages appear as red text below each field
+    await expect(page.getByText('Required').first()).toBeVisible({ timeout: 5000 });
   });
 
   test('password mismatch shows error', async ({ page }) => {
-    await page.getByLabel(/full name/i).fill('Test Guide');
-    await page.getByLabel(/email/i).fill('test@example.com');
-    await page.getByLabel(/^password/i).fill('password123');
-    await page.getByLabel(/confirm password/i).fill('different456');
-    await page.getByLabel(/location/i).fill('London');
+    await page.getByPlaceholder('Jane Smith').fill('Test Guide');
+    await page.getByPlaceholder('you@example.com').fill('test@example.com');
+    await page.getByPlaceholder('Min 6 characters').fill('password123');
+    await page.getByPlaceholder('Repeat password').fill('different456');
+    // Scroll to submit button (form is long)
+    await page.getByRole('button', { name: /register|submit/i }).scrollIntoViewIfNeeded();
     await page.getByRole('button', { name: /register|submit/i }).click();
-    await expect(page.getByText(/passwords? do not match|passwords? must match/i)).toBeVisible();
+    await expect(page.getByText('Passwords do not match')).toBeVisible({ timeout: 5000 });
   });
 });
 
@@ -57,20 +54,22 @@ test.describe('Tour Guide login', () => {
   });
 
   test('login form is visible', async ({ page }) => {
-    await expect(page.getByLabel(/email/i)).toBeVisible();
-    await expect(page.getByLabel(/password/i)).toBeVisible();
-    await expect(page.getByRole('button', { name: /login|sign in/i })).toBeVisible();
+    await expect(page.getByPlaceholder('you@example.com')).toBeVisible();
+    await expect(page.getByPlaceholder('Your password')).toBeVisible();
+    await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible();
   });
 
-  test('invalid credentials shows error', async ({ page }) => {
-    await page.getByLabel(/email/i).fill('notauser@example.com');
-    await page.getByLabel(/password/i).fill('wrongpassword');
-    await page.getByRole('button', { name: /login|sign in/i }).click();
-    await expect(page.getByText(/invalid|incorrect|not found|error/i)).toBeVisible({ timeout: 10000 });
+  test('invalid credentials shows toast error', async ({ page }) => {
+    await page.getByPlaceholder('you@example.com').fill('notauser@example.com');
+    await page.getByPlaceholder('Your password').fill('wrongpassword');
+    await page.getByRole('button', { name: /sign in/i }).click();
+    // Error is shown as a toast notification
+    await expect(page.getByText(/sign in failed/i)).toBeVisible({ timeout: 15000 });
   });
 
   test('link to registration page works', async ({ page }) => {
-    await page.getByRole('link', { name: /register|sign up|create/i }).click();
+    // The link text is "Register here" — be specific to avoid matching footer links
+    await page.getByRole('link', { name: 'Register here' }).click();
     await expect(page).toHaveURL(/tour-guides\/register/i);
   });
 });

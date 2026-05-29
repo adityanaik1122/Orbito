@@ -11,18 +11,18 @@ test.describe('Attractions page', () => {
   });
 
   test('city filter cards are rendered', async ({ page }) => {
-    // London should be in the city strip
     await expect(page.getByText('London').first()).toBeVisible();
     await expect(page.getByText('Paris').first()).toBeVisible();
     await expect(page.getByText('Tokyo').first()).toBeVisible();
   });
 
   test('clicking a city card updates selected city', async ({ page }) => {
-    // Paris card click → Paris attractions should show (or empty state for Paris)
-    const parisBtn = page.locator('button', { has: page.locator('text=Paris') }).first();
+    // Scroll the Paris card into view (it's in a horizontal scroll strip)
+    const parisBtn = page.locator('button').filter({ has: page.locator('div', { hasText: /^Paris$/ }) }).first();
+    await parisBtn.scrollIntoViewIfNeeded();
     await parisBtn.click();
-    // After clicking, Paris card should have the active ring style
-    await expect(parisBtn).toHaveClass(/ring-2/);
+    // After click the button gains ring-2 via Tailwind
+    await expect(parisBtn).toHaveAttribute('class', /ring-2/);
   });
 
   test('category filter pills are visible', async ({ page }) => {
@@ -35,7 +35,8 @@ test.describe('Attractions page', () => {
   test('clicking a category pill marks it as active', async ({ page }) => {
     const historyBtn = page.getByRole('button', { name: 'History' });
     await historyBtn.click();
-    await expect(historyBtn).toHaveClass(/bg-\[#0B3D91\]/);
+    // Active pill has bg-[#0B3D91] in its class attribute
+    await expect(historyBtn).toHaveAttribute('class', /bg-\[#0B3D91\]/);
   });
 
   test('attraction cards show rating and price', async ({ page }) => {
@@ -48,7 +49,6 @@ test.describe('Attractions page', () => {
 
   test('"View Details" navigates to attraction detail page', async ({ page }) => {
     const viewDetailsBtn = page.getByRole('button', { name: /view details/i }).first();
-    // Only click if an attraction card is visible for the default city
     if (await viewDetailsBtn.count() > 0) {
       await viewDetailsBtn.click();
       await expect(page).toHaveURL(/\/attractions\/.+/);

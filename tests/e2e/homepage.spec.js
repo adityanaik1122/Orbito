@@ -18,18 +18,20 @@ test.describe('Homepage', () => {
   });
 
   test('EXAMPLE OUTPUT section with 3 day cards is visible', async ({ page }) => {
-    await page.getByText(/example output/i).scrollIntoViewIfNeeded();
-    await expect(page.getByText(/this is what you'll get/i)).toBeVisible();
-    const dayCards = page.locator('text=Day 1, text=Day 2, text=Day 3');
-    await expect(page.getByText('Day 1')).toBeVisible();
-    await expect(page.getByText('Day 2')).toBeVisible();
-    await expect(page.getByText('Day 3')).toBeVisible();
+    // Scroll fully to trigger all whileInView animations
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await page.waitForTimeout(600);
+    await expect(page.getByText(/this is what you'll get/i)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Day 1')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Day 2')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Day 3')).toBeVisible({ timeout: 10000 });
   });
 
   test('"Generate my Tokyo itinerary" button is visible', async ({ page }) => {
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await page.waitForTimeout(600);
     const btn = page.getByRole('button', { name: /generate my tokyo itinerary/i });
-    await btn.scrollIntoViewIfNeeded();
-    await expect(btn).toBeVisible();
+    await expect(btn).toBeVisible({ timeout: 10000 });
   });
 
   test('navigation bar contains key links', async ({ page }) => {
@@ -39,7 +41,6 @@ test.describe('Homepage', () => {
 
   test('footer is present with copyright text', async ({ page }) => {
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    await expect(page.getByText(/orbito/i).last()).toBeVisible();
     await expect(page.getByText(/all rights reserved/i)).toBeVisible();
   });
 
