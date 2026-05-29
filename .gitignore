@@ -18,6 +18,11 @@ backend/dist/
 frontend/dist/
 frontend/.vercel/
 
+# Playwright
+tests/e2e/report/
+playwright-report/
+test-results/
+
 # Logs
 logs/
 *.log
