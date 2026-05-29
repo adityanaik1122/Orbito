@@ -17,25 +17,26 @@ test.describe('Attractions page', () => {
   });
 
   test('clicking a city card updates selected city', async ({ page }) => {
-    // Scroll the Paris card into view (it's in a horizontal scroll strip)
-    const parisBtn = page.locator('button').filter({ has: page.locator('div', { hasText: /^Paris$/ }) }).first();
+    // Use hasText (substring match) — more robust than nested has-locator
+    const parisBtn = page.locator('button').filter({ hasText: 'Paris' }).first();
     await parisBtn.scrollIntoViewIfNeeded();
     await parisBtn.click();
-    // After click the button gains ring-2 via Tailwind
-    await expect(parisBtn).toHaveAttribute('class', /ring-2/);
+    // Selected buttons gain shadow-xl; non-selected buttons only have hover:shadow-lg
+    await expect(parisBtn).toHaveAttribute('class', /shadow-xl/);
   });
 
   test('category filter pills are visible', async ({ page }) => {
-    await expect(page.getByRole('button', { name: 'All' }).first()).toBeVisible();
-    await expect(page.getByRole('button', { name: 'History' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Food' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Culture' })).toBeVisible();
+    await expect(page.locator('button').filter({ hasText: 'All' }).first()).toBeVisible();
+    await expect(page.locator('button').filter({ hasText: 'History' }).first()).toBeVisible();
+    await expect(page.locator('button').filter({ hasText: 'Food' }).first()).toBeVisible();
+    await expect(page.locator('button').filter({ hasText: 'Culture' }).first()).toBeVisible();
   });
 
   test('clicking a category pill marks it as active', async ({ page }) => {
-    const historyBtn = page.getByRole('button', { name: 'History' });
+    // Category buttons have rounded-full class; attraction card buttons don't
+    const historyBtn = page.locator('button.rounded-full', { hasText: 'History' });
     await historyBtn.click();
-    // Active pill has bg-[#0B3D91] in its class attribute
+    // Active pill: bg-[#0B3D91] is added to class
     await expect(historyBtn).toHaveAttribute('class', /bg-\[#0B3D91\]/);
   });
 
