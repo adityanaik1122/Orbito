@@ -35,8 +35,7 @@ test.describe('Homepage', () => {
   });
 
   test('navigation bar contains key links', async ({ page }) => {
-    await expect(page.getByRole('link', { name: /tours/i }).first()).toBeVisible();
-    await expect(page.getByRole('link', { name: /attractions/i }).first()).toBeVisible();
+    await expect(page.getByRole('navigation').getByRole('link', { name: 'Tours' })).toBeVisible();
   });
 
   test('footer is present with copyright text', async ({ page }) => {

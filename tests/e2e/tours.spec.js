@@ -21,7 +21,7 @@ test.describe('Tours page', () => {
   });
 
   test('popular destinations strip is visible', async ({ page }) => {
-    await expect(page.getByText(/popular destinations/i)).toBeVisible();
+    await expect(page.getByRole('main').getByText(/popular destinations/i)).toBeVisible();
     await expect(page.getByText('London').first()).toBeVisible();
   });
 

@@ -14,7 +14,7 @@ test.describe('Tour Guides public listing', () => {
   test('CTA to register is visible', async ({ page }) => {
     await page.goto('/tour-guides');
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    await expect(page.getByRole('link', { name: /register|become a guide/i })).toBeVisible();
+    await expect(page.getByRole('main').getByRole('link', { name: /register|become a guide/i })).toBeVisible();
   });
 });
 
@@ -66,7 +66,7 @@ test.describe('Tour Guide login', () => {
     await page.getByPlaceholder('Your password').fill('wrongpassword');
     await page.locator('button[type="submit"]').click();
     // Toast has title "Sign in failed" — give Supabase up to 20s to respond
-    await expect(page.getByText(/sign in failed/i)).toBeVisible({ timeout: 20000 });
+    await expect(page.getByText('Sign in failed', { exact: true })).toBeVisible({ timeout: 20000 });
   });
 
   test('link to registration page works', async ({ page }) => {

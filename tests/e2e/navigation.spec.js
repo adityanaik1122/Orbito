@@ -30,20 +30,22 @@ test.describe('Footer links', () => {
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   });
 
+  const footer = (page) => page.getByRole('contentinfo');
+
   test('About link is in footer', async ({ page }) => {
-    await expect(page.getByRole('link', { name: /about/i })).toBeVisible();
+    await expect(footer(page).getByRole('link', { name: /about/i })).toBeVisible();
   });
 
   test('Privacy link is in footer', async ({ page }) => {
-    await expect(page.getByRole('link', { name: /privacy/i })).toBeVisible();
+    await expect(footer(page).getByRole('link', { name: /privacy/i })).toBeVisible();
   });
 
   test('Terms link is in footer', async ({ page }) => {
-    await expect(page.getByRole('link', { name: /terms/i })).toBeVisible();
+    await expect(footer(page).getByRole('link', { name: 'Terms of Service' })).toBeVisible();
   });
 
   test('Register as Tour Guide link is in footer', async ({ page }) => {
-    await expect(page.getByRole('link', { name: /register as a tour guide/i })).toBeVisible();
+    await expect(footer(page).getByRole('link', { name: /register as a tour guide/i })).toBeVisible();
   });
 });
 
