@@ -1,12 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="14" fill="#0B3D91"/>
-  <text
-    x="32"
-    y="47"
-    font-family="Georgia, 'Times New Roman', serif"
-    font-size="46"
-    font-weight="700"
-    fill="white"
-    text-anchor="middle"
-  >O</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="630 320 1720 1720">
+  <ellipse cx="1490.544" cy="1215.578" rx="756.948" ry="442.435" fill="none" stroke="#0b3d91" stroke-width="41.67"/>
+  <circle cx="1490.544" cy="1215.578" r="442.435" fill="#0b3d91"/>
+  <circle cx="1490.544" cy="773.143" r="68.951" fill="#0b3d91"/>
 </svg>
