@@ -45,7 +45,7 @@ export default function TourGuideLoginPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <Link to="/" className="text-2xl font-bold text-[#0B3D91] tracking-tight block mb-6">ORBITO</Link>
+          <Link to="/" className="inline-block mb-6"><img src="/logo.svg" alt="ORBITO" className="h-10 w-auto mx-auto" /></Link>
           <h1 className="text-2xl font-extrabold text-gray-900 mb-1">Tour Guide Sign In</h1>
           <p className="text-gray-500 text-sm">
             Not a guide yet?{' '}

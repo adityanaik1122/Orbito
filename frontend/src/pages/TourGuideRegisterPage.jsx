@@ -165,7 +165,7 @@ export default function TourGuideRegisterPage() {
       <div className="container mx-auto max-w-2xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <Link to="/" className="text-2xl font-bold text-[#0B3D91] tracking-tight block mb-6">ORBITO</Link>
+          <Link to="/" className="inline-block mb-6"><img src="/logo.svg" alt="ORBITO" className="h-10 w-auto mx-auto" /></Link>
           <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Register as a Tour Guide</h1>
           <p className="text-gray-500">Connect with travellers worldwide. Already have an account? <Link to="/tour-guides/login" className="text-[#0B3D91] font-semibold hover:underline">Sign in</Link></p>
         </div>

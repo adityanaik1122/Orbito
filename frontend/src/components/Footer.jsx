@@ -10,8 +10,8 @@ const Footer = () => {
       <div className="container mx-auto px-4 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-16">
           <div className="lg:col-span-2">
-            <Link to="/" className="text-2xl font-bold text-[#0B3D91] tracking-tight mb-6 block">
-              ORBITO
+            <Link to="/" className="inline-block mb-6">
+              <img src="/logo.svg" alt="ORBITO" className="h-9 w-auto" />
             </Link>
             <p className="text-gray-500 leading-relaxed mb-8 max-w-sm">
               Plan your perfect trip with AI-powered itineraries. Discover the world smarter, not harder.

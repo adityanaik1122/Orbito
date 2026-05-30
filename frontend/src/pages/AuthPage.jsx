@@ -222,7 +222,7 @@ const AuthPage = () => {
       <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="text-center mb-6">
-            <h2 className="text-3xl font-extrabold text-[#0B3D91]">ORBITO</h2>
+            <img src="/logo.svg" alt="ORBITO" className="h-10 w-auto mx-auto mb-2" />
             <h2 className="mt-2 text-2xl font-bold text-gray-900">Set new password</h2>
           </div>
           <div className="bg-white py-8 px-8 shadow sm:rounded-lg border border-gray-100">
@@ -274,9 +274,7 @@ const AuthPage = () => {
           </Button>
           
           <div className="text-center">
-             <h2 className="text-3xl font-extrabold text-[#0B3D91]">
-              ORBITO
-            </h2>
+            <img src="/logo.svg" alt="ORBITO" className="h-10 w-auto mx-auto mb-2" />
             <h2 className="mt-2 text-2xl font-bold text-gray-900">
               {t('auth_welcome_title')}
             </h2>

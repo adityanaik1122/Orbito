@@ -372,7 +372,7 @@ export default function TourGuideDashboardPage() {
       {/* Top bar */}
       <div className="bg-white border-b sticky top-0 z-30">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between max-w-5xl">
-          <Link to="/" className="text-xl font-bold text-[#0B3D91] tracking-tight">ORBITO</Link>
+          <Link to="/"><img src="/logo.svg" alt="ORBITO" className="h-8 w-auto" /></Link>
           <div className="flex items-center gap-3">
             <Link to="/tour-guides" className="text-sm text-gray-500 hover:text-[#0B3D91]">View Public Listing</Link>
             <Button variant="outline" size="sm" onClick={handleSignOut} className="text-sm">Sign Out</Button>

@@ -43,7 +43,7 @@ const Navigation = () => {
       <nav className="container mx-auto px-4 lg:px-8 h-full flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center shrink-0">
-          <span className="text-2xl font-bold text-[#0B3D91] tracking-tight uppercase">ORBITO</span>
+          <img src="/logo.svg" alt="ORBITO" className="h-10 w-auto" />
         </Link>
 
         {/* Desktop Navigation */}
