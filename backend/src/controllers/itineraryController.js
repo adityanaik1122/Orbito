@@ -1,4 +1,4 @@
-const { generateContent, GROQ_MODELS } = require('../config/groq');
+const { generateWithFallback } = require('../services/aiProviderChain');
 const { saveItinerary, getItinerariesByUser } = require('../models/itineraryModel');
 const AITourMatchingService = require('../services/aiTourMatchingService');
 const logger = require('../utils/logger');
@@ -84,26 +84,17 @@ Return this JSON structure:
   ]
 }`;
 
-    const modelNames = [GROQ_MODELS.LLAMA_70B, GROQ_MODELS.LLAMA_8B, GROQ_MODELS.MIXTRAL];
     let responseText;
     let lastError;
 
-    for (const modelName of modelNames) {
-      try {
-        logger.info(` Itinerary: Trying ${modelName}`);
-        responseText = await generateContent(prompt, modelName);
-        logger.success(` Successfully used ${modelName}`);
-        break;
-      } catch (e) {
-        lastError = e;
-        console.warn(`❌ ${modelName} failed:`, e.message || e);
-      }
+    try {
+      responseText = await generateWithFallback(prompt);
+    } catch (e) {
+      lastError = e;
     }
 
     if (!responseText) {
-      const message =
-        (lastError && (lastError.message || lastError.toString())) ||
-        'Failed to generate itinerary';
+      const message = (lastError && lastError.message) || 'Failed to generate itinerary';
       
       // Fallback itinerary (keeps planner usable even if AI provider is down)
       const makeFallback = (variantIndex) => {

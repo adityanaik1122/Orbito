@@ -10,14 +10,19 @@
   },
   "jest": {
     "testEnvironment": "node",
-    "testMatch": ["**/tests/**/*.test.js"],
-    "setupFiles": ["dotenv/config"]
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
+    "setupFiles": [
+      "dotenv/config"
+    ]
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@huggingface/inference": "^4.13.12",
     "@langchain/core": "^1.1.44",
     "@langchain/groq": "^1.2.0",
@@ -31,6 +36,7 @@
     "helmet": "^8.1.0",
     "joi": "^18.0.2",
     "langchain": "^1.2.25",
+    "openai": "^6.39.1",
     "resend": "^6.9.2",
     "stripe": "^22.1.0"
   },

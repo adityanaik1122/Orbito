@@ -7,7 +7,7 @@
  * 3. Enrich itineraries with booking links and real-time pricing
  */
 
-const { generateContent, GROQ_MODELS } = require('../config/groq');
+const { generateWithFallback } = require('./aiProviderChain');
 const TourAggregatorService = require('./tourAggregatorService');
 const logger = require('../utils/logger');
 
@@ -155,23 +155,7 @@ Return ONLY valid JSON in this exact format:
   "tips": ["Travel tip 1", "Travel tip 2"]
 }`;
 
-    const modelNames = [GROQ_MODELS.LLAMA_70B, GROQ_MODELS.LLAMA_8B, GROQ_MODELS.MIXTRAL];
-    let responseText;
-
-    for (const modelName of modelNames) {
-      try {
-        logger.info(` Trying ${modelName}...`);
-        responseText = await generateContent(prompt, modelName);
-        logger.success(` Successfully used ${modelName}`);
-        break;
-      } catch (e) {
-        console.warn(`❌ ${modelName} failed:`, e.message);
-      }
-    }
-
-    if (!responseText) {
-      throw new Error('Failed to generate itinerary with AI');
-    }
+    const responseText = await generateWithFallback(prompt);
 
     // Clean and parse JSON
     const cleaned = responseText
