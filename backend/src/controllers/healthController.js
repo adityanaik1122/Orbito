@@ -23,8 +23,11 @@ async function getHealth(req, res) {
   };
 
   // Check Supabase
+  const hasServiceKey = !!(process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY);
   health.services.supabase = {
     configured: !!process.env.SUPABASE_URL,
+    url: process.env.SUPABASE_URL || 'NOT SET',
+    keyType: hasServiceKey ? 'service_role' : (process.env.SUPABASE_ANON_KEY ? 'anon' : 'MISSING'),
     status: 'unknown'
   };
 
