@@ -90,6 +90,9 @@ const PlanTourPage = () => {
       return {
         id: `prefill-day-${dayIndex + 1}`,
         date: dateStr,
+        name: '',
+        startLocation: '',
+        endLocation: '',
         items: (day.items || []).map((item, itemIndex) => ({
           id: `prefill-${dayIndex}-${itemIndex}`,
           type: 'custom',
@@ -432,6 +435,9 @@ const PlanTourPage = () => {
             newItinerary.push(existingDay || {
               id: `day-${i}`,
               date: dateStr,
+              name: '',
+              startLocation: '',
+              endLocation: '',
               items: []
             });
           }
@@ -518,6 +524,14 @@ const PlanTourPage = () => {
       setHighlightDayIndex(nextDayIndex);
       setTimeout(() => setHighlightDayIndex(null), 700);
     }, 0);
+  };
+
+  const updateDayMeta = (dayIndex, field, value) => {
+    setItinerary(prev => {
+      const updated = [...prev];
+      updated[dayIndex] = { ...updated[dayIndex], [field]: value };
+      return updated;
+    });
   };
 
   // const handleAiSuggest = async () => {
@@ -715,6 +729,9 @@ const PlanTourPage = () => {
           const generatedDays = pickedItinerary.days.map((day, index) => ({
             id: `ai-day-${Date.now()}-${index}`,
             date: day.date,
+            name: day.theme || '',
+            startLocation: '',
+            endLocation: '',
             items: day.items.map(item => ({
               id: Date.now() + Math.random(),
               ...item  // preserves tour / suggestedTour from matching service
@@ -1371,19 +1388,49 @@ const PlanTourPage = () => {
                                     >
                                         <div className="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-[#0B3D91] border-4 border-white shadow-sm z-10"></div>
                                         
-                                        <div className="flex items-baseline justify-between mb-4">
-                                            <div>
-                                                <h4 className="font-bold text-lg text-gray-900">Day {dayIndex + 1}</h4>
-                                                <p className="text-sm text-gray-500">{formatDate(day.date, locale)}</p>
+                                        <div className="mb-4">
+                                            <div className="flex items-start justify-between gap-2">
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                        <h4 className="font-bold text-lg text-gray-900 shrink-0">Day {dayIndex + 1}</h4>
+                                                        <Input
+                                                            value={day.name || ''}
+                                                            onChange={(e) => updateDayMeta(dayIndex, 'name', e.target.value)}
+                                                            placeholder="Add a day name (e.g. Arrival Day)"
+                                                            className="h-7 text-sm border-0 border-b border-dashed border-gray-300 rounded-none bg-transparent px-1 focus-visible:ring-0 focus-visible:border-[#0B3D91] w-52 text-gray-700 placeholder:text-gray-400"
+                                                        />
+                                                    </div>
+                                                    <p className="text-sm text-gray-500 mt-0.5">{formatDate(day.date, locale)}</p>
+                                                    <div className="flex items-center gap-3 mt-2 flex-wrap">
+                                                        <div className="flex items-center gap-1">
+                                                            <MapPin className="w-3 h-3 text-green-600 shrink-0" />
+                                                            <Input
+                                                                value={day.startLocation || ''}
+                                                                onChange={(e) => updateDayMeta(dayIndex, 'startLocation', e.target.value)}
+                                                                placeholder="Starting location"
+                                                                className="h-6 text-xs border-0 border-b border-dashed border-gray-300 rounded-none bg-transparent px-1 focus-visible:ring-0 focus-visible:border-[#0B3D91] w-36 text-gray-600 placeholder:text-gray-400"
+                                                            />
+                                                        </div>
+                                                        <div className="flex items-center gap-1">
+                                                            <MapPin className="w-3 h-3 text-red-500 shrink-0" />
+                                                            <Input
+                                                                value={day.endLocation || ''}
+                                                                onChange={(e) => updateDayMeta(dayIndex, 'endLocation', e.target.value)}
+                                                                placeholder="Ending location (if different)"
+                                                                className="h-6 text-xs border-0 border-b border-dashed border-gray-300 rounded-none bg-transparent px-1 focus-visible:ring-0 focus-visible:border-[#0B3D91] w-44 text-gray-600 placeholder:text-gray-400"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="h-8 text-[#0B3D91] border-blue-200 hover:bg-blue-50 shrink-0"
+                                                    onClick={() => openAddActivity(dayIndex)}
+                                                >
+                                                    <Plus className="w-3 h-3 mr-1.5" /> {t('planner_add_activity')}
+                                                </Button>
                                             </div>
-                                            <Button 
-                                                size="sm" 
-                                                variant="outline" 
-                                                className="h-8 text-[#0B3D91] border-blue-200 hover:bg-blue-50"
-                                                onClick={() => openAddActivity(dayIndex)}
-                                            >
-                                                <Plus className="w-3 h-3 mr-1.5" /> {t('planner_add_activity')}
-                                            </Button>
                                         </div>
 
                                         <div className="mb-4 flex flex-wrap gap-2">
