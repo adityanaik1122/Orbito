@@ -46,11 +46,14 @@ const validate = (schema, property = 'body') => {
 const schemas = {
   // Itinerary generation
   generateItinerary: Joi.object({
-    destination: Joi.string().required().min(2).max(100).trim(),
-    startDate: Joi.date().iso().required().min('now'),
+    destination: Joi.string().required().min(2).max(100).trim()
+      .pattern(/^[^\x00-\x1F\x7F<>]+$/, 'safe characters'),
+    startDate: Joi.date().iso().required(),
     endDate: Joi.date().iso().required().greater(Joi.ref('startDate')),
     preferences: Joi.string().max(500).trim().allow('', null),
     budget: Joi.string().valid('budget', 'moderate', 'luxury').allow(null),
+    style: Joi.string().max(50).trim().allow('', null),
+    variants: Joi.number().integer().min(1).max(5).allow(null),
     travelers: Joi.number().integer().min(1).max(20).allow(null)
   }),
 
