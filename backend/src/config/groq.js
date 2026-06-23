@@ -71,7 +71,6 @@ const GROQ_MODELS = {
   LLAMA_8B: 'llama-3.1-8b-instant',
   
   // Alternative models
-  MIXTRAL: 'mixtral-8x7b-32768',
   GEMMA_9B: 'gemma2-9b-it',
   LLAMA_3_70B: 'llama3-70b-8192'
 };

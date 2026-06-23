@@ -97,7 +97,7 @@ class ViatorService {
    */
   static async checkAvailability(productCode, date) {
     if (!VIATOR_API_KEY) {
-      return { available: true, spots: 10 };
+      return { available: false, spots: 0, configured: false };
     }
 
     try {
@@ -133,12 +133,7 @@ class ViatorService {
    */
   static async createBooking(bookingData) {
     if (!VIATOR_API_KEY) {
-      return {
-        success: true,
-        viatorBookingId: `VIA-${Date.now()}`,
-        status: 'PENDING',
-        message: 'Mock booking created'
-      };
+      throw new Error('Viator API not configured — cannot create real bookings');
     }
 
     try {

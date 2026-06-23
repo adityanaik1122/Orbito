@@ -34,9 +34,11 @@
     "express-rate-limit": "^8.2.1",
     "groq-sdk": "^0.7.0",
     "helmet": "^8.1.0",
+    "ioredis": "^5.11.1",
     "joi": "^18.0.2",
     "langchain": "^1.2.25",
     "openai": "^6.39.1",
+    "rate-limit-redis": "^5.0.0",
     "resend": "^6.9.2",
     "stripe": "^22.1.0"
   },

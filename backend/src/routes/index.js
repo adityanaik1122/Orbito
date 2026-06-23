@@ -9,6 +9,7 @@ const analyticsRoutes = require('./analyticsRoutes');
 const affiliateRoutes = require('./affiliateRoutes');
 const operatorRoutes = require('./operatorRoutes');
 const paymentRoutes = require('./paymentRoutes');
+const bookingRoutes = require('./bookingRoutes');
 const adminRoutes = require('./adminRoutes');
 const reviewRoutes = require('./reviewRoutes');
 const jobRoutes = require('./jobRoutes');
@@ -28,6 +29,7 @@ function registerRoutes(app) {
   app.use('/api/affiliate', affiliateRoutes);
   app.use('/api/operator', operatorRoutes);
   app.use('/api/payments', paymentRoutes);
+  app.use('/api/bookings', bookingRoutes);
   app.use('/api/admin', adminRoutes);
   app.use('/api', reviewRoutes);
   app.use('/api', jobRoutes);

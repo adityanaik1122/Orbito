@@ -118,7 +118,7 @@ class GetYourGuideService {
    */
   static async checkAvailability(tourId, date) {
     if (!GYG_API_KEY) {
-      return { available: true, options: [] };
+      return { available: false, options: [], configured: false };
     }
 
     try {

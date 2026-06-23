@@ -1,6 +1,8 @@
 const { generateWithFallback } = require('../services/aiProviderChain');
 const { saveItinerary, getItinerariesByUser } = require('../models/itineraryModel');
 const AITourMatchingService = require('../services/aiTourMatchingService');
+const aiCache = require('../services/aiCache');
+const { checkAndRecord, FREE_DAILY_LIMIT } = require('../services/aiUsageTracker');
 const logger = require('../utils/logger');
 
 /**
@@ -8,35 +10,39 @@ const logger = require('../utils/logger');
  * This enhanced version fetches real tours and matches them to AI suggestions
  */
 async function generateItineraryWithTours(req, res) {
-  try {
-    const { destination, startDate, endDate, preferences, budget } = req.body;
-    
-    if (!destination || !startDate || !endDate) {
-      return res.status(400).json({ error: 'Missing required fields: destination, startDate, endDate' });
-    }
+  const { destination, startDate, endDate, preferences, budget } = req.body;
 
-    logger.info(`Generating itinerary with tours for ${destination}`);
-    
-    const itinerary = await AITourMatchingService.generateItineraryWithTours({
-      destination,
-      startDate,
-      endDate,
-      preferences,
-      budget
-    });
-
-    res.json({ 
-      success: true, 
-      itinerary,
-      meta: {
-        bookableTours: itinerary.bookableTourCount || 0,
-        potentialSavings: itinerary.totalSavingsWithBooking
-      }
-    });
-  } catch (error) {
-    console.error('Error in generateItineraryWithTours:', error);
-    res.status(500).json({ error: error.message || 'Failed to generate itinerary' });
+  if (!destination || !startDate || !endDate) {
+    return res.status(400).json({ error: 'Missing required fields: destination, startDate, endDate' });
   }
+
+  const cacheKey = aiCache.makeKey({ destination, startDate, endDate, preferences, budget, type: 'with-tours' });
+  const cached = aiCache.get(cacheKey);
+  if (cached) {
+    logger.info(`AI cache hit for ${destination} (with-tours)`);
+    return res.json({ success: true, ...cached, meta: { ...cached.meta, fromCache: true } });
+  }
+
+  logger.info(`Generating itinerary with tours for ${destination}`);
+
+  try {
+    const itinerary = await AITourMatchingService.generateItineraryWithTours({
+      destination, startDate, endDate, preferences, budget
+    });
+
+    const payload = {
+      itinerary,
+      meta: { bookableTours: itinerary.bookableTourCount || 0, potentialSavings: itinerary.totalSavingsWithBooking }
+    };
+    aiCache.set(cacheKey, payload);
+    return res.json({ success: true, ...payload });
+  } catch (error) {
+    logger.warn(`generateItineraryWithTours failed (${error.message}), falling back to basic itinerary`);
+  }
+
+  // Fallback: run the basic generation so the user still gets something useful
+  req.body.variants = 1;
+  return generateItinerary(req, res);
 }
 
 /**
@@ -50,8 +56,27 @@ async function generateItinerary(req, res) {
       return res.status(400).json({ error: 'Missing fields' });
     }
 
+    if (req.user) {
+      const usage = await checkAndRecord(req.user.id, 'generate-itinerary');
+      if (!usage.allowed) {
+        return res.status(429).json({
+          error: 'DAILY_LIMIT_REACHED',
+          message: `You've reached your ${FREE_DAILY_LIMIT} free AI generations for today. Try again tomorrow.`,
+          used: usage.used,
+          limit: usage.limit,
+        });
+      }
+    }
+
     const daysCount =
       Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)) + 1;
+
+    const cacheKey = aiCache.makeKey({ destination, startDate, endDate, preferences, type: 'basic' });
+    const cached = aiCache.get(cacheKey);
+    if (cached) {
+      logger.info(`AI cache hit for ${destination} (basic)`);
+      return res.json({ success: true, ...cached, meta: { fromCache: true } });
+    }
 
     const prompt = `Create a ${daysCount}-day itinerary for ${destination} starting from ${startDate}.
 Preferences: ${preferences || 'none'}.
@@ -227,6 +252,7 @@ Return ONLY valid JSON matching:
       }
     }
 
+    aiCache.set(cacheKey, { itinerary: itineraries[0], itineraries });
     res.json({ success: true, itinerary: itineraries[0], itineraries });
   } catch (error) {
     console.error('Error in generateItinerary:', error);
