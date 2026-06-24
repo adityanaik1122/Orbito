@@ -36,13 +36,13 @@ const GROQ_MODELS = [
 ];
 
 const GEMINI_MODELS = [
-  'gemini-1.5-flash',
-  'gemini-1.5-pro',
+  'gemini-2.0-flash',
+  'gemini-2.5-pro',
 ];
 
 const OPENAI_MODELS = [
   'gpt-4o-mini',
-  'gpt-3.5-turbo',
+  'gpt-4o',
 ];
 
 const JSON_SYSTEM = 'You are a JSON-only API. Respond with ONLY valid JSON. No explanations, no markdown, no code blocks — just raw parseable JSON.';

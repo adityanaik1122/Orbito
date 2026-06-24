@@ -237,7 +237,7 @@ Return ONLY valid JSON matching:
 
       for (let i = 1; i < variantCount; i++) {
         try {
-          const variantText = await generateContent(variantPrompt, modelNames[0]);
+          const variantText = await generateWithFallback(variantPrompt);
           let variantCleaned = variantText.trim().replace(/```json\s*/g, '').replace(/```\s*/g, '');
           const variantJsonMatch = variantCleaned.match(/\{[\s\S]*\}/);
           if (variantJsonMatch) variantCleaned = variantJsonMatch[0];

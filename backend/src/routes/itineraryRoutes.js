@@ -8,6 +8,7 @@ const {
 } = require('../controllers/itineraryController');
 const { requireAuth } = require('../middleware/authMiddleware');
 const { requireAuthOrGuestToken, issueGuestToken } = require('../middleware/guestLimiter');
+const { aiLimiter } = require('../middleware/rateLimiter');
 const { validate, schemas } = require('../middleware/validation');
 
 const router = express.Router();
@@ -18,10 +19,10 @@ router.post('/guest-token', (req, res) => {
   res.json({ token, limit: 2, message: 'You have 2 free itinerary generations.' });
 });
 
-// AI routes — authenticated users bypass the guest limit; guests get 2 free uses
-router.post('/generate-itinerary', validate(schemas.generateItinerary), requireAuthOrGuestToken, generateItinerary);
-router.post('/generate-with-tours', validate(schemas.generateItinerary), requireAuthOrGuestToken, generateItineraryWithTours);
-router.post('/suggest-tours', requireAuthOrGuestToken, suggestToursForActivity);
+// AI routes — IP rate limit → guest/auth gate → handler
+router.post('/generate-itinerary', aiLimiter, validate(schemas.generateItinerary), requireAuthOrGuestToken, generateItinerary);
+router.post('/generate-with-tours', aiLimiter, validate(schemas.generateItinerary), requireAuthOrGuestToken, generateItineraryWithTours);
+router.post('/suggest-tours', aiLimiter, requireAuthOrGuestToken, suggestToursForActivity);
 
 // Protected routes - require authentication
 router.post('/save-itinerary', requireAuth, saveItineraryHandler);
