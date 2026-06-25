@@ -94,36 +94,36 @@ const VlogsPage = () => {
         <link rel="canonical" href="https://orbitotrip.com/vlogs" />
       </Helmet>
 
-      <div className="min-h-screen bg-gray-950">
+      <div className="min-h-screen bg-gray-50">
         {/* Hero */}
-        <div className="bg-gray-950 pt-12 pb-8">
+        <div className="bg-[#0B3D91] pt-12 pb-8">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="flex items-center gap-3 mb-3">
               <div className="bg-red-600 rounded-full p-2">
                 <Youtube className="w-5 h-5 text-white" />
               </div>
-              <span className="text-red-500 font-semibold text-sm uppercase tracking-widest">Travel Vlogs</span>
+              <span className="text-blue-200 font-semibold text-sm uppercase tracking-widest">Travel Vlogs</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
               Get Inspired
             </h1>
-            <p className="text-gray-400 text-lg max-w-xl">
+            <p className="text-blue-100 text-lg max-w-xl">
               Fresh travel videos curated daily from the world's best travel creators.
             </p>
           </div>
         </div>
 
         {/* Bento Grid */}
-        <div className="container mx-auto px-4 lg:px-8 pb-16">
+        <div className="container mx-auto px-4 lg:px-8 py-10">
           {loading ? (
             <div className="flex justify-center py-32">
-              <Loader2 className="w-10 h-10 animate-spin text-red-500" />
+              <Loader2 className="w-10 h-10 animate-spin text-[#0B3D91]" />
             </div>
           ) : vlogs.length === 0 ? (
             <div className="text-center py-32">
-              <Youtube className="w-16 h-16 text-gray-700 mx-auto mb-4" />
-              <p className="text-gray-400 text-lg font-semibold">Vlogs loading soon</p>
-              <p className="text-gray-600 text-sm mt-1">Check back in a few minutes.</p>
+              <Youtube className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg font-semibold">Vlogs loading soon</p>
+              <p className="text-gray-400 text-sm mt-1">Check back in a few minutes.</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 auto-rows-[180px]">
