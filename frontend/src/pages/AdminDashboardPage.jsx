@@ -205,8 +205,7 @@ const FALLBACK_TOUR_IMG = 'https://images.unsplash.com/photo-1469854523086-cc02f
 
 const EMPTY_FORM = {
   title: '', description: '', destination_city: '', country: '',
-  image_url: '', viator_url: '', price_from: '', currency: 'USD',
-  duration: '', category: '',
+  image_url: '', viator_url: '', duration: '', category: '',
 };
 
 // ── Tour Guides Admin Section ─────────────────────────────────────────────────
@@ -425,10 +424,7 @@ const AffiliateSection = () => {
       return;
     }
     setSaving(true);
-    const { error } = await supabase.from('affiliate_tours').insert({
-      ...form,
-      price_from: form.price_from ? parseFloat(form.price_from) : null,
-    });
+    const { error } = await supabase.from('affiliate_tours').insert(form);
     setSaving(false);
     if (error) {
       toast({ variant: 'destructive', title: 'Error', description: error.message });
@@ -500,20 +496,6 @@ const AffiliateSection = () => {
             <div className="space-y-1">
               <label className="text-xs font-semibold text-gray-600">Image URL</label>
               <Input placeholder="https://images.unsplash.com/..." value={form.image_url} onChange={(e) => set('image_url', e.target.value)} />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-600">Price From</label>
-              <div className="flex gap-2">
-                <Input type="number" placeholder="29" value={form.price_from} onChange={(e) => set('price_from', e.target.value)} />
-                <Select value={form.currency} onValueChange={(v) => set('currency', v)}>
-                  <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {['USD', 'EUR', 'GBP', 'AUD', 'SGD', 'INR'].map((c) => (
-                      <SelectItem key={c} value={c}>{c}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
             <div className="space-y-1">
               <label className="text-xs font-semibold text-gray-600">Duration</label>

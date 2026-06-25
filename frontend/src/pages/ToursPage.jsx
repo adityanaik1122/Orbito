@@ -23,70 +23,59 @@ const POPULAR_DESTINATIONS = [
   { slug: 'new-york',  name: 'New York',  flag: '🇺🇸', image: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?q=80&w=400&auto=format&fit=crop' },
 ];
 
-const AffiliateCard = ({ tour }) => {
-  const price = tour.price_from != null
-    ? `From ${tour.currency || 'USD'} ${Number(tour.price_from).toFixed(0)}`
-    : null;
+const AffiliateCard = ({ tour }) => (
+  <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col border border-gray-100">
+    <div className="relative h-48 overflow-hidden bg-gray-100">
+      <img
+        src={tour.image_url || FALLBACK_IMG}
+        alt={tour.title}
+        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        loading="lazy"
+        decoding="async"
+        referrerPolicy="no-referrer"
+        onError={(e) => { e.currentTarget.src = FALLBACK_IMG; }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+      {tour.category && (
+        <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-[#0B3D91] text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full shadow-sm">
+          {tour.category}
+        </span>
+      )}
+    </div>
 
-  return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col border border-gray-100">
-      <div className="relative h-48 overflow-hidden bg-gray-100">
-        <img
-          src={tour.image_url || FALLBACK_IMG}
-          alt={tour.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          loading="lazy"
-          decoding="async"
-          referrerPolicy="no-referrer"
-          onError={(e) => { e.currentTarget.src = FALLBACK_IMG; }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-        {tour.category && (
-          <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-[#0B3D91] text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full shadow-sm">
-            {tour.category}
-          </span>
-        )}
+    <div className="p-5 flex flex-col flex-1">
+      <div className="flex items-start gap-1 text-xs text-gray-500 mb-2">
+        <MapPin className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-[#0B3D91]" />
+        <span>{tour.destination_city}, {tour.country}</span>
       </div>
 
-      <div className="p-5 flex flex-col flex-1">
-        <div className="flex items-start gap-1 text-xs text-gray-500 mb-2">
-          <MapPin className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-[#0B3D91]" />
-          <span>{tour.destination_city}, {tour.country}</span>
+      <h3 className="font-bold text-gray-900 text-base leading-snug line-clamp-2 mb-2 group-hover:text-[#0B3D91] transition-colors">
+        {tour.title}
+      </h3>
+
+      {tour.description && (
+        <p className="text-sm text-gray-500 line-clamp-2 mb-3">{tour.description}</p>
+      )}
+
+      {tour.duration && (
+        <div className="flex items-center gap-1 text-xs text-gray-500 mb-4">
+          <Clock className="w-3.5 h-3.5" /> {tour.duration}
         </div>
+      )}
 
-        <h3 className="font-bold text-gray-900 text-base leading-snug line-clamp-2 mb-2 group-hover:text-[#0B3D91] transition-colors">
-          {tour.title}
-        </h3>
-
-        {tour.description && (
-          <p className="text-sm text-gray-500 line-clamp-2 mb-3">{tour.description}</p>
-        )}
-
-        <div className="flex items-center gap-4 text-xs text-gray-500 mb-4">
-          {tour.duration && (
-            <span className="flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5" /> {tour.duration}
-            </span>
-          )}
-          {price && (
-            <span className="font-semibold text-gray-800">{price}</span>
-          )}
-        </div>
-
-        <div className="mt-auto">
-          <a
-            href={tour.viator_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full bg-[#0B3D91] hover:bg-[#092C6B] text-white text-sm font-semibold py-2.5 px-4 rounded-xl transition-colors"
-          >
-            <ExternalLink className="w-4 h-4" /> Book on Viator
-          </a>
-        </div>
+      <div className="mt-auto">
+        <a
+          href={tour.viator_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2 w-full bg-[#0B3D91] hover:bg-[#092C6B] text-white text-sm font-semibold py-2.5 px-4 rounded-xl transition-colors"
+        >
+          <ExternalLink className="w-4 h-4" /> Check Price & Book
+        </a>
       </div>
     </div>
-  );
-};
+  </div>
+);
 
 const ToursPage = () => {
   const navigate = useNavigate();
