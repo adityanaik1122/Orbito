@@ -1,0 +1,32 @@
+name: Fetch Travel Vlogs
+
+on:
+  schedule:
+    # Every day at 8:00 AM UTC (between blog fetch at 7am and reviews at 9am)
+    - cron: '0 8 * * *'
+  workflow_dispatch:
+
+jobs:
+  fetch-vlogs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Fetch latest travel vlogs from YouTube
+        run: |
+          response=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            -X POST "${{ secrets.BACKEND_URL }}/api/jobs/fetch-vlogs" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json")
+
+          echo "HTTP status: $response"
+          echo "Response body:"
+          cat /tmp/response.json
+
+          if [ "$response" != "200" ]; then
+            echo "❌ Job failed with status $response"
+            exit 1
+          fi
+
+          echo "✅ Vlog fetch complete"
+          cat /tmp/response.json

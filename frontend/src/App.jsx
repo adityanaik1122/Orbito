@@ -25,6 +25,7 @@ import CommissionDashboardPage from '@/pages/CommissionDashboardPage';
 import AboutUsPage from '@/pages/AboutUsPage';
 import CareersPage from '@/pages/CareersPage';
 import BlogPage from '@/pages/BlogPage';
+import VlogsPage from '@/pages/VlogsPage';
 import HelpCenterPage from '@/pages/HelpCenterPage';
 import ContactUsPage from '@/pages/ContactUsPage';
 import PrivacyPolicyPage from '@/pages/PrivacyPolicyPage';
@@ -90,6 +91,7 @@ function App() {
           <Route path="/about" element={<Layout><AboutUsPage /></Layout>} />
           <Route path="/careers" element={<Layout><CareersPage /></Layout>} />
           <Route path="/blog" element={<Layout><BlogPage /></Layout>} />
+          <Route path="/vlogs" element={<Layout><VlogsPage /></Layout>} />
           <Route path="/why-ai" element={<Layout><WhyAIPage /></Layout>} />
 
           {/* Support pages */}
