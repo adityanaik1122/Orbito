@@ -24,10 +24,10 @@ const VlogCard = ({ vlog }) => {
       href={vlog.video_url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex-shrink-0 w-72 rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100"
+      className="group flex-shrink-0 w-[80vw] sm:w-[45vw] lg:w-[42vw] rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100"
     >
-      {/* Thumbnail */}
-      <div className="relative h-40 overflow-hidden bg-gray-100">
+      {/* Thumbnail — 16:9 */}
+      <div className="relative aspect-video overflow-hidden bg-gray-100">
         <img
           src={vlog.thumbnail_url}
           alt={vlog.title}
@@ -39,28 +39,28 @@ const VlogCard = ({ vlog }) => {
 
         {/* Play button */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <div className="bg-red-600 rounded-full p-3 shadow-xl">
-            <Play className="w-5 h-5 text-white fill-white" />
+          <div className="bg-red-600 rounded-full p-4 shadow-xl">
+            <Play className="w-7 h-7 text-white fill-white" />
           </div>
         </div>
 
         {/* Duration */}
         {vlog.duration && (
-          <span className="absolute bottom-2 right-2 bg-black/80 text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
-            <Clock className="w-2.5 h-2.5" /> {vlog.duration}
+          <span className="absolute bottom-3 right-3 bg-black/80 text-white text-xs font-bold px-2 py-1 rounded flex items-center gap-1">
+            <Clock className="w-3 h-3" /> {vlog.duration}
           </span>
         )}
       </div>
 
       {/* Info */}
-      <div className="p-3">
-        <p className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug mb-1 group-hover:text-[#0B3D91] transition-colors">
+      <div className="p-4">
+        <p className="text-base font-semibold text-gray-900 line-clamp-2 leading-snug mb-1.5 group-hover:text-[#0B3D91] transition-colors">
           {vlog.title}
         </p>
-        <p className="text-xs text-gray-500 truncate">{vlog.channel_name}</p>
+        <p className="text-sm text-gray-500 truncate">{vlog.channel_name}</p>
         {views && (
-          <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
-            <Eye className="w-3 h-3" /> {views}
+          <p className="text-sm text-gray-400 flex items-center gap-1 mt-1">
+            <Eye className="w-3.5 h-3.5" /> {views}
           </p>
         )}
       </div>
@@ -75,7 +75,7 @@ const ScrollRow = ({ title, vlogs }) => {
 
   const scroll = (dir) => {
     if (!rowRef.current) return;
-    rowRef.current.scrollBy({ left: dir * 600, behavior: 'smooth' });
+    rowRef.current.scrollBy({ left: dir * rowRef.current.clientWidth * 0.8, behavior: 'smooth' });
   };
 
   const checkScroll = () => {
@@ -86,37 +86,51 @@ const ScrollRow = ({ title, vlogs }) => {
 
   useEffect(() => {
     const el = rowRef.current;
-    if (el) { el.addEventListener('scroll', checkScroll); checkScroll(); }
-    return () => el?.removeEventListener('scroll', checkScroll);
+    if (!el) return;
+
+    el.addEventListener('scroll', checkScroll);
+    checkScroll();
+
+    const onWheel = (e) => {
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return; // already horizontal trackpad
+      e.preventDefault();
+      el.scrollBy({ left: e.deltaY * 2, behavior: 'auto' });
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+
+    return () => {
+      el.removeEventListener('scroll', checkScroll);
+      el.removeEventListener('wheel', onWheel);
+    };
   }, [vlogs]);
 
   if (!vlogs || vlogs.length === 0) return null;
 
   return (
-    <div className="mb-10">
-      <div className="flex items-center justify-between mb-4">
+    <div className="mb-14">
+      <div className="flex items-center justify-between mb-5">
         <h2 className="text-3xl font-bold text-gray-900" style={{ fontFamily: "'Playfair Display', serif" }}>{title}</h2>
         <div className="flex gap-2">
           <button
             onClick={() => scroll(-1)}
             disabled={!canLeft}
-            className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:border-[#0B3D91] hover:text-[#0B3D91] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:border-[#0B3D91] hover:text-[#0B3D91] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-5 h-5" />
           </button>
           <button
             onClick={() => scroll(1)}
             disabled={!canRight}
-            className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:border-[#0B3D91] hover:text-[#0B3D91] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:border-[#0B3D91] hover:text-[#0B3D91] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-5 h-5" />
           </button>
         </div>
       </div>
 
       <div
         ref={rowRef}
-        className="flex gap-4 overflow-x-auto pb-2"
+        className="flex gap-5 overflow-x-auto pb-3"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {vlogs.map((vlog) => (
