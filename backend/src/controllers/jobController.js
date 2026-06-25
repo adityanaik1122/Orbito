@@ -28,9 +28,10 @@ async function sendReviewRequests(req, res) {
     const { data: bookings, error } = await supabase
       .from('bookings')
       .select(`
-        id, tour_id, tour_title, booking_reference,
+        id, tour_id, booking_reference,
         customer_name, customer_email, customer_contact,
         tour_date, booking_status,
+        tours(title),
         reviews!left(id)
       `)
       .eq('tour_date', dateStr)
@@ -48,8 +49,7 @@ async function sendReviewRequests(req, res) {
     let failed = 0;
 
     for (const booking of bookings) {
-      // Fetch minimal tour data (title already on booking row)
-      const tourData = { title: booking.tour_title };
+      const tourData = { title: booking.tours?.title || 'your tour' };
 
       const result = await sendReviewRequest(booking, tourData);
       if (result.success) {
