@@ -32,6 +32,9 @@ import {
   Link2,
   ExternalLink,
   Trash2,
+  Pencil,
+  X,
+  Check,
 } from 'lucide-react';
 import { apiService } from '@/services/api';
 import {
@@ -379,6 +382,8 @@ const AffiliateSection = () => {
   const [saving, setSaving] = useState(false);
   const [autoFilling, setAutoFilling] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({});
 
   const fetchAffiliate = async () => {
     const { data } = await supabase
@@ -451,6 +456,31 @@ const AffiliateSection = () => {
   const handleToggle = async (id, current) => {
     await supabase.from('affiliate_tours').update({ is_active: !current }).eq('id', id);
     fetchAffiliate();
+  };
+
+  const startEdit = (t) => {
+    setEditingId(t.id);
+    setEditForm({
+      title: t.title || '',
+      destination_city: t.destination_city || '',
+      country: t.country || '',
+      image_url: t.image_url || '',
+      duration: t.duration || '',
+      category: t.category || '',
+      description: t.description || '',
+      viator_url: t.viator_url || '',
+    });
+  };
+
+  const handleEditSave = async (id) => {
+    const { error } = await supabase.from('affiliate_tours').update(editForm).eq('id', id);
+    if (error) {
+      toast({ variant: 'destructive', title: 'Save failed', description: error.message });
+    } else {
+      toast({ title: 'Tour updated!' });
+      setEditingId(null);
+      fetchAffiliate();
+    }
   };
 
   const activeCount = affiliateTours.filter((t) => t.is_active).length;
@@ -536,37 +566,88 @@ const AffiliateSection = () => {
           ) : (
             <div className="space-y-3">
               {affiliateTours.map((t) => (
-                <div key={t.id} className="flex items-center gap-4 p-3 rounded-xl border border-gray-100 hover:bg-gray-50">
-                  <img
-                    src={t.image_url || FALLBACK_TOUR_IMG}
-                    alt={t.title}
-                    className="w-16 h-12 rounded-lg object-cover flex-shrink-0"
-                    referrerPolicy="no-referrer"
-                    onError={(e) => { e.currentTarget.src = FALLBACK_TOUR_IMG; }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm text-gray-900 truncate">{t.title}</p>
-                    <p className="text-xs text-gray-500">
-                      {t.destination_city}, {t.country}
-                      {t.category && ` · ${t.category}`}
-                      {t.duration && ` · ${t.duration}`}
-                      {t.price_from && ` · From ${t.currency} ${t.price_from}`}
-                    </p>
-                    <a href={t.viator_url} target="_blank" rel="noopener noreferrer" className="text-xs text-[#0B3D91] hover:underline flex items-center gap-1 mt-0.5">
-                      <ExternalLink className="w-3 h-3" /> View on Viator
-                    </a>
+                <div key={t.id} className="rounded-xl border border-gray-100 overflow-hidden">
+                  {/* Row */}
+                  <div className="flex items-center gap-4 p-3 hover:bg-gray-50">
+                    <img
+                      src={t.image_url || FALLBACK_TOUR_IMG}
+                      alt={t.title}
+                      className="w-16 h-12 rounded-lg object-cover flex-shrink-0"
+                      referrerPolicy="no-referrer"
+                      onError={(e) => { e.currentTarget.src = FALLBACK_TOUR_IMG; }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm text-gray-900 truncate">{t.title}</p>
+                      <p className="text-xs text-gray-500">
+                        {t.destination_city}, {t.country}
+                        {t.category && ` · ${t.category}`}
+                        {t.duration && ` · ${t.duration}`}
+                      </p>
+                      <a href={t.viator_url} target="_blank" rel="noopener noreferrer" className="text-xs text-[#0B3D91] hover:underline flex items-center gap-1 mt-0.5">
+                        <ExternalLink className="w-3 h-3" /> View on Viator
+                      </a>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${t.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                        {t.is_active ? 'Active' : 'Hidden'}
+                      </span>
+                      <Button variant="outline" size="sm" onClick={() => handleToggle(t.id, t.is_active)} className="text-xs h-7">
+                        {t.is_active ? 'Hide' : 'Show'}
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => editingId === t.id ? setEditingId(null) : startEdit(t)} className="h-7 w-7 p-0 text-gray-400 hover:text-[#0B3D91]">
+                        {editingId === t.id ? <X className="w-3.5 h-3.5" /> : <Pencil className="w-3.5 h-3.5" />}
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDelete(t.id)} className="text-red-400 hover:text-red-600 hover:bg-red-50 h-7 w-7 p-0">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${t.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                      {t.is_active ? 'Active' : 'Hidden'}
-                    </span>
-                    <Button variant="outline" size="sm" onClick={() => handleToggle(t.id, t.is_active)} className="text-xs h-7">
-                      {t.is_active ? 'Hide' : 'Show'}
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(t.id)} className="text-red-400 hover:text-red-600 hover:bg-red-50 h-7 w-7 p-0">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </Button>
-                  </div>
+
+                  {/* Inline edit panel */}
+                  {editingId === t.id && (
+                    <div className="border-t border-gray-100 bg-gray-50 p-4 space-y-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-xs font-semibold text-gray-600">Title</label>
+                          <Input value={editForm.title} onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))} />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs font-semibold text-gray-600">Viator URL</label>
+                          <Input value={editForm.viator_url} onChange={(e) => setEditForm((f) => ({ ...f, viator_url: e.target.value }))} />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs font-semibold text-gray-600">City</label>
+                          <Input value={editForm.destination_city} onChange={(e) => setEditForm((f) => ({ ...f, destination_city: e.target.value }))} />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs font-semibold text-gray-600">Country</label>
+                          <Input value={editForm.country} onChange={(e) => setEditForm((f) => ({ ...f, country: e.target.value }))} />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs font-semibold text-gray-600">Image URL</label>
+                          <Input value={editForm.image_url} onChange={(e) => setEditForm((f) => ({ ...f, image_url: e.target.value }))} />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs font-semibold text-gray-600">Duration</label>
+                          <Input value={editForm.duration} onChange={(e) => setEditForm((f) => ({ ...f, duration: e.target.value }))} />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs font-semibold text-gray-600">Category</label>
+                          <Input value={editForm.category} onChange={(e) => setEditForm((f) => ({ ...f, category: e.target.value }))} />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-semibold text-gray-600">Description</label>
+                        <Input value={editForm.description} onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))} />
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" onClick={() => handleEditSave(t.id)} className="bg-[#0B3D91] hover:bg-[#092C6B]">
+                          <Check className="w-3.5 h-3.5 mr-1" /> Save Changes
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => setEditingId(null)}>Cancel</Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
