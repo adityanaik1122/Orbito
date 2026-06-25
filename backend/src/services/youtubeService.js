@@ -3,23 +3,28 @@ const logger = require('../utils/logger');
 const YT_API = 'https://www.googleapis.com/youtube/v3';
 const API_KEY = process.env.YOUTUBE_API_KEY;
 
-// Search terms rotated daily so content stays fresh
-const SEARCH_QUERIES = [
-  'travel vlog 2024',
-  'best travel destinations vlog',
-  'solo travel vlog',
-  'Europe travel vlog',
-  'Asia travel vlog',
-  'budget travel vlog',
-  'luxury travel vlog',
+// Each category fetches 5 videos = 15 total
+const CATEGORIES = [
+  {
+    label: 'Trending Now',
+    queries: ['best travel vlog 2024', 'travel vlog trending', 'travel destinations 2024'],
+  },
+  {
+    label: 'Hidden Gems',
+    queries: ['hidden gems travel vlog', 'underrated destinations travel', 'off the beaten path travel'],
+  },
+  {
+    label: 'Solo Travel',
+    queries: ['solo travel vlog', 'solo female travel', 'solo backpacking adventure'],
+  },
 ];
 
-function todaysQuery() {
+// Rotate query within a category based on day of year so content stays fresh
+function todaysQuery(queries) {
   const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
-  return SEARCH_QUERIES[dayOfYear % SEARCH_QUERIES.length];
+  return queries[dayOfYear % queries.length];
 }
 
-// Parse ISO 8601 duration (PT1H2M3S) → "1h 2m"
 function parseDuration(iso) {
   if (!iso) return null;
   const match = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
@@ -29,18 +34,15 @@ function parseDuration(iso) {
   return (h + m).trim() || null;
 }
 
-async function fetchTravelVlogs(maxResults = 15) {
-  if (!API_KEY) throw new Error('YOUTUBE_API_KEY is not set');
+async function fetchCategory(category, maxResults = 5) {
+  const query = todaysQuery(category.queries);
+  logger.info(`[youtubeService] "${category.label}" → query: "${query}"`);
 
-  const query = todaysQuery();
-  logger.info(`[youtubeService] Fetching "${query}" — up to ${maxResults} videos`);
-
-  // Step 1: search for videos
   const searchParams = new URLSearchParams({
     part: 'snippet',
     q: query,
     type: 'video',
-    videoCategoryId: '19', // Travel & Events category
+    videoCategoryId: '19',
     maxResults: String(maxResults),
     order: 'viewCount',
     relevanceLanguage: 'en',
@@ -60,7 +62,6 @@ async function fetchTravelVlogs(maxResults = 15) {
 
   const videoIds = items.map((i) => i.id.videoId).join(',');
 
-  // Step 2: get video details (duration + view count)
   const detailParams = new URLSearchParams({
     part: 'contentDetails,statistics',
     id: videoIds,
@@ -93,8 +94,26 @@ async function fetchTravelVlogs(maxResults = 15) {
       published_at: snippet.publishedAt || new Date().toISOString(),
       view_count: detail.viewCount || 0,
       duration: detail.duration || null,
+      category: category.label,
     };
   });
+}
+
+async function fetchTravelVlogs(perCategory = 5) {
+  if (!API_KEY) throw new Error('YOUTUBE_API_KEY is not set');
+
+  const results = await Promise.all(CATEGORIES.map((c) => fetchCategory(c, perCategory)));
+  const all = results.flat();
+
+  const seen = new Set();
+  const unique = all.filter((v) => {
+    if (seen.has(v.video_id)) return false;
+    seen.add(v.video_id);
+    return true;
+  });
+
+  logger.info(`[youtubeService] ${unique.length} unique vlogs fetched across ${CATEGORIES.length} categories`);
+  return unique;
 }
 
 module.exports = { fetchTravelVlogs };

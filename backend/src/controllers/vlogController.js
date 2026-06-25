@@ -8,15 +8,23 @@ const logger = require('../utils/logger');
  */
 async function getVlogs(req, res) {
   try {
-    const limit = Math.min(30, parseInt(req.query.limit) || 15);
     const { data, error } = await supabase
       .from('travel_vlogs')
       .select('*')
-      .order('published_at', { ascending: false })
-      .limit(limit);
+      .order('category')
+      .order('published_at', { ascending: false });
 
     if (error) throw error;
-    return res.json({ vlogs: data || [] });
+
+    // Group by category for frontend rows
+    const grouped = {};
+    (data || []).forEach((v) => {
+      const cat = v.category || 'Trending Now';
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(v);
+    });
+
+    return res.json({ vlogs: data || [], grouped });
   } catch (err) {
     logger.error('getVlogs error:', err);
     return res.status(500).json({ error: 'Failed to fetch vlogs' });
@@ -34,7 +42,7 @@ async function fetchAndStoreVlogs(req, res) {
   }
 
   try {
-    const vlogs = await fetchTravelVlogs(15);
+    const vlogs = await fetchTravelVlogs(5); // 5 per category × 3 categories = 15
 
     if (vlogs.length === 0) {
       return res.json({ inserted: 0, skipped: 0, message: 'No vlogs fetched' });
