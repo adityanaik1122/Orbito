@@ -95,7 +95,7 @@ const ScrollRow = ({ title, vlogs }) => {
   return (
     <div className="mb-10">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-gray-900">{title}</h2>
+        <h2 className="text-3xl font-bold text-gray-900" style={{ fontFamily: "'Playfair Display', serif" }}>{title}</h2>
         <div className="flex gap-2">
           <button
             onClick={() => scroll(-1)}
