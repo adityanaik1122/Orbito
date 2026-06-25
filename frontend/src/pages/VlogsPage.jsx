@@ -70,12 +70,34 @@ const VlogCard = ({ vlog }) => {
 
 const ScrollRow = ({ title, vlogs }) => {
   const rowRef = useRef(null);
+  const targetRef = useRef(0);
+  const rafRef = useRef(null);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(true);
 
   const scroll = (dir) => {
-    if (!rowRef.current) return;
-    rowRef.current.scrollBy({ left: dir * rowRef.current.clientWidth * 0.8, behavior: 'smooth' });
+    const el = rowRef.current;
+    if (!el) return;
+    targetRef.current = Math.max(0, Math.min(
+      targetRef.current + dir * el.clientWidth * 0.8,
+      el.scrollWidth - el.clientWidth
+    ));
+    startRaf(el);
+  };
+
+  const startRaf = (el) => {
+    if (rafRef.current) return;
+    const tick = () => {
+      const diff = targetRef.current - el.scrollLeft;
+      if (Math.abs(diff) < 0.5) {
+        el.scrollLeft = targetRef.current;
+        rafRef.current = null;
+        return;
+      }
+      el.scrollLeft += diff * 0.1;
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
   };
 
   const checkScroll = () => {
@@ -92,15 +114,20 @@ const ScrollRow = ({ title, vlogs }) => {
     checkScroll();
 
     const onWheel = (e) => {
-      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return; // already horizontal trackpad
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
       e.preventDefault();
-      el.scrollBy({ left: e.deltaY * 2, behavior: 'auto' });
+      targetRef.current = Math.max(0, Math.min(
+        targetRef.current + e.deltaY * 1.5,
+        el.scrollWidth - el.clientWidth
+      ));
+      startRaf(el);
     };
     el.addEventListener('wheel', onWheel, { passive: false });
 
     return () => {
       el.removeEventListener('scroll', checkScroll);
       el.removeEventListener('wheel', onWheel);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
   }, [vlogs]);
 
