@@ -181,6 +181,92 @@ async function rejectTour(req, res) {
   }
 }
 
+// ── Tour Meta Scraper ─────────────────────────────────────────────────────────
+
+// Parse city and country from a Viator URL slug
+// e.g. /tours/London/... → city=London, country=United Kingdom
+const CITY_COUNTRY_MAP = {
+  london: { city: 'London', country: 'United Kingdom' },
+  paris: { city: 'Paris', country: 'France' },
+  rome: { city: 'Rome', country: 'Italy' },
+  barcelona: { city: 'Barcelona', country: 'Spain' },
+  amsterdam: { city: 'Amsterdam', country: 'Netherlands' },
+  dubai: { city: 'Dubai', country: 'UAE' },
+  newyork: { city: 'New York', country: 'United States' },
+  'new-york': { city: 'New York', country: 'United States' },
+  tokyo: { city: 'Tokyo', country: 'Japan' },
+  sydney: { city: 'Sydney', country: 'Australia' },
+  istanbul: { city: 'Istanbul', country: 'Turkey' },
+  prague: { city: 'Prague', country: 'Czech Republic' },
+  vienna: { city: 'Vienna', country: 'Austria' },
+  lisbon: { city: 'Lisbon', country: 'Portugal' },
+  madrid: { city: 'Madrid', country: 'Spain' },
+  berlin: { city: 'Berlin', country: 'Germany' },
+  athens: { city: 'Athens', country: 'Greece' },
+  bangkok: { city: 'Bangkok', country: 'Thailand' },
+  singapore: { city: 'Singapore', country: 'Singapore' },
+  bali: { city: 'Bali', country: 'Indonesia' },
+};
+
+function parseCityFromUrl(url) {
+  try {
+    const match = url.match(/viator\.com\/tours\/([^/]+)/i);
+    if (!match) return { city: '', country: '' };
+    const slug = match[1].toLowerCase().replace(/-/g, '');
+    // Try exact slug match first, then without hyphens
+    const key = match[1].toLowerCase();
+    return CITY_COUNTRY_MAP[key] || CITY_COUNTRY_MAP[slug] || { city: match[1].replace(/-/g, ' '), country: '' };
+  } catch {
+    return { city: '', country: '' };
+  }
+}
+
+async function fetchTourMeta(req, res) {
+  const { url } = req.query;
+  if (!url || !url.includes('viator.com')) {
+    return res.status(400).json({ error: 'A Viator URL is required' });
+  }
+
+  try {
+    // Fetch with browser-like headers so Viator serves the OG meta tags
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-GB,en;q=0.9',
+        'Cache-Control': 'no-cache',
+      },
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (!response.ok) {
+      return res.status(502).json({ error: `Viator returned ${response.status}` });
+    }
+
+    const html = await response.text();
+
+    const getMeta = (property) => {
+      const match = html.match(new RegExp(`<meta[^>]+(?:property|name)=["']${property}["'][^>]+content=["']([^"']+)["']`, 'i'))
+        || html.match(new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["']${property}["']`, 'i'));
+      return match ? match[1].trim() : '';
+    };
+
+    const title = getMeta('og:title') || getMeta('twitter:title') || '';
+    const description = getMeta('og:description') || getMeta('description') || '';
+    const image_url = getMeta('og:image') || getMeta('twitter:image') || '';
+    const { city, country } = parseCityFromUrl(url);
+
+    // Strip " | Viator" suffix from title if present
+    const cleanTitle = title.replace(/\s*\|.*$/, '').trim();
+
+    logger.info(`fetchTourMeta: scraped "${cleanTitle}" from ${url}`);
+    return res.json({ title: cleanTitle, description, image_url, city, country });
+  } catch (err) {
+    logger.error('fetchTourMeta error:', err.message);
+    return res.status(500).json({ error: 'Failed to fetch tour metadata' });
+  }
+}
+
 module.exports = {
   getApplications,
   approveApplication,
@@ -188,4 +274,5 @@ module.exports = {
   getPendingTours,
   approveTour,
   rejectTour,
+  fetchTourMeta,
 };

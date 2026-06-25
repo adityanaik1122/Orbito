@@ -8,6 +8,7 @@ const {
   getPendingTours,
   approveTour,
   rejectTour,
+  fetchTourMeta,
 } = require('../controllers/adminController');
 const { fetchAndStoreBlogPosts, getBlogPosts } = require('../controllers/blogController');
 
@@ -23,6 +24,9 @@ router.post('/applications/:id/reject', rejectApplication);
 router.get('/pending-tours', getPendingTours);
 router.post('/tours/:id/approve', approveTour);
 router.post('/tours/:id/reject', rejectTour);
+
+// Tour meta scraper
+router.get('/fetch-tour-meta', fetchTourMeta);
 
 // Blog management
 router.post('/fetch-blog', fetchAndStoreBlogPosts);

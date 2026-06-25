@@ -378,6 +378,7 @@ const AffiliateSection = () => {
   const [affiliateTours, setAffiliateTours] = useState([]);
   const [loadingTours, setLoadingTours] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [autoFilling, setAutoFilling] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
 
   const fetchAffiliate = async () => {
@@ -392,6 +393,31 @@ const AffiliateSection = () => {
   useEffect(() => { fetchAffiliate(); }, []);
 
   const set = (key, val) => setForm((f) => ({ ...f, [key]: val }));
+
+  const handleAutoFill = async () => {
+    if (!form.viator_url) {
+      toast({ variant: 'destructive', title: 'Paste a Viator URL first' });
+      return;
+    }
+    setAutoFilling(true);
+    try {
+      const res = await apiService.get(`/admin/fetch-tour-meta?url=${encodeURIComponent(form.viator_url)}`);
+      if (res.error) throw new Error(res.error);
+      setForm((f) => ({
+        ...f,
+        title: res.title || f.title,
+        description: res.description || f.description,
+        image_url: res.image_url || f.image_url,
+        destination_city: res.city || f.destination_city,
+        country: res.country || f.country,
+      }));
+      toast({ title: 'Auto-filled!', description: 'Check the fields and add the price before saving.' });
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'Auto-fill failed', description: err.message });
+    } finally {
+      setAutoFilling(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!form.title || !form.viator_url || !form.destination_city || !form.country) {
@@ -456,7 +482,12 @@ const AffiliateSection = () => {
             </div>
             <div className="space-y-1">
               <label className="text-xs font-semibold text-gray-600">Viator URL *</label>
-              <Input placeholder="https://www.viator.com/tours/Rome/..." value={form.viator_url} onChange={(e) => set('viator_url', e.target.value)} />
+              <div className="flex gap-2">
+                <Input placeholder="https://www.viator.com/tours/London/..." value={form.viator_url} onChange={(e) => set('viator_url', e.target.value)} />
+                <Button type="button" variant="outline" onClick={handleAutoFill} disabled={autoFilling} className="shrink-0">
+                  {autoFilling ? <Loader2 className="w-4 h-4 animate-spin" /> : '✨ Auto-fill'}
+                </Button>
+              </div>
             </div>
             <div className="space-y-1">
               <label className="text-xs font-semibold text-gray-600">City *</label>
