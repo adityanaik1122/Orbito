@@ -221,50 +221,53 @@ function parseCityFromUrl(url) {
   }
 }
 
+// Convert URL slug to readable title
+// e.g. "London-In-a-Day-Tower-of-London" → "London In a Day: Tower of London"
+function slugToTitle(slug) {
+  // Remove query params and trailing slashes
+  const clean = slug.split('?')[0].replace(/\/$/, '');
+  // Replace hyphens with spaces and title-case
+  return clean
+    .replace(/-/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .trim();
+}
+
 async function fetchTourMeta(req, res) {
   const { url } = req.query;
   if (!url || !url.includes('viator.com')) {
     return res.status(400).json({ error: 'A Viator URL is required' });
   }
 
+  // Always parse what we can from the URL — works without hitting Viator
+  const { city, country } = parseCityFromUrl(url);
+  const tourSlugMatch = url.match(/viator\.com\/tours\/[^/]+\/([^/]+)\//i);
+  const titleFromSlug = tourSlugMatch ? slugToTitle(tourSlugMatch[1]) : '';
+
+  // Try microlink.io (free, 50 req/day) to get image + description
+  let image_url = '';
+  let description = '';
+  let title = titleFromSlug;
+
   try {
-    // Fetch with browser-like headers so Viator serves the OG meta tags
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-GB,en;q=0.9',
-        'Cache-Control': 'no-cache',
-      },
-      signal: AbortSignal.timeout(10000),
-    });
-
-    if (!response.ok) {
-      return res.status(502).json({ error: `Viator returned ${response.status}` });
+    const mlRes = await fetch(
+      `https://api.microlink.io/?url=${encodeURIComponent(url.split('?')[0])}&screenshot=false`,
+      { signal: AbortSignal.timeout(8000) }
+    );
+    if (mlRes.ok) {
+      const ml = await mlRes.json();
+      if (ml.status === 'success' && ml.data) {
+        title = ml.data.title?.replace(/\s*[|\-–].*$/, '').trim() || titleFromSlug;
+        description = ml.data.description || '';
+        image_url = ml.data.image?.url || '';
+      }
     }
-
-    const html = await response.text();
-
-    const getMeta = (property) => {
-      const match = html.match(new RegExp(`<meta[^>]+(?:property|name)=["']${property}["'][^>]+content=["']([^"']+)["']`, 'i'))
-        || html.match(new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["']${property}["']`, 'i'));
-      return match ? match[1].trim() : '';
-    };
-
-    const title = getMeta('og:title') || getMeta('twitter:title') || '';
-    const description = getMeta('og:description') || getMeta('description') || '';
-    const image_url = getMeta('og:image') || getMeta('twitter:image') || '';
-    const { city, country } = parseCityFromUrl(url);
-
-    // Strip " | Viator" suffix from title if present
-    const cleanTitle = title.replace(/\s*\|.*$/, '').trim();
-
-    logger.info(`fetchTourMeta: scraped "${cleanTitle}" from ${url}`);
-    return res.json({ title: cleanTitle, description, image_url, city, country });
   } catch (err) {
-    logger.error('fetchTourMeta error:', err.message);
-    return res.status(500).json({ error: 'Failed to fetch tour metadata' });
+    logger.warn('microlink fetch failed, falling back to URL parsing:', err.message);
   }
+
+  logger.info(`fetchTourMeta: "${title}" | city=${city} | image=${image_url ? 'yes' : 'no'}`);
+  return res.json({ title, description, image_url, city, country });
 }
 
 module.exports = {
