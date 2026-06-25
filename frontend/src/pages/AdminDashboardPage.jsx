@@ -400,8 +400,15 @@ const AffiliateSection = () => {
     }
     setAutoFilling(true);
     try {
-      const res = await apiService.get(`/admin/fetch-tour-meta?url=${encodeURIComponent(form.viator_url)}`);
-      if (res.error) throw new Error(res.error);
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(
+        `${apiBase}/admin/fetch-tour-meta?url=${encodeURIComponent(form.viator_url)}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const res = await response.json();
+      if (!response.ok) throw new Error(res.error || 'Auto-fill failed');
       setForm((f) => ({
         ...f,
         title: res.title || f.title,
@@ -410,7 +417,7 @@ const AffiliateSection = () => {
         destination_city: res.city || f.destination_city,
         country: res.country || f.country,
       }));
-      toast({ title: 'Auto-filled!', description: 'Check the fields and add the price before saving.' });
+      toast({ title: 'Auto-filled!', description: 'Check the fields then hit Add Tour.' });
     } catch (err) {
       toast({ variant: 'destructive', title: 'Auto-fill failed', description: err.message });
     } finally {
