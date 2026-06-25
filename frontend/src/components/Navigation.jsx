@@ -34,6 +34,7 @@ const Navigation = () => {
     { key: 'nav_itineraries', path: '/itineraries' },
     { label: 'Tour Guides', path: '/tour-guides' },
     { key: 'nav_why_ai', path: '/why-ai', highlight: true },
+    { label: 'Blog', path: '/blog' },
     { key: 'nav_about', path: '/about' },
     { key: 'nav_contact', path: '/contact' },
   ];
