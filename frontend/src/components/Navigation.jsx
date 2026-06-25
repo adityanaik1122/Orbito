@@ -41,7 +41,7 @@ const Navigation = () => {
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 shadow-sm h-20">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-white/30 shadow-sm h-20">
       <nav className="container mx-auto px-4 lg:px-8 h-full flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center shrink-0">
@@ -84,8 +84,8 @@ const Navigation = () => {
              <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
           ) : !user ? (
             <Link to="/login">
-              <Button 
-                className="bg-[#0B3D91] hover:bg-[#092C6B] text-white font-bold px-8 rounded-full h-10 text-[14px] shadow-md"
+              <Button
+                className="bg-gradient-to-r from-[#0B3D91] to-[#0EA5E9] hover:from-[#092C6B] hover:to-[#0284c7] text-white font-bold px-8 rounded-full h-10 text-[14px] shadow-md"
               >
                 {t('nav_login')}
               </Button>
@@ -123,7 +123,7 @@ const Navigation = () => {
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden bg-white border-t border-gray-100 absolute w-full shadow-lg py-4 px-4 flex flex-col gap-2">
+        <div className="lg:hidden bg-white/90 backdrop-blur-md border-t border-white/30 absolute w-full shadow-lg py-4 px-4 flex flex-col gap-2">
           <div className="px-2">
             <Select value={currentPreset.id} onValueChange={setLocalePreset}>
               <SelectTrigger className="h-10 w-full text-sm">
@@ -153,7 +153,7 @@ const Navigation = () => {
             <div className="py-2 text-center text-gray-400"><Loader2 className="w-5 h-5 animate-spin inline" /></div>
           ) : !user ? (
             <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
-              <Button className="w-full bg-[#0B3D91] text-white">{t('nav_login')}</Button>
+              <Button className="w-full bg-gradient-to-r from-[#0B3D91] to-[#0EA5E9] hover:from-[#092C6B] hover:to-[#0284c7] text-white">{t('nav_login')}</Button>
             </Link>
           ) : (
             <>

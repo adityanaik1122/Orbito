@@ -150,7 +150,7 @@ const VlogsPage = () => {
 
       <div className="min-h-screen bg-gray-50">
         {/* Hero */}
-        <div className="bg-[#0B3D91] py-12">
+        <div className="bg-gradient-to-r from-[#0B3D91] to-[#0EA5E9] py-12">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="flex items-center gap-3 mb-3">
               <div className="bg-red-600 rounded-full p-2">

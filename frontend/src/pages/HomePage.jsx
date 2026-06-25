@@ -173,7 +173,7 @@ const HomePage = () => {
                     <div className="pr-2">
                       <Button
                         type="submit"
-                        className="bg-[#0B3D91] hover:bg-[#092C6B] text-white font-semibold px-5 py-3 rounded-xl flex items-center gap-2"
+                        className="bg-gradient-to-r from-[#0B3D91] to-[#0EA5E9] hover:from-[#092C6B] hover:to-[#0284c7] text-white font-semibold px-5 py-3 rounded-xl flex items-center gap-2"
                       >
                         <Sparkles className="w-4 h-4" />
                         Plan my trip
@@ -266,7 +266,7 @@ const HomePage = () => {
                   transition={{ delay: i * 0.1, duration: 0.5 }}
                   className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
                 >
-                  <div className="bg-gradient-to-r from-[#0B3D91] to-[#1E5BA8] px-5 py-4">
+                  <div className="bg-gradient-to-r from-[#0B3D91] to-[#0EA5E9] px-5 py-4">
                     <p className="text-white/70 text-xs font-bold uppercase tracking-widest">Day {day.day}</p>
                     <p className="text-white font-bold text-lg">{day.title}</p>
                   </div>
@@ -293,7 +293,7 @@ const HomePage = () => {
             <div className="text-center mt-10">
               <Button
                 onClick={() => handlePrompt('7 days in Tokyo, mix of tradition and modern 🇯🇵')}
-                className="bg-[#0B3D91] hover:bg-[#092C6B] text-white font-bold px-8 py-4 text-base rounded-full shadow-md"
+                className="bg-gradient-to-r from-[#0B3D91] to-[#0EA5E9] hover:from-[#092C6B] hover:to-[#0284c7] text-white font-bold px-8 py-4 text-base rounded-full shadow-md"
               >
                 <Sparkles className="w-4 h-4 mr-2" />
                 Generate my Tokyo itinerary
@@ -346,7 +346,7 @@ const HomePage = () => {
                   transition={{ delay: i * 0.15, duration: 0.6 }}
                   className="text-center"
                 >
-                  <div className="w-14 h-14 bg-gradient-to-br from-[#0B3D91] to-[#1E5BA8] rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-md">
+                  <div className="w-14 h-14 bg-gradient-to-br from-[#0B3D91] to-[#0EA5E9] rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-md">
                     <step.icon className="w-7 h-7 text-white" strokeWidth={1.5} />
                   </div>
                   <div className="text-xs font-bold text-[#0B3D91] uppercase tracking-widest mb-2">Step {i + 1}</div>
@@ -434,7 +434,7 @@ const HomePage = () => {
               </p>
               <Button
                 onClick={() => navigate('/plan')}
-                className="bg-[#0B3D91] hover:bg-[#092C6B] text-white font-bold px-8 py-4 text-base rounded-full shadow-md"
+                className="bg-gradient-to-r from-[#0B3D91] to-[#0EA5E9] hover:from-[#092C6B] hover:to-[#0284c7] text-white font-bold px-8 py-4 text-base rounded-full shadow-md"
               >
                 <Sparkles className="w-4 h-4 mr-2" />
                 Try it free — no sign-up needed
@@ -457,7 +457,7 @@ const HomePage = () => {
 
         {/* ── FINAL CTA ────────────────────────────────────────────────────── */}
         <section className="py-24 bg-[#060d1f] text-white text-center relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#0B3D91]/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#0B3D91]/50 via-[#0EA5E9]/20 to-transparent" />
           <div className="relative z-10 container mx-auto px-5 max-w-3xl">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
