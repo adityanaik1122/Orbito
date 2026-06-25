@@ -52,6 +52,16 @@ const Footer = () => {
           </div>
 
           <div>
+            <h3 className="font-bold text-gray-900 mb-6">{t('footer_discover')}</h3>
+            <ul className="space-y-4">
+              <li><Link to="/destinations" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_destinations')}</Link></li>
+              <li><Link to="/itineraries" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_itineraries')}</Link></li>
+              <li><Link to="/resources" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_guides')}</Link></li>
+              <li><Link to="/blog" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_articles')}</Link></li>
+            </ul>
+          </div>
+
+          <div>
             <h3 className="font-bold text-gray-900 mb-6">{t('footer_support')}</h3>
             <ul className="space-y-4">
               <li><Link to="/help" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_help')}</Link></li>
@@ -60,16 +70,6 @@ const Footer = () => {
               <li><Link to="/terms" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_terms')}</Link></li>
               <li><Link to="/refunds" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_refunds')}</Link></li>
               <li><Link to="/supplier-terms" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_supplier_terms')}</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="font-bold text-gray-900 mb-6">{t('footer_discover')}</h3>
-            <ul className="space-y-4">
-              <li><Link to="/destinations" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_destinations')}</Link></li>
-              <li><Link to="/itineraries" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_itineraries')}</Link></li>
-              <li><Link to="/resources" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_guides')}</Link></li>
-              <li><Link to="/blog" className="text-gray-500 hover:text-[#0B3D91]">{t('footer_articles')}</Link></li>
             </ul>
           </div>
         </div>
