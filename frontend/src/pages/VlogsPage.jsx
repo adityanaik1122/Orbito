@@ -7,11 +7,7 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const ROW_ORDER = ['Trending Now', 'Hidden Gems', 'Solo Travel'];
 
-const ROW_ICONS = {
-  'Trending Now': '🔥',
-  'Hidden Gems': '💎',
-  'Solo Travel': '🎒',
-};
+const ROW_ICONS = {};
 
 function formatViews(n) {
   if (!n) return null;
@@ -99,9 +95,7 @@ const ScrollRow = ({ title, vlogs }) => {
   return (
     <div className="mb-10">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-          <span>{ROW_ICONS[title] || '🎬'}</span> {title}
-        </h2>
+        <h2 className="text-xl font-bold text-gray-900">{title}</h2>
         <div className="flex gap-2">
           <button
             onClick={() => scroll(-1)}
