@@ -11,10 +11,11 @@ const {
   trackAffiliateClick
 } = require('../controllers/analyticsController');
 const { requireAuth, requireAdmin } = require('../middleware/authMiddleware');
+const { trackingLimiter } = require('../middleware/rateLimiter');
 
-// Public tracking endpoints (no auth required)
-router.post('/track/page-view', trackPageView);
-router.post('/track/affiliate-click', trackAffiliateClick);
+// Public tracking endpoints — rate-limited to prevent DB spam
+router.post('/track/page-view', trackingLimiter, trackPageView);
+router.post('/track/affiliate-click', trackingLimiter, trackAffiliateClick);
 
 // Admin-only analytics endpoints
 router.get('/dashboard/summary', requireAuth, requireAdmin, getDashboardSummary);

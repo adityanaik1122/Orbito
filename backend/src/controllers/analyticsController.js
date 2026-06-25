@@ -203,25 +203,36 @@ async function getItineraryStats(req, res) {
   }
 }
 
+const SAFE_PATH_RE = /^\/[a-zA-Z0-9\-._~:/?#[\]@!$&'()*+,;=%]*$/;
+const ALLOWED_PROVIDERS = new Set(['viator', 'getyourguide', 'internal']);
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
  * Track page view
  */
 async function trackPageView(req, res) {
   try {
     const { pagePath, pageTitle, referrer } = req.body;
+
+    // Validate pagePath — must look like a real app route
+    if (!pagePath || typeof pagePath !== 'string' || !SAFE_PATH_RE.test(pagePath) || pagePath.length > 500) {
+      return res.status(400).json({ error: 'Invalid pagePath' });
+    }
+
     const userId = req.user?.id || null;
-    const userAgent = req.headers['user-agent'];
-    const ipAddress = req.ip || req.headers['x-forwarded-for'];
+    // Take user-agent from the request itself, not from the body (can't be spoofed via body)
+    const userAgent = String(req.headers['user-agent'] || '').slice(0, 500);
+    const ipAddress = (req.ip || req.headers['x-forwarded-for'] || '').split(',')[0].trim();
 
     const { error } = await supabase
       .from('page_views')
       .insert({
         user_id: userId,
-        page_path: pagePath,
-        page_title: pageTitle,
-        referrer: referrer,
+        page_path: pagePath.slice(0, 500),
+        page_title: pageTitle ? String(pageTitle).slice(0, 200) : null,
+        referrer: referrer ? String(referrer).slice(0, 1000) : null,
         user_agent: userAgent,
-        ip_address: ipAddress
+        ip_address: ipAddress,
       });
 
     if (error) throw error;
@@ -229,7 +240,7 @@ async function trackPageView(req, res) {
     res.json({ success: true });
   } catch (error) {
     console.error('Error tracking page view:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'Failed to track page view' });
   }
 }
 
@@ -238,17 +249,39 @@ async function trackPageView(req, res) {
  */
 async function trackAffiliateClick(req, res) {
   try {
-    const { tourId, tourTitle, affiliateProvider, affiliateLink } = req.body;
+    const { tourId, affiliateProvider } = req.body;
     const userId = req.user?.id || null;
 
+    // Validate provider against whitelist — reject unknown/spoofed providers
+    if (!affiliateProvider || !ALLOWED_PROVIDERS.has(String(affiliateProvider).toLowerCase())) {
+      return res.status(400).json({ error: 'Invalid affiliateProvider' });
+    }
+
+    // Validate tourId is a real UUID
+    if (tourId && !UUID_RE.test(String(tourId))) {
+      return res.status(400).json({ error: 'Invalid tourId' });
+    }
+
+    // Look up tour title server-side — never trust client-supplied strings
+    let tourTitle = null;
+    if (tourId && supabase) {
+      const { data } = await supabase
+        .from('tours')
+        .select('title')
+        .eq('id', tourId)
+        .single();
+      tourTitle = data?.title || null;
+    }
+
+    // Never store a user-supplied affiliate_link — it's a free-form URL injection vector.
+    // The affiliate URL is deterministic and can be reconstructed from tourId + provider if needed.
     const { error } = await supabase
       .from('affiliate_clicks')
       .insert({
         user_id: userId,
-        tour_id: tourId,
+        tour_id: tourId || null,
         tour_title: tourTitle,
-        affiliate_provider: affiliateProvider,
-        affiliate_link: affiliateLink
+        affiliate_provider: affiliateProvider.toLowerCase(),
       });
 
     if (error) throw error;
@@ -256,7 +289,7 @@ async function trackAffiliateClick(req, res) {
     res.json({ success: true });
   } catch (error) {
     console.error('Error tracking affiliate click:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'Failed to track affiliate click' });
   }
 }
 

@@ -50,7 +50,8 @@ const schemas = {
       .pattern(/^[^\x00-\x1F\x7F<>]+$/, 'safe characters'),
     startDate: Joi.date().iso().required(),
     endDate: Joi.date().iso().required().greater(Joi.ref('startDate')),
-    preferences: Joi.string().max(500).trim().allow('', null),
+    preferences: Joi.string().max(500).trim().allow('', null)
+      .pattern(/^[^\n\r\t`{}\\\x00-\x08\x0B\x0C\x0E-\x1F\x7F]+$/, 'no newlines, tabs, or code-block characters'),
     budget: Joi.string().valid('budget', 'moderate', 'luxury').allow(null),
     style: Joi.string().max(50).trim().allow('', null),
     variants: Joi.number().integer().min(1).max(5).allow(null),

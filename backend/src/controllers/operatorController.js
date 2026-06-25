@@ -3,6 +3,17 @@ const logger = require('../utils/logger');
 
 const PLATFORM_FEE_RATE = 0.15; // Orbito keeps 15%, operator earns 85%
 
+// Explicit whitelist of fields an operator is allowed to edit.
+// Everything else (operator_id, listing_status, is_active, rating, slug, source) is blocked.
+const OPERATOR_EDITABLE_FIELDS = new Set([
+  'title', 'description', 'destination', 'city', 'country',
+  'category', 'duration_hours', 'duration_minutes',
+  'price_adult', 'price_child', 'currency',
+  'meeting_point', 'highlights', 'price_includes', 'price_excludes',
+  'cancellation_policy', 'start_times', 'max_group_size',
+  'available_days', 'main_image',
+]);
+
 // ── Operator Application ──────────────────────────────────────────────────────
 
 async function applyAsOperator(req, res) {
@@ -183,8 +194,18 @@ async function updateTour(req, res) {
     if (checkErr || !existing) return res.status(404).json({ error: 'Tour not found' });
     if (existing.operator_id !== operatorId) return res.status(403).json({ error: 'Unauthorized' });
 
-    // If a live tour is edited, put it back into review
-    const updatePayload = { ...req.body };
+    // Build payload from whitelist only — prevents mass assignment of
+    // operator_id, listing_status, is_active, rating, slug, source, etc.
+    const updatePayload = {};
+    for (const [key, value] of Object.entries(req.body)) {
+      if (OPERATOR_EDITABLE_FIELDS.has(key)) updatePayload[key] = value;
+    }
+
+    if (Object.keys(updatePayload).length === 0) {
+      return res.status(400).json({ error: 'No valid fields to update' });
+    }
+
+    // If a live tour is edited, put it back into review (operator cannot override this)
     if (existing.listing_status === 'live') {
       updatePayload.listing_status = 'pending_review';
       updatePayload.is_active = false;

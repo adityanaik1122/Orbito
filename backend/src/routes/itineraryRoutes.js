@@ -14,8 +14,8 @@ const { validate, schemas } = require('../middleware/validation');
 const router = express.Router();
 
 // Issues a guest token — call once on first visit and store in localStorage
-router.post('/guest-token', (req, res) => {
-  const token = issueGuestToken();
+router.post('/guest-token', async (req, res) => {
+  const token = await issueGuestToken();
   res.json({ token, limit: 2, message: 'You have 2 free itinerary generations.' });
 });
 

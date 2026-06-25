@@ -7,75 +7,47 @@ const logger = require('../utils/logger');
  * Checks API status, database connectivity, and service availability
  */
 async function getHealth(req, res) {
-  const health = {
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development',
-    services: {}
-  };
+  // Internal view (server-side only, never sent to client)
+  const internal = { groq: 'unknown', supabase: 'unknown' };
 
-  // Check Groq AI
-  health.services.groq = {
-    configured: !!process.env.GROQ_API_KEY,
-    available: !!groqClient,
-    status: groqClient ? 'operational' : 'unavailable'
-  };
+  internal.groq = groqClient ? 'operational' : 'unavailable';
 
-  // Check Supabase
-  const hasServiceKey = !!(process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY);
-  health.services.supabase = {
-    configured: !!process.env.SUPABASE_URL,
-    url: process.env.SUPABASE_URL || 'NOT SET',
-    keyType: hasServiceKey ? 'service_role' : (process.env.SUPABASE_ANON_KEY ? 'anon' : 'MISSING'),
-    status: 'unknown'
-  };
-
-  // Test Supabase connection
   if (supabase) {
     try {
       const { error } = await supabase.from('profiles').select('count').limit(1).single();
-      health.services.supabase.status = error ? 'degraded' : 'operational';
-      health.services.supabase.connected = !error;
-    } catch (err) {
-      health.services.supabase.status = 'unavailable';
-      health.services.supabase.connected = false;
-      health.services.supabase.error = err.message;
+      internal.supabase = error ? 'degraded' : 'operational';
+    } catch {
+      internal.supabase = 'unavailable';
     }
   } else {
-    health.services.supabase.status = 'unavailable';
-    health.services.supabase.connected = false;
+    internal.supabase = 'unavailable';
   }
 
-  // Check HuggingFace (optional)
-  health.services.huggingface = {
-    configured: !!process.env.HUGGINGFACE_API_KEY,
-    status: process.env.HUGGINGFACE_API_KEY ? 'operational' : 'not-configured'
+  const criticalHealthy = internal.groq === 'operational' && internal.supabase === 'operational';
+
+  // Log details server-side only — never include sensitive info in response
+  logger.debug('Health check (internal)', {
+    ...internal,
+    uptime: process.uptime(),
+    env: process.env.NODE_ENV,
+  });
+
+  // Public response: only top-level status + per-service status (no URLs, keys, config details)
+  const publicResponse = {
+    status: criticalHealthy ? 'healthy' : 'degraded',
+    timestamp: new Date().toISOString(),
+    services: {
+      database: internal.supabase,
+      ai: internal.groq,
+      email: process.env.RESEND_API_KEY ? 'operational' : 'not-configured',
+    },
   };
 
-  // Check Resend Email (optional)
-  health.services.email = {
-    configured: !!process.env.RESEND_API_KEY,
-    status: process.env.RESEND_API_KEY ? 'operational' : 'not-configured'
-  };
-
-  // Determine overall status
-  const criticalServices = ['groq', 'supabase'];
-  const allCriticalHealthy = criticalServices.every(
-    service => health.services[service].status === 'operational'
-  );
-
-  if (!allCriticalHealthy) {
-    health.status = 'degraded';
-    res.status(503); // Service Unavailable
+  if (!criticalHealthy) {
+    res.status(503);
   }
 
-  // Log health check in development
-  if (process.env.NODE_ENV !== 'production') {
-    logger.debug('Health check', health);
-  }
-
-  res.json(health);
+  res.json(publicResponse);
 }
 
 /**

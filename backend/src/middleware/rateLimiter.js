@@ -77,4 +77,19 @@ const bookingLimiter = rateLimit({
   },
 });
 
-module.exports = { apiLimiter, authLimiter, aiLimiter, bookingLimiter };
+// Analytics tracking endpoints are public — cap at 30/min per IP to deter DB spam
+const trackingLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  store,
+  skip,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: 'Too many tracking requests',
+    message: 'Slow down — too many tracking requests from this IP.',
+    retryAfter: '1 minute',
+  },
+});
+
+module.exports = { apiLimiter, authLimiter, aiLimiter, bookingLimiter, trackingLimiter };
