@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet';
@@ -84,6 +84,50 @@ const FEATURES = [
     color: 'from-violet-500 to-purple-700',
   },
 ];
+
+const STATS = [
+  { value: 500,  suffix: '+',  label: 'Destinations' },
+  { value: 10,   suffix: 'K+', label: 'Itineraries Created' },
+  { value: 30,   suffix: 's',  label: 'Avg. Planning Time' },
+  { value: 100,  suffix: '%',  label: 'Free Forever' },
+];
+
+const StatCounter = ({ value, suffix, label }) => {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+  const started = useRef(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !started.current) {
+        started.current = true;
+        const duration = 1400;
+        const start = performance.now();
+        const tick = (now) => {
+          const p = Math.min((now - start) / duration, 1);
+          const eased = 1 - Math.pow(1 - p, 3);
+          setCount(Math.floor(eased * value));
+          if (p < 1) requestAnimationFrame(tick);
+          else setCount(value);
+        };
+        requestAnimationFrame(tick);
+      }
+    }, { threshold: 0.5 });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [value]);
+
+  return (
+    <div ref={ref} className="text-center px-4">
+      <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-[#0B3D91] to-[#0EA5E9] bg-clip-text text-transparent">
+        {count}{suffix}
+      </div>
+      <div className="text-gray-500 text-sm mt-2 font-medium tracking-wide">{label}</div>
+    </div>
+  );
+};
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -212,6 +256,17 @@ const HomePage = () => {
               <span>✦ No account needed</span>
             </div>
           </motion.div>
+        </section>
+
+        {/* ── STATS BAR ────────────────────────────────────────────────────── */}
+        <section className="py-16 bg-white border-b border-gray-100">
+          <div className="container mx-auto px-5 max-w-4xl">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 divide-x-0 md:divide-x divide-gray-100">
+              {STATS.map((s) => (
+                <StatCounter key={s.label} {...s} />
+              ))}
+            </div>
+          </div>
         </section>
 
         {/* ── ITINERARY PREVIEW ────────────────────────────────────────────── */}
@@ -374,17 +429,18 @@ const HomePage = () => {
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-[180px] lg:auto-rows-[200px]">
               {DESTINATIONS.map((dest, i) => (
                 <motion.div
                   key={dest.slug}
                   initial={{ opacity: 0, scale: 0.97 }}
                   whileInView={{ opacity: 1, scale: 1 }}
                   transition={{ delay: i * 0.05, duration: 0.4 }}
+                  className={i === 0 ? 'lg:row-span-2' : ''}
                 >
                   <button
                     onClick={() => handlePrompt(`7 days in ${dest.name}, best mix of culture and food`)}
-                    className="relative block w-full h-44 sm:h-52 rounded-2xl overflow-hidden group text-left"
+                    className="relative block w-full h-full rounded-2xl overflow-hidden group text-left"
                   >
                     <img
                       src={dest.image}
@@ -396,7 +452,8 @@ const HomePage = () => {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                     <div className="absolute bottom-0 left-0 p-4">
-                      <p className="text-white font-bold text-lg leading-tight">{dest.flag} {dest.name}</p>
+                      <p className={`text-white font-bold leading-tight ${i === 0 ? 'text-2xl' : 'text-lg'}`}>{dest.flag} {dest.name}</p>
+                      {i === 0 && <p className="text-white/70 text-xs mt-1">Most popular destination</p>}
                     </div>
                     <div className="absolute top-3 right-3 bg-white/20 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
                       <Sparkles className="w-3 h-3" /> Plan trip
